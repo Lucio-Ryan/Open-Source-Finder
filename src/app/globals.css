@@ -1,0 +1,248 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Google Fonts - Inter, JetBrains Mono, VT323 (pixel font) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=VT323&family=Press+Start+2P&display=swap');
+
+:root {
+  --color-brand: #3ECF8E;
+  --color-brand-dark: #30A46C;
+  --color-background: #0D0D0D;
+  --color-surface: #181818;
+  --color-border: #2D2D2D;
+  --color-text: #EDEDED;
+  --color-text-muted: #8B8B8B;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--color-text);
+  background: var(--color-background);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Terminal/Pixel Font Classes */
+.font-pixel {
+  font-family: 'VT323', monospace;
+  letter-spacing: 0.05em;
+}
+
+.font-pixel-sm {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', 'SF Mono', Monaco, monospace;
+}
+
+/* Custom scrollbar - dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0D0D0D;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2D2D2D;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3D3D3D;
+}
+
+/* Thin scrollbar for inner containers */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #2D2D2D;
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #3ECF8E;
+}
+
+/* Glow effects */
+.glow-brand {
+  box-shadow: 0 0 20px rgba(62, 207, 142, 0.3);
+}
+
+.glow-brand-sm {
+  box-shadow: 0 0 10px rgba(62, 207, 142, 0.2);
+}
+
+.text-glow {
+  text-shadow: 0 0 20px rgba(62, 207, 142, 0.5);
+}
+
+/* Terminal cursor blink */
+.cursor-blink::after {
+  content: '▋';
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Card hover effects */
+.card-dark {
+  background: #181818;
+  border: 1px solid #2D2D2D;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.card-dark:hover {
+  border-color: #3ECF8E;
+  box-shadow: 0 0 30px rgba(62, 207, 142, 0.1);
+}
+
+/* Gradient text */
+.gradient-text-brand {
+  background: linear-gradient(135deg, #3ECF8E 0%, #30A46C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Grid background pattern */
+.bg-grid {
+  background-image: 
+    linear-gradient(to right, rgba(45, 45, 45, 0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(45, 45, 45, 0.5) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Noise texture overlay */
+.noise-overlay {
+  position: relative;
+}
+
+.noise-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.02;
+  pointer-events: none;
+}
+
+/* Terminal box */
+.terminal-box {
+  background: linear-gradient(180deg, #1C1C1C 0%, #141414 100%);
+  border: 1px solid #2D2D2D;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #2D2D2D;
+}
+
+.terminal-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.terminal-dot-red { background: #FF5F56; }
+.terminal-dot-yellow { background: #FFBD2E; }
+.terminal-dot-green { background: #27C93F; }
+
+/* Button styles */
+.btn-brand {
+  background: linear-gradient(135deg, #3ECF8E 0%, #30A46C 100%);
+  color: #0D0D0D;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.btn-brand:hover {
+  box-shadow: 0 0 20px rgba(62, 207, 142, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #2D2D2D;
+  color: #EDEDED;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.btn-outline:hover {
+  border-color: #3ECF8E;
+  color: #3ECF8E;
+}
+
+/* Feature icon container */
+.icon-container {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(62, 207, 142, 0.2) 0%, rgba(62, 207, 142, 0.05) 100%);
+  border: 1px solid rgba(62, 207, 142, 0.3);
+  border-radius: 12px;
+}
+
+/* Stats counter */
+.stat-number {
+  font-family: 'VT323', monospace;
+  font-size: 3rem;
+  color: #3ECF8E;
+  text-shadow: 0 0 20px rgba(62, 207, 142, 0.5);
+}
+
+/* Selection color */
+::selection {
+  background: rgba(62, 207, 142, 0.3);
+  color: #EDEDED;
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid #3ECF8E;
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for theme */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

@@ -1,0 +1,204 @@
+'use client';
+
+import Link from 'next/link';
+import { useState } from 'react';
+import { Menu, X, Search, Github, Terminal, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { useAuth } from '@/lib/auth/AuthContext';
+
+export function Header() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const { user, loading, signOut } = useAuth();
+
+  const navigation = [
+    { name: 'Alternatives', href: '/alternatives' },
+    { name: 'Categories', href: '/categories' },
+    { name: 'Self-Hosted', href: '/self-hosted' },
+    { name: 'Tech Stacks', href: '/tech-stacks' },
+    { name: 'About', href: '/about' },
+  ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    setIsUserMenuOpen(false);
+  };
+
+  return (
+    <header className="sticky top-0 z-50 bg-dark/90 backdrop-blur-md border-b border-border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center space-x-3 group">
+            <div className="w-9 h-9 bg-brand/10 border border-brand/30 rounded-lg flex items-center justify-center group-hover:border-brand/60 transition-colors">
+              <Terminal className="w-5 h-5 text-brand" />
+            </div>
+            <span className="font-pixel text-sm text-white tracking-wider">
+              OSS<span className="text-brand">_</span>FINDER
+            </span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-1">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="px-4 py-2 text-muted hover:text-brand font-mono text-sm transition-colors relative group"
+              >
+                <span className="opacity-0 group-hover:opacity-100 text-brand/50 transition-opacity">[</span>
+                {item.name}
+                <span className="opacity-0 group-hover:opacity-100 text-brand/50 transition-opacity">]</span>
+              </Link>
+            ))}
+          </nav>
+
+          {/* Actions */}
+          <div className="flex items-center space-x-2">
+            <Link
+              href="/search"
+              className="p-2.5 text-muted hover:text-brand border border-transparent hover:border-border rounded-lg transition-all"
+              aria-label="Search"
+            >
+              <Search className="w-5 h-5" />
+            </Link>
+            <Link
+              href="/submit"
+              className="hidden sm:inline-flex items-center px-4 py-2 bg-brand text-dark font-mono text-sm font-medium rounded-lg hover:bg-brand-light transition-all hover:shadow-glow"
+            >
+              Submit_
+            </Link>
+            
+            {/* Auth Section */}
+            {loading ? (
+              <div className="hidden sm:flex items-center gap-2 px-4 py-2 border border-border rounded-lg animate-pulse">
+                <div className="w-5 h-5 bg-muted/20 rounded" />
+                <div className="w-16 h-4 bg-muted/20 rounded" />
+              </div>
+            ) : user ? (
+              <div className="relative">
+                    <button
+                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                      className="flex items-center gap-2 p-2 text-muted hover:text-white border border-border hover:border-brand/50 rounded-lg transition-all"
+                    >
+                      <User className="w-5 h-5" />
+                      <span className="hidden sm:inline font-mono text-sm">
+                        {user.user_metadata?.name || user.email?.split('@')[0]}
+                      </span>
+                    </button>
+                    
+                    {isUserMenuOpen && (
+                      <>
+                        <div 
+                          className="fixed inset-0 z-40" 
+                          onClick={() => setIsUserMenuOpen(false)}
+                        />
+                        <div className="absolute right-0 mt-2 w-48 bg-surface border border-border rounded-lg shadow-xl z-50 overflow-hidden">
+                          <Link
+                            href="/dashboard"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center gap-2 px-4 py-3 text-muted hover:text-white hover:bg-brand/10 font-mono text-sm transition-colors"
+                          >
+                            <LayoutDashboard className="w-4 h-4" />
+                            Dashboard
+                          </Link>
+                          <button
+                            onClick={handleSignOut}
+                            className="w-full flex items-center gap-2 px-4 py-3 text-muted hover:text-red-400 hover:bg-red-500/10 font-mono text-sm transition-colors"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            Sign Out
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden sm:inline-flex items-center px-4 py-2 text-muted hover:text-white border border-border hover:border-brand/50 font-mono text-sm rounded-lg transition-all"
+              >
+                Sign In
+              </Link>
+            )}
+            
+            <a
+              href="https://github.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2.5 text-muted hover:text-white border border-transparent hover:border-border rounded-lg transition-all"
+              aria-label="GitHub"
+            >
+              <Github className="w-5 h-5" />
+            </a>
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 text-muted hover:text-brand"
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <div className="md:hidden py-4 border-t border-border bg-surface/50">
+            <nav className="flex flex-col space-y-1">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="px-4 py-3 text-muted hover:text-brand hover:bg-brand/5 font-mono text-sm transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span className="text-brand/50">{'>'}</span> {item.name}
+                </Link>
+              ))}
+              {loading ? (
+                <div className="px-4 py-3 text-muted font-mono text-sm">
+                  <span className="text-brand/50">{'>'}</span> Loading...
+                </div>
+              ) : user ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="px-4 py-3 text-muted hover:text-brand hover:bg-brand/5 font-mono text-sm transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <span className="text-brand/50">{'>'}</span> Dashboard
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      setIsMenuOpen(false);
+                    }}
+                    className="px-4 py-3 text-left text-muted hover:text-red-400 hover:bg-red-500/5 font-mono text-sm transition-colors"
+                  >
+                    <span className="text-red-500/50">{'>'}</span> Sign Out
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  className="px-4 py-3 text-muted hover:text-brand hover:bg-brand/5 font-mono text-sm transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span className="text-brand/50">{'>'}</span> Sign In
+                </Link>
+              )}
+              <Link
+                href="/submit"
+                className="mx-4 mt-2 inline-flex items-center justify-center px-4 py-2.5 bg-brand text-dark font-mono text-sm font-medium rounded-lg hover:bg-brand-light transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Submit Project
+              </Link>
+            </nav>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
