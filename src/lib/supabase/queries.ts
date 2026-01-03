@@ -625,6 +625,8 @@ function transformAlternatives(data: any[]): AlternativeWithRelations[] {
     screenshots: item.screenshots,
     featured: item.featured,
     approved: item.approved,
+    rejection_reason: item.rejection_reason,
+    rejected_at: item.rejected_at,
     created_at: item.created_at,
     updated_at: item.updated_at,
     categories: item.alternative_categories?.map((ac: any) => ac.categories).filter(Boolean) || [],
