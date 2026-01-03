@@ -239,8 +239,8 @@ export default function DebugPage() {
           <div className="bg-surface rounded-xl border border-border p-6">
             <h2 className="text-lg font-mono text-brand mb-4">// getting_started</h2>
             <div className="space-y-4 text-muted text-sm">
-              <p>Click "Run Diagnostics" to test your database connection.</p>
-              <p>If you haven't set up Supabase yet:</p>
+              <p>Click &quot;Run Diagnostics&quot; to test your database connection.</p>
+              <p>If you haven&apos;t set up Supabase yet:</p>
               <ol className="list-decimal list-inside space-y-2">
                 <li>Create a project at <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-brand hover:underline">supabase.com</a></li>
                 <li>Run the SQL from <code className="text-brand">supabase/schema.sql</code> in the SQL Editor</li>

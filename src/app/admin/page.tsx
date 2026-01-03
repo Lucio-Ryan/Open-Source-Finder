@@ -82,7 +82,7 @@ export default function AdminDashboardPage() {
         <div className="text-center">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
-          <p className="text-muted mb-4">You don't have permission to access the admin dashboard.</p>
+          <p className="text-muted mb-4">You don&apos;t have permission to access the admin dashboard.</p>
           <Link href="/dashboard" className="text-brand hover:underline">
             Go to your dashboard
           </Link>

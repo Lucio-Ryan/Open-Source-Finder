@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Plus, Edit2, Eye, Clock, CheckCircle, XCircle, Loader2, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -215,9 +216,11 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     {alt.icon_url ? (
-                      <img
+                      <Image
                         src={alt.icon_url}
                         alt={alt.name}
+                        width={48}
+                        height={48}
                         className="w-12 h-12 rounded-lg object-cover border border-border"
                       />
                     ) : (
