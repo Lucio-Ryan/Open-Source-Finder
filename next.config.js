@@ -18,6 +18,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: '*.supabase.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'img.freepik.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
     ],
     // Allow data URLs for icon previews
     dangerouslyAllowSVG: true,

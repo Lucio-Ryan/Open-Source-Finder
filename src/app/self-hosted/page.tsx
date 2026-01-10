@@ -1,12 +1,16 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, Server, Shield, Wrench, Unlock } from 'lucide-react';
-import { AlternativeCard, SearchBar } from '@/components/ui';
+import { SearchBar } from '@/components/ui';
 import { getSelfHostedAlternatives } from '@/lib/supabase/queries';
+import { SelfHostedGrid } from './SelfHostedGrid';
 
 export const metadata: Metadata = {
-  title: 'Self-Hosted Open Source Alternatives | OSS_Finder',
-  description: 'Discover self-hosted open source alternatives. Run your own instance with complete control over your data and privacy.',
+  title: 'Self-Hosted Open Source Software - Privacy & Control',
+  description: 'Discover self-hosted open source alternatives you can run on your own servers. Complete control over your data, enhanced privacy, and freedom from vendor lock-in. 100+ solutions available.',
+  alternates: {
+    canonical: '/self-hosted',
+  },
 };
 
 export const revalidate = 60;
@@ -82,11 +86,7 @@ export default async function SelfHostedPage() {
 
       {/* Alternatives Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {selfHostedAlternatives.map((alternative) => (
-            <AlternativeCard key={alternative.id} alternative={alternative} />
-          ))}
-        </div>
+        <SelfHostedGrid alternatives={selfHostedAlternatives} />
       </div>
     </div>
   );

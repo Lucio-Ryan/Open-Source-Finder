@@ -26,6 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/categories',
     '/self-hosted',
     '/tech-stacks',
+    '/launches',
     '/about',
     '/submit',
     '/search',
@@ -33,7 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
-    priority: route === '' ? 1 : 0.8,
+    priority: route === '' ? 1 : route === '/launches' ? 0.9 : 0.8,
   }));
 
   // Alternative pages

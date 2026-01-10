@@ -3,9 +3,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, ExternalLink, Github, Server, Scale } from 'lucide-react';
-import { getAlternatives, getAlternativeBySlug } from '@/lib/supabase/queries';
+import { getAlternatives, getAlternativeBySlug, getCreatorProfileByUserId, getCreatorProfileByEmail } from '@/lib/supabase/queries';
 import { AlternativeWithRelations } from '@/types/database';
-import { AlternativeCard, RichTextContent, GitHubStatsCard, ScreenshotCarousel } from '@/components/ui';
+import { AlternativeCard, RichTextContent, GitHubStatsCard, ScreenshotCarousel, CreatorProfileCard, AlternativeVoteSection, DiscussionSection } from '@/components/ui';
 
 export const revalidate = 60;
 
@@ -35,6 +35,14 @@ export default async function AlternativeDetailPage({ params }: Props) {
 
   if (!alternative) {
     notFound();
+  }
+
+  // Fetch creator profile - first try by user_id, then by submitter_email
+  let creatorProfile = null;
+  if (alternative.user_id) {
+    creatorProfile = await getCreatorProfileByUserId(alternative.user_id);
+  } else if (alternative.submitter_email) {
+    creatorProfile = await getCreatorProfileByEmail(alternative.submitter_email);
   }
   
   // Get similar alternatives based on categories
@@ -203,10 +211,28 @@ export default async function AlternativeDetailPage({ params }: Props) {
                 </div>
               </div>
             )}
+
+            {/* Discussion Section */}
+            <DiscussionSection 
+              alternativeId={alternative.id}
+              alternativeName={alternative.name}
+              creatorId={alternative.user_id}
+            />
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Community Vote */}
+            <AlternativeVoteSection 
+              alternativeId={alternative.id} 
+              initialScore={(alternative as any).vote_score || 0}
+            />
+
+            {/* Creator Profile */}
+            {creatorProfile && (
+              <CreatorProfileCard creator={creatorProfile} />
+            )}
+
             {/* GitHub Stats - Fetched automatically from GitHub API */}
             {alternative.github && (
               <GitHubStatsCard

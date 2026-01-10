@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Star, GitFork, Clock, ExternalLink, Github, Server } from 'lucide-react';
 import type { AlternativeWithRelations } from '@/types/database';
+import { VoteButtons } from './VoteButtons';
 
 // Unified interface that works with both old static data and new Supabase data
 interface AlternativeData {
@@ -25,6 +26,8 @@ interface AlternativeData {
   is_self_hosted?: boolean;
   healthScore?: number;
   health_score?: number;
+  vote_score?: number | null;
+  submission_plan?: string | null;
   tags?: string[] | { slug: string; name: string }[];
   alternative_to?: { id: string; name: string; slug: string }[];
 }
@@ -106,6 +109,8 @@ export function AlternativeCard({ alternative }: AlternativeCardProps) {
   const dbHealthScore = alternative.health_score ?? (alternative as any).healthScore ?? 50;
   const dbLastCommit = alternative.last_commit ?? (alternative as any).lastCommit;
   const iconUrl = (alternative as any).icon_url ?? null;
+  const voteScore = (alternative as any).vote_score ?? 0;
+  const isSponsor = (alternative as any).submission_plan === 'sponsor';
   
   // Use live stats if available, fallback to database values
   const displayStars = liveStats?.stars ?? alternative.stars ?? 0;
@@ -120,36 +125,46 @@ export function AlternativeCard({ alternative }: AlternativeCardProps) {
   return (
     <div className="card-dark group">
       <div className="flex items-start justify-between mb-5">
-        <div className="flex items-center space-x-4">
-          {iconUrl ? (
-            <Image
-              src={iconUrl}
-              alt={`${alternative.name} icon`}
-              width={56}
-              height={56}
-              className="w-14 h-14 rounded-xl object-cover border border-brand/20 group-hover:border-brand/40 transition-colors"
-            />
-          ) : (
-            <div className="w-14 h-14 bg-brand/10 border border-brand/20 rounded-xl flex items-center justify-center text-brand font-pixel text-xl group-hover:border-brand/40 transition-colors">
-              {alternative.name.charAt(0)}
-            </div>
-          )}
-          <div>
-            <Link href={`/alternatives/${alternative.slug}`}>
-              <h3 className="font-semibold text-white group-hover:text-brand transition-colors">
-                {alternative.name}
-              </h3>
-            </Link>
-            <div className="flex items-center space-x-2 text-xs font-mono text-muted">
-              {isSelfHosted && (
-                <span className="flex items-center text-brand">
-                  <Server className="w-3 h-3 mr-1" />
-                  self-hosted
-                </span>
-              )}
-              {alternative.license && (
-                <span className="text-muted/60">• {alternative.license}</span>
-              )}
+        {/* Vote buttons on the left */}
+        <div className="flex items-start space-x-3">
+          <VoteButtons 
+            alternativeId={alternative.id} 
+            initialScore={voteScore}
+            size="sm"
+            layout="vertical"
+            className="flex-shrink-0"
+          />
+          <div className="flex items-center space-x-4">
+            {iconUrl ? (
+              <Image
+                src={iconUrl}
+                alt={`${alternative.name} icon`}
+                width={56}
+                height={56}
+                className="w-14 h-14 rounded-xl object-cover border border-brand/20 group-hover:border-brand/40 transition-colors"
+              />
+            ) : (
+              <div className="w-14 h-14 bg-brand/10 border border-brand/20 rounded-xl flex items-center justify-center text-brand font-pixel text-xl group-hover:border-brand/40 transition-colors">
+                {alternative.name.charAt(0)}
+              </div>
+            )}
+            <div>
+              <Link href={`/alternatives/${alternative.slug}`}>
+                <h3 className="font-semibold text-white group-hover:text-brand transition-colors">
+                  {alternative.name}
+                </h3>
+              </Link>
+              <div className="flex items-center space-x-2 text-xs font-mono text-muted">
+                {isSelfHosted && (
+                  <span className="flex items-center text-brand">
+                    <Server className="w-3 h-3 mr-1" />
+                    self-hosted
+                  </span>
+                )}
+                {alternative.license && (
+                  <span className="text-muted/60">• {alternative.license}</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -217,7 +232,7 @@ export function AlternativeCard({ alternative }: AlternativeCardProps) {
         <a
           href={alternative.website}
           target="_blank"
-          rel="noopener noreferrer"
+          rel={isSponsor ? "noopener noreferrer" : "noopener noreferrer nofollow"}
           className="flex items-center space-x-1 text-xs font-mono text-brand hover:text-brand-light transition-colors"
         >
           <span>website</span>
@@ -227,7 +242,7 @@ export function AlternativeCard({ alternative }: AlternativeCardProps) {
           <a
             href={alternative.github}
             target="_blank"
-            rel="noopener noreferrer"
+            rel={isSponsor ? "noopener noreferrer" : "noopener noreferrer nofollow"}
             className="flex items-center space-x-1 text-xs font-mono text-muted hover:text-white transition-colors"
           >
             <Github className="w-3.5 h-3.5" />

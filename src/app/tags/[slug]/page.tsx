@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Tag } from 'lucide-react';
-import { AlternativeCard, SearchBar } from '@/components/ui';
+import { AlternativeCard, SponsoredAlternativeCard, SearchBar, isActiveSponsor } from '@/components/ui';
 import { getTags, getTagBySlug, getAlternativesByTag } from '@/lib/supabase/queries';
 
 export const revalidate = 60;
@@ -70,7 +70,11 @@ export default async function TagPage({ params }: Props) {
         {tagAlternatives.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {tagAlternatives.map((alternative) => (
-              <AlternativeCard key={alternative.id} alternative={alternative} />
+              isActiveSponsor(alternative) ? (
+                <SponsoredAlternativeCard key={alternative.id} alternative={alternative} />
+              ) : (
+                <AlternativeCard key={alternative.id} alternative={alternative} />
+              )
             ))}
           </div>
         ) : (

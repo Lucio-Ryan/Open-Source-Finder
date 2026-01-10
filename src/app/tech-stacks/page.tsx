@@ -6,8 +6,11 @@ import { getTechStacks } from '@/lib/supabase/queries';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'Browse by Tech Stack | OSS_Finder',
-  description: 'Discover open source alternatives by programming language and technology stack.',
+  title: 'Browse Open Source Software by Tech Stack',
+  description: 'Discover open source alternatives by programming language and technology stack. Filter by Python, JavaScript, TypeScript, Go, Rust, React, Vue, Docker and more. Find tools built with your preferred technologies.',
+  alternates: {
+    canonical: '/tech-stacks',
+  },
 };
 
 // Stack type order for display

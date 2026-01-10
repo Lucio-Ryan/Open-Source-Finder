@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OSS Finder logo">
+  <!-- Dark green rounded square background (no border) -->
+  <rect x="1" y="1" width="22" height="22" rx="5" fill="#155239" />
+
+  <!-- Terminal glyph: chevron (>) and underscore (_) in brand teal -->
+  <g fill="none" stroke="#3ECF8E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Chevron -->
+    <path d="M7.8 8.8 L11.2 12 L7.8 15.2" />
+    <!-- Underscore -->
+    <path d="M13.8 16 H16.2" />
+  </g>
+
+  <!-- Optional: subtle inner highlight for a polished look -->
+  <rect x="2" y="2" width="20" height="20" rx="4" fill="none" stroke="#FFFFFF" stroke-opacity="0.03" />
+</svg>

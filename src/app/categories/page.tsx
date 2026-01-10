@@ -5,8 +5,11 @@ import { CategoryCard } from '@/components/ui';
 import { getCategories } from '@/lib/supabase/queries';
 
 export const metadata: Metadata = {
-  title: 'Browse Categories | OSS_Finder',
-  description: 'Browse open source alternatives by category. Find tools for project management, communication, design, and more.',
+  title: 'Browse Open Source Software by Category',
+  description: 'Explore open source alternatives organized by category. Find free tools for project management, communication, design, development, business software, and 50+ other categories.',
+  alternates: {
+    canonical: '/categories',
+  },
 };
 
 export const revalidate = 60;

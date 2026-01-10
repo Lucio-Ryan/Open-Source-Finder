@@ -11,11 +11,12 @@ export function Header() {
   const { user, loading, signOut } = useAuth();
 
   const navigation = [
+    { name: 'Launches', href: '/launches' },
     { name: 'Alternatives', href: '/alternatives' },
     { name: 'Categories', href: '/categories' },
     { name: 'Self-Hosted', href: '/self-hosted' },
     { name: 'Tech Stacks', href: '/tech-stacks' },
-    { name: 'About', href: '/about' },
+    { name: 'Advertise', href: '/advertise' },
   ];
 
   const handleSignOut = async () => {

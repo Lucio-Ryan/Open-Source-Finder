@@ -13,7 +13,9 @@ import {
   FileCheck, 
   Users,
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  Megaphone,
+  Mail
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
 
@@ -99,6 +101,20 @@ export default function AdminDashboardPage() {
       description: 'Review and approve pending submissions',
       count: stats?.pendingSubmissions,
       highlight: true,
+    },
+    {
+      href: '/admin/advertisements',
+      icon: Megaphone,
+      label: 'Advertisements',
+      description: 'Manage and approve ad submissions',
+      highlight: true,
+    },
+    {
+      href: '/admin/newsletter',
+      icon: Mail,
+      label: 'Newsletter',
+      description: 'Track weekly sponsors for newsletter',
+      highlight: false,
     },
     {
       href: '/admin/categories',

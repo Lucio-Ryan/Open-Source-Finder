@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Search, Terminal, Loader2, ArrowRight, Filter, X } from 'lucide-react';
-import { SearchBar, AlternativeCard } from '@/components/ui';
+import { SearchBar, AlternativeCard, SponsoredAlternativeCard, CardAd, useCardAds, intersperseAds, isAdvertisement, isActiveSponsor } from '@/components/ui';
 import type { AlternativeWithRelations } from '@/types/database';
 
 interface ProprietaryMatch {
@@ -129,6 +129,13 @@ function SearchResults() {
         : [...prev.selectedTags, slug],
     }));
   };
+
+  const { ads } = useCardAds();
+
+  // Intersperse ads into filtered results
+  const itemsWithAds = useMemo(() => {
+    return intersperseAds(filteredResults, ads, 6);
+  }, [filteredResults, ads]);
 
   const clearFilters = () => {
     setFilters({
@@ -303,8 +310,14 @@ function SearchResults() {
 
               {filteredResults.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {filteredResults.map((alternative) => (
-                    <AlternativeCard key={alternative.id} alternative={alternative} />
+                  {itemsWithAds.map((item) => (
+                    isAdvertisement(item) ? (
+                      <CardAd key={`ad-${item.id}`} ad={item} />
+                    ) : isActiveSponsor(item) ? (
+                      <SponsoredAlternativeCard key={item.id} alternative={item} />
+                    ) : (
+                      <AlternativeCard key={item.id} alternative={item} />
+                    )
                   ))}
                 </div>
               ) : results.length > 0 ? (

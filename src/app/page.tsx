@@ -1,18 +1,27 @@
+import { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Code2, ChevronRight, Github } from 'lucide-react';
-import { SearchBar, AlternativeCard, NewsletterForm } from '@/components/ui';
+import { ArrowRight, Code2, ChevronRight, Github, Rocket } from 'lucide-react';
+import { SearchBar, AlternativeCard, SponsoredAlternativeCard, NewsletterForm, AlternativesGridWithAds, isActiveSponsor } from '@/components/ui';
 import { 
   getFeaturedAlternatives, 
   getProprietarySoftware,
+  getAlternatives,
 } from '@/lib/supabase/queries';
 
 // Enable ISR with revalidation
 export const revalidate = 60;
 
+export const metadata: Metadata = {
+  alternates: {
+    canonical: '/',
+  },
+};
+
 export default async function Home() {
-  const [featuredAlternatives, proprietarySoftware] = await Promise.all([
+  const [featuredAlternatives, proprietarySoftware, recentLaunches] = await Promise.all([
     getFeaturedAlternatives(),
     getProprietarySoftware(),
+    getAlternatives({ approved: true, sortBy: 'created_at', sortOrder: 'desc', limit: 6 }),
   ]);
 
   return (
@@ -116,6 +125,50 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* Recently Launched Section */}
+      <section className="py-16 lg:py-20 border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between mb-12">
+            <div>
+              <p className="text-brand font-mono text-sm mb-3 flex items-center gap-2">
+                <Rocket className="w-4 h-4" />
+                // RECENTLY LAUNCHED
+              </p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-white">
+                New Arrivals<span className="text-brand">_</span>
+              </h2>
+            </div>
+            <Link
+              href="/launches"
+              className="hidden sm:flex items-center text-muted hover:text-brand font-mono text-sm transition-colors group"
+            >
+              View all launches
+              <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {recentLaunches.map((alternative) => (
+              isActiveSponsor(alternative) ? (
+                <SponsoredAlternativeCard key={alternative.id} alternative={alternative} />
+              ) : (
+                <AlternativeCard key={alternative.id} alternative={alternative} />
+              )
+            ))}
+          </div>
+          
+          <div className="mt-10 text-center sm:hidden">
+            <Link
+              href="/launches"
+              className="inline-flex items-center text-brand font-mono text-sm"
+            >
+              View All Launches
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Featured Alternatives */}
       <section className="py-20 lg:py-28 relative">
         <div className="absolute inset-0 bg-grid-pattern opacity-3"></div>
@@ -137,11 +190,7 @@ export default async function Home() {
             </Link>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredAlternatives.map((alternative) => (
-              <AlternativeCard key={alternative.id} alternative={alternative} />
-            ))}
-          </div>
+          <AlternativesGridWithAds alternatives={featuredAlternatives} maxAds={1} />
           
           <div className="mt-10 text-center sm:hidden">
             <Link

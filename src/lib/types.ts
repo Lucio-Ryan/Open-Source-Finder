@@ -6,6 +6,10 @@ export interface Profile {
   bio: string | null;
   website: string | null;
   github_username: string | null;
+  twitter_username: string | null;
+  linkedin_url: string | null;
+  youtube_url: string | null;
+  discord_username: string | null;
   role: 'user' | 'admin' | 'moderator';
   created_at: string;
   updated_at: string;

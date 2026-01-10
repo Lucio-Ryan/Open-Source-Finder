@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Code } from 'lucide-react';
-import { AlternativeCard, SearchBar } from '@/components/ui';
+import { SearchBar, AlternativesList } from '@/components/ui';
 import { getTechStacks, getTechStackBySlug, getAlternativesByTechStack } from '@/lib/supabase/queries';
 
 export const revalidate = 60;
@@ -69,14 +69,10 @@ export default async function TechStackPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Alternatives Grid */}
+      {/* Alternatives Grid with Filters */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {techAlternatives.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {techAlternatives.map((alternative) => (
-              <AlternativeCard key={alternative.id} alternative={alternative} />
-            ))}
-          </div>
+          <AlternativesList alternatives={techAlternatives} />
         ) : (
           <div className="text-center py-16 bg-surface border border-border rounded-lg">
             <p className="text-muted mb-4 font-mono"><span className="text-brand">$</span> No alternatives found with this tech stack yet.</p>

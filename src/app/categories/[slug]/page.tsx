@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { AlternativeCard, SearchBar } from '@/components/ui';
+import { SearchBar, AlternativesList } from '@/components/ui';
 import { getCategoryBySlug, getAlternativesByCategory, getCategories } from '@/lib/supabase/queries';
 
 interface Props {
@@ -62,20 +62,10 @@ export default async function CategoryPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Alternatives Grid */}
+      {/* Alternatives Grid with Filters */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-muted font-mono">
-            <span className="text-brand">found:</span> {categoryAlternatives.length} alternatives
-          </p>
-        </div>
-
         {categoryAlternatives.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categoryAlternatives.map((alternative) => (
-              <AlternativeCard key={alternative.id} alternative={alternative} />
-            ))}
-          </div>
+          <AlternativesList alternatives={categoryAlternatives} />
         ) : (
           <div className="text-center py-16 bg-surface border border-border rounded-lg">
             <p className="text-muted font-mono mb-4">No alternatives found in this category yet.</p>

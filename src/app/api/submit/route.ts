@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import type { Database } from '@/types/database';
 
 type AlternativeInsert = Database['public']['Tables']['alternatives']['Insert'];
+type SubmissionPlan = 'free' | 'sponsor';
 
 function generateSlug(name: string): string {
   return name
@@ -80,12 +81,34 @@ export async function POST(request: NextRequest) {
       submitter_name,
       submitter_email,
       screenshots,
+      // New plan-related fields
+      submission_plan = 'free' as SubmissionPlan,
+      backlink_verified = false,
+      backlink_url,
+      sponsor_payment_id,
     } = body;
 
     // Validate required fields
     if (!name || !short_description || !description || !website || !github) {
       return NextResponse.json(
         { error: 'Name, short description, description, website, and GitHub repository are required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate plan-specific requirements
+    if (submission_plan === 'free' && !backlink_verified) {
+      return NextResponse.json(
+        { error: 'Backlink verification is required for free submissions. Please add the Open Source Finder badge to your README.' },
+        { status: 400 }
+      );
+    }
+
+    // For sponsor plan, we'd typically verify payment here
+    // In a real implementation, you'd verify with Stripe or similar
+    if (submission_plan === 'sponsor' && !sponsor_payment_id) {
+      return NextResponse.json(
+        { error: 'Payment is required for sponsor submissions.' },
         { status: 400 }
       );
     }
@@ -106,6 +129,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Calculate sponsor dates (7 days from now for sponsor plan)
+    const now = new Date();
+    const sevenDaysLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    
+    // Determine approval status based on plan
+    // Sponsor: auto-approved, Free: requires manual approval
+    const isAutoApproved = submission_plan === 'sponsor';
+
     // Insert the alternative
     const insertData: AlternativeInsert = {
       name,
@@ -119,12 +150,20 @@ export async function POST(request: NextRequest) {
       is_self_hosted: is_self_hosted || false,
       license: license || null,
       health_score: 50,
-      approved: false, // Requires manual approval
-      featured: false,
+      approved: isAutoApproved,
+      featured: submission_plan === 'sponsor', // Sponsors are featured
       submitter_name: submitter_name || null,
       submitter_email: submitter_email || null,
       screenshots: screenshots?.length > 0 ? screenshots : null,
-      user_id: userId, // Link to user profile if authenticated
+      user_id: userId,
+      // Plan-specific fields
+      submission_plan,
+      backlink_verified: submission_plan === 'free' ? backlink_verified : false,
+      backlink_url: submission_plan === 'free' ? backlink_url : null,
+      sponsor_featured_until: submission_plan === 'sponsor' ? sevenDaysLater.toISOString() : null,
+      sponsor_priority_until: submission_plan === 'sponsor' ? sevenDaysLater.toISOString() : null,
+      sponsor_payment_id: submission_plan === 'sponsor' ? sponsor_payment_id : null,
+      sponsor_paid_at: submission_plan === 'sponsor' ? now.toISOString() : null,
     };
 
     const { data: alternative, error: altError } = await supabase
@@ -198,10 +237,23 @@ export async function POST(request: NextRequest) {
 
     await Promise.all(relationPromises);
 
+    // Return plan-specific success message
+    const successMessage = submission_plan === 'sponsor'
+      ? 'Your project is now live! It will be featured on the homepage for 7 days and included in our weekly newsletter.'
+      : 'Alternative submitted successfully! It will be reviewed within approximately 1 week before being published.';
+
     return NextResponse.json({
       success: true,
-      message: 'Alternative submitted successfully! It will be reviewed before being published.',
+      message: successMessage,
       id: alternative.id,
+      slug: alternative.slug,
+      plan: submission_plan,
+      approved: isAutoApproved,
+      features: submission_plan === 'sponsor' ? {
+        featured_until: sevenDaysLater.toISOString(),
+        priority_until: sevenDaysLater.toISOString(),
+        newsletter: true,
+      } : null,
     });
   } catch (error) {
     console.error('Error in submit API:', error);

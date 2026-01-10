@@ -235,7 +235,61 @@ export async function getSelfHostedAlternatives(): Promise<AlternativeWithRelati
 }
 
 export async function getFeaturedAlternatives(): Promise<AlternativeWithRelations[]> {
-  return getAlternatives({ approved: true, featured: true, limit: 6 });
+  const supabase = createClient();
+  
+  // First, get ALL active sponsors (those with sponsor_priority_until in the future)
+  const now = new Date().toISOString();
+  
+  const { data: sponsors, error: sponsorsError } = await supabase
+    .from('alternatives')
+    .select(`
+      *,
+      alternative_categories(category_id, categories(*)),
+      alternative_tags(tag_id, tags(*)),
+      alternative_tech_stacks(tech_stack_id, tech_stacks(*)),
+      alternative_to(proprietary_id, proprietary_software(*))
+    `)
+    .eq('approved', true)
+    .eq('submission_plan', 'sponsor')
+    .gt('sponsor_priority_until', now)
+    .order('sponsor_paid_at', { ascending: false });
+
+  // Then get regular featured alternatives to fill remaining slots
+  const sponsorCount = sponsors?.length || 0;
+  const remainingSlots = Math.max(0, 9 - sponsorCount);
+  
+  let featured: any[] = [];
+  if (remainingSlots > 0) {
+    const { data: featuredData, error: featuredError } = await supabase
+      .from('alternatives')
+      .select(`
+        *,
+        alternative_categories(category_id, categories(*)),
+        alternative_tags(tag_id, tags(*)),
+        alternative_tech_stacks(tech_stack_id, tech_stacks(*)),
+        alternative_to(proprietary_id, proprietary_software(*))
+      `)
+      .eq('approved', true)
+      .eq('featured', true)
+      .order('health_score', { ascending: false })
+      .limit(remainingSlots);
+
+    if (!featuredError && featuredData) {
+      featured = featuredData;
+    }
+  }
+
+  if (sponsorsError) {
+    console.error('Error fetching sponsored alternatives:', sponsorsError);
+  }
+
+  // Combine sponsors first (all of them), then featured (removing duplicates)
+  const sponsorIds = new Set((sponsors || []).map(s => s.id));
+  const uniqueFeatured = featured.filter(f => !sponsorIds.has(f.id));
+  
+  const combined = [...(sponsors || []), ...uniqueFeatured];
+  
+  return transformAlternatives(combined);
 }
 
 export async function searchAlternatives(query: string): Promise<AlternativeWithRelations[]> {
@@ -619,6 +673,7 @@ function transformAlternatives(data: any[]): AlternativeWithRelations[] {
     license: item.license,
     is_self_hosted: item.is_self_hosted,
     health_score: item.health_score,
+    vote_score: item.vote_score || 0,
     submitter_name: item.submitter_name,
     submitter_email: item.submitter_email,
     user_id: item.user_id,
@@ -629,11 +684,111 @@ function transformAlternatives(data: any[]): AlternativeWithRelations[] {
     rejected_at: item.rejected_at,
     created_at: item.created_at,
     updated_at: item.updated_at,
+    // Submission plan fields
+    submission_plan: item.submission_plan || 'free',
+    backlink_verified: item.backlink_verified || false,
+    backlink_url: item.backlink_url,
+    sponsor_featured_until: item.sponsor_featured_until,
+    sponsor_priority_until: item.sponsor_priority_until,
+    sponsor_payment_id: item.sponsor_payment_id,
+    sponsor_paid_at: item.sponsor_paid_at,
+    newsletter_included: item.newsletter_included || false,
     categories: item.alternative_categories?.map((ac: any) => ac.categories).filter(Boolean) || [],
     tags: item.alternative_tags?.map((at: any) => at.tags).filter(Boolean) || [],
     tech_stacks: item.alternative_tech_stacks?.map((ats: any) => ats.tech_stacks).filter(Boolean) || [],
     alternative_to: item.alternative_to?.map((at: any) => at.proprietary_software).filter(Boolean) || [],
   }));
+}
+
+// ============ CREATOR PROFILES ============
+
+export interface CreatorProfile {
+  id: string;
+  email: string;
+  name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  website: string | null;
+  github_username: string | null;
+  twitter_username: string | null;
+  linkedin_url: string | null;
+  youtube_url: string | null;
+  discord_username: string | null;
+  alternatives_count: number;
+}
+
+export async function getCreatorProfileByUserId(userId: string): Promise<CreatorProfile | null> {
+  const supabase = createClient();
+  
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
+
+  if (error || !profile) {
+    console.error('Error fetching creator profile:', error);
+    return null;
+  }
+
+  // Get count of approved alternatives by this user
+  const { count } = await supabase
+    .from('alternatives')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('approved', true);
+
+  return {
+    id: profile.id,
+    email: profile.email,
+    name: profile.name,
+    avatar_url: profile.avatar_url,
+    bio: profile.bio,
+    website: profile.website,
+    github_username: profile.github_username,
+    twitter_username: profile.twitter_username,
+    linkedin_url: profile.linkedin_url,
+    youtube_url: profile.youtube_url,
+    discord_username: profile.discord_username,
+    alternatives_count: count || 0,
+  };
+}
+
+export async function getCreatorProfileByEmail(email: string): Promise<CreatorProfile | null> {
+  const supabase = createClient();
+  
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('email', email)
+    .single();
+
+  if (error || !profile) {
+    console.error('Error fetching creator profile by email:', error);
+    return null;
+  }
+
+  // Get count of approved alternatives by this user
+  const { count } = await supabase
+    .from('alternatives')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', profile.id)
+    .eq('approved', true);
+
+  return {
+    id: profile.id,
+    email: profile.email,
+    name: profile.name,
+    avatar_url: profile.avatar_url,
+    bio: profile.bio,
+    website: profile.website,
+    github_username: profile.github_username,
+    twitter_username: profile.twitter_username,
+    linkedin_url: profile.linkedin_url,
+    youtube_url: profile.youtube_url,
+    discord_username: profile.discord_username,
+    alternatives_count: count || 0,
+  };
 }
 
 // ============ STATS ============

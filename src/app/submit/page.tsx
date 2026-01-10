@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Send, CheckCircle, Terminal, Loader2, Upload, X } from 'lucide-react';
-import { RichTextEditor, TechStackSelector } from '@/components/ui';
+import { ArrowLeft, Send, CheckCircle, Terminal, Loader2, Upload, X, Crown, Sparkles } from 'lucide-react';
+import { RichTextEditor, TechStackSelector, PlanSelection, BacklinkVerification, type SubmissionPlan } from '@/components/ui';
 import { useAuth } from '@/lib/auth/AuthContext';
 
 interface Category {
@@ -35,6 +36,12 @@ export default function SubmitPage() {
   const [proprietarySoftware, setProprietarySoftware] = useState<ProprietarySoftware[]>([]);
   const [techStacks, setTechStacks] = useState<TechStack[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Plan selection state
+  const [selectedPlan, setSelectedPlan] = useState<SubmissionPlan>('free');
+  const [backlinkVerified, setBacklinkVerified] = useState(false);
+  const [backlinkUrl, setBacklinkUrl] = useState<string | undefined>();
+  const [sponsorPaymentId, setSponsorPaymentId] = useState<string | null>(null);
   
   const [iconPreview, setIconPreview] = useState<string | null>(null);
   const [screenshotPreviews, setScreenshotPreviews] = useState<string[]>([]);
@@ -110,13 +117,32 @@ export default function SubmitPage() {
     setIsSubmitting(true);
     setError(null);
 
+    // Plan-specific validation
+    if (selectedPlan === 'free' && !backlinkVerified) {
+      setError('Please verify your backlink before submitting. Add the Open Source Finder badge to your README and click "Verify Backlink".');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (selectedPlan === 'sponsor' && !sponsorPaymentId) {
+      setError('Please complete the payment to submit with the Sponsor plan.');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const response = await fetch('/api/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          submission_plan: selectedPlan,
+          backlink_verified: backlinkVerified,
+          backlink_url: backlinkUrl,
+          sponsor_payment_id: sponsorPaymentId,
+        }),
       });
 
       const result = await response.json();
@@ -218,19 +244,66 @@ export default function SubmitPage() {
     return (
       <div className="min-h-screen bg-dark flex items-center justify-center">
         <div className="max-w-md mx-auto text-center p-8">
-          <div className="w-16 h-16 bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-8 h-8 text-brand" />
+          <div className={`w-16 h-16 ${selectedPlan === 'sponsor' ? 'bg-emerald-500/10' : 'bg-brand/10'} rounded-full flex items-center justify-center mx-auto mb-6`}>
+            {selectedPlan === 'sponsor' ? (
+              <Crown className="w-8 h-8 text-emerald-500" />
+            ) : (
+              <CheckCircle className="w-8 h-8 text-brand" />
+            )}
           </div>
           <h1 className="text-2xl font-bold text-white mb-4 font-mono">
-            submission_confirmed<span className="text-brand">_</span>
+            {selectedPlan === 'sponsor' ? (
+              <>🎉 You&apos;re Live!</>
+            ) : (
+              <>submission_confirmed<span className="text-brand">_</span></>
+            )}
           </h1>
-          <p className="text-muted mb-6">
-            We&apos;ve received your submission and will review it shortly. 
-            You&apos;ll receive an email once it&apos;s been approved.
-          </p>
+          
+          {selectedPlan === 'sponsor' ? (
+            <div className="space-y-4 mb-6">
+              <p className="text-muted">
+                Your project is now live and featured on Open Source Finder!
+              </p>
+              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4 text-left">
+                <h3 className="text-emerald-500 font-semibold mb-2 text-sm">Your Sponsor Benefits:</h3>
+                <ul className="text-sm text-muted space-y-2">
+                  <li className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-emerald-500" />
+                    Featured on homepage for 7 days
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-emerald-500" />
+                    Verified sponsor badge ✓
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-emerald-500" />
+                    SEO dofollow links
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-emerald-500" />
+                    Premium full-width card with screenshots
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-emerald-500" />
+                    Included in weekly newsletter
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-emerald-500" />
+                    Unlimited updates anytime
+                  </li>
+                </ul>
+              </div>
+            </div>
+          ) : (
+            <p className="text-muted mb-6">
+              We&apos;ve received your submission and will review it within approximately 1 week. 
+              You&apos;ll receive an email once it&apos;s been approved.
+            </p>
+          )}
+          
           <Link
             href="/"
-            className="inline-flex items-center px-6 py-3 bg-brand text-white font-medium font-mono rounded-lg hover:bg-brand-light transition-colors"
+            className={`inline-flex items-center px-6 py-3 ${selectedPlan === 'sponsor' ? 'bg-emerald-500 hover:bg-emerald-400' : 'bg-brand hover:bg-brand-light'} text-dark font-medium font-mono rounded-lg transition-colors`}
           >
             <Terminal className="w-4 h-4 mr-2" />
             cd ../home
@@ -264,6 +337,22 @@ export default function SubmitPage() {
       {/* Form */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Plan Selection - First and most important */}
+          <div className="bg-surface rounded-xl border border-border p-6">
+            <h2 className="text-xl font-semibold text-white mb-2 font-mono">
+              <Terminal className="w-5 h-5 inline mr-2 text-brand" />
+              // CHOOSE_YOUR_PLAN
+            </h2>
+            <p className="text-sm text-muted mb-6">
+              Select a submission plan that works for your project.
+            </p>
+            
+            <PlanSelection 
+              selectedPlan={selectedPlan}
+              onPlanSelect={setSelectedPlan}
+            />
+          </div>
+
           {/* Personal Info - Now at the top */}
           <div className="bg-surface rounded-xl border border-border p-6">
             <h2 className="text-xl font-semibold text-white mb-2 font-mono">
@@ -551,7 +640,7 @@ export default function SubmitPage() {
                   key={software.id}
                   className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
                     formData.alternative_to_ids.includes(software.id)
-                      ? 'border-orange-500 bg-orange-500/10'
+                      ? 'border-emerald-500 bg-emerald-500/10'
                       : 'border-border hover:border-border-light'
                   }`}
                 >
@@ -563,7 +652,7 @@ export default function SubmitPage() {
                   />
                   <span className={`text-sm font-medium ${
                     formData.alternative_to_ids.includes(software.id)
-                      ? 'text-orange-400'
+                      ? 'text-emerald-400'
                       : 'text-muted'
                   }`}>
                     {software.name}
@@ -625,6 +714,79 @@ export default function SubmitPage() {
             </div>
           </div>
 
+          {/* Backlink Verification (Free Plan Only) */}
+          {selectedPlan === 'free' && (
+            <div className="bg-surface rounded-xl border border-brand/30 p-6">
+              <h2 className="text-xl font-semibold text-white mb-2 font-mono">
+                <Terminal className="w-5 h-5 inline mr-2 text-brand" />
+                // BACKLINK_VERIFICATION
+              </h2>
+              <p className="text-sm text-muted mb-6">
+                Free submissions require a backlink. Add our badge to your README to verify your submission.
+              </p>
+              
+              <BacklinkVerification
+                projectName={formData.name}
+                githubUrl={formData.github}
+                onVerificationComplete={(verified, url) => {
+                  setBacklinkVerified(verified);
+                  if (url) setBacklinkUrl(url);
+                }}
+              />
+            </div>
+          )}
+
+          {/* Sponsor Payment (Sponsor Plan Only) */}
+          {selectedPlan === 'sponsor' && (
+            <div className="bg-surface rounded-xl border border-emerald-500/30 p-6">
+              <h2 className="text-xl font-semibold text-white mb-2 font-mono">
+                <Crown className="w-5 h-5 inline mr-2 text-emerald-500" />
+                // SPONSOR_PAYMENT
+              </h2>
+              <p className="text-sm text-muted mb-6">
+                Complete payment to activate your sponsor benefits immediately.
+              </p>
+              
+              <div className="bg-dark/50 rounded-lg p-6 border border-emerald-500/20">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-white font-semibold">Sponsor Plan</h3>
+                    <p className="text-sm text-muted">7 days featured + newsletter + instant approval + dofollow links</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-emerald-500">$19</p>
+                    <p className="text-xs text-muted">one-time</p>
+                  </div>
+                </div>
+                
+                {sponsorPaymentId ? (
+                  <div className="flex items-center gap-2 text-green-400 bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-medium">Payment completed!</span>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // In production, this would open Stripe checkout
+                      // For now, we'll simulate a successful payment
+                      const mockPaymentId = `sp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                      setSponsorPaymentId(mockPaymentId);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-dark font-bold rounded-lg hover:opacity-90 transition-opacity"
+                  >
+                    <Crown className="w-5 h-5" />
+                    Pay $19 - Become a Sponsor
+                  </button>
+                )}
+                
+                <p className="text-xs text-muted mt-3 text-center">
+                  Secure payment powered by Stripe. No recurring charges.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Error Message */}
           {error && (
             <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
@@ -635,21 +797,39 @@ export default function SubmitPage() {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="w-full flex items-center justify-center px-6 py-4 bg-brand text-dark font-medium font-mono rounded-lg hover:bg-brand-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isSubmitting || (selectedPlan === 'free' && !backlinkVerified) || (selectedPlan === 'sponsor' && !sponsorPaymentId)}
+            className={`w-full flex items-center justify-center px-6 py-4 font-medium font-mono rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              selectedPlan === 'sponsor' 
+                ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-dark hover:opacity-90' 
+                : 'bg-brand text-dark hover:bg-brand-light'
+            }`}
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                 Submitting...
               </>
+            ) : selectedPlan === 'sponsor' ? (
+              <>
+                <Crown className="w-5 h-5 mr-2" />
+                Launch as Sponsor<span className="text-dark/70">_</span>
+              </>
             ) : (
               <>
                 <Send className="w-5 h-5 mr-2" />
-                Submit<span className="text-dark">_</span>
+                Submit for Review<span className="text-dark/70">_</span>
               </>
             )}
           </button>
+          
+          {/* Submission info based on plan */}
+          <div className={`text-center text-sm ${selectedPlan === 'sponsor' ? 'text-emerald-500/70' : 'text-muted'}`}>
+            {selectedPlan === 'sponsor' ? (
+              <p>✨ Your project will go live immediately upon submission</p>
+            ) : (
+              <p>📋 Your project will be reviewed within approximately 1 week</p>
+            )}
+          </div>
         </form>
       </div>
     </div>
