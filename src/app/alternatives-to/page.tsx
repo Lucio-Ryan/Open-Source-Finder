@@ -2,12 +2,12 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { SearchBar } from '@/components/ui';
-import { getProprietarySoftware } from '@/lib/supabase/queries';
+import { getProprietarySoftware } from '@/lib/mongodb/queries';
 
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'All Proprietary Software | OSS_Finder',
+  title: 'All Proprietary Software | OS_Finder',
   description: 'Browse all proprietary software and discover their open source alternatives.',
 };
 
@@ -48,11 +48,10 @@ export default async function AllProprietarySoftwarePage() {
               href={`/alternatives-to/${software.slug}`}
               className="group p-5 bg-surface border border-border rounded-xl hover:border-brand/50 transition-all"
             >
-              <div className="flex items-start justify-between mb-3">
-                <h3 className="font-semibold text-white group-hover:text-brand transition-colors">
+              <div className="mb-3">
+                <h3 className="font-semibold text-white group-hover:text-brand transition-colors truncate">
                   {software.name}
                 </h3>
-                <ArrowRight className="w-4 h-4 text-muted group-hover:text-brand group-hover:translate-x-1 transition-all" />
               </div>
               <p className="text-sm text-muted line-clamp-2 mb-3 font-mono">
                 {software.description}

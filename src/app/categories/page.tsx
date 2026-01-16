@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, FolderOpen } from 'lucide-react';
 import { CategoryCard } from '@/components/ui';
-import { getCategories } from '@/lib/supabase/queries';
+import { getCategories } from '@/lib/mongodb/queries';
 
 export const metadata: Metadata = {
   title: 'Browse Open Source Software by Category',

@@ -1,81 +1,75 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient, isUsingMockData } from '@/lib/supabase/admin';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import type { AdType, AdvertisementInsert } from '@/types/database';
-
-// Get current user's profile ID if authenticated
-async function getCurrentUserId(): Promise<string | null> {
-  try {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          },
-        },
-      }
-    );
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    return user?.id || null;
-  } catch {
-    return null;
-  }
-}
+import { getCurrentUser } from '@/lib/mongodb/auth';
+import { connectToDatabase } from '@/lib/mongodb/connection';
+import { Advertisement } from '@/lib/mongodb/models';
+import mongoose from 'mongoose';
 
 // GET - Fetch active, approved advertisements
 export async function GET(request: NextRequest) {
   try {
-    if (isUsingMockData) {
-      // Return mock data for development
-      return NextResponse.json({ 
-        advertisements: [],
-        message: 'Mock mode - no ads configured'
-      });
-    }
+    await connectToDatabase();
 
     const { searchParams } = new URL(request.url);
-    const adType = searchParams.get('type') as AdType | null;
+    const adType = searchParams.get('type');
     
-    const supabase = createAdminClient();
+    const now = new Date();
     
-    let query = supabase
-      .from('advertisements')
-      .select('*')
-      .eq('status', 'approved')
-      .eq('is_active', true)
-      .order('priority', { ascending: false });
+    // First, deactivate any expired ads
+    await Advertisement.updateMany(
+      {
+        is_active: true,
+        expires_at: { $lte: now }
+      },
+      {
+        is_active: false,
+        updated_at: now
+      }
+    );
+    
+    const filter: any = {
+      status: 'approved',
+      is_active: true,
+      paid_at: { $ne: null }, // Must be paid
+      $or: [
+        { expires_at: null },
+        { expires_at: { $gt: now } }
+      ]
+    };
     
     if (adType) {
-      query = query.eq('ad_type', adType);
+      filter.ad_type = adType;
     }
     
-    // Filter by date if start_date/end_date are set
-    const now = new Date().toISOString().split('T')[0];
-    query = query
-      .or(`start_date.is.null,start_date.lte.${now}`)
-      .or(`end_date.is.null,end_date.gte.${now}`);
+    // Order by approved_at ascending (oldest approved first)
+    const advertisements = await Advertisement.find(filter)
+      .sort({ approved_at: 1 })
+      .lean();
     
-    const { data: advertisements, error } = await query;
+    // Transform to match expected format
+    const transformedAds = advertisements.map(ad => ({
+      id: ad._id.toString(),
+      name: ad.name,
+      description: ad.description,
+      ad_type: ad.ad_type,
+      company_name: ad.company_name,
+      company_website: ad.company_website,
+      company_logo: ad.company_logo,
+      headline: ad.headline,
+      cta_text: ad.cta_text,
+      destination_url: ad.destination_url,
+      icon_url: ad.icon_url,
+      short_description: ad.short_description,
+      status: ad.status,
+      is_active: ad.is_active,
+      priority: ad.priority,
+      start_date: ad.start_date,
+      end_date: ad.end_date,
+      approved_at: ad.approved_at,
+      created_at: ad.created_at,
+      updated_at: ad.updated_at
+    }));
     
-    if (error) {
-      console.error('Error fetching advertisements:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch advertisements' },
-        { status: 500 }
-      );
-    }
-    
-    return NextResponse.json({ advertisements: advertisements || [] });
+    return NextResponse.json({ advertisements: transformedAds });
   } catch (error) {
     console.error('Error in GET /api/advertisements:', error);
     return NextResponse.json(
@@ -85,24 +79,22 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Submit a new advertisement
+// POST - Submit a new advertisement (requires authentication)
 export async function POST(request: NextRequest) {
   try {
-    if (isUsingMockData) {
+    await connectToDatabase();
+    
+    const user = await getCurrentUser();
+    
+    // Require authentication
+    if (!user) {
       return NextResponse.json(
-        { 
-          error: 'Database not configured. Please set up Supabase credentials.',
-          debug: {
-            hint: 'Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to your .env.local file'
-          }
-        },
-        { status: 503 }
+        { error: 'Authentication required to submit an advertisement' },
+        { status: 401 }
       );
     }
-
+    
     const body = await request.json();
-    const supabase = createAdminClient();
-    const userId = await getCurrentUserId();
 
     const {
       name,
@@ -138,7 +130,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const advertisementData: AdvertisementInsert = {
+    const advertisement = await Advertisement.create({
       name,
       description,
       ad_type,
@@ -150,31 +142,27 @@ export async function POST(request: NextRequest) {
       destination_url,
       icon_url: icon_url || null,
       short_description: short_description || null,
-      user_id: userId,
+      user_id: new mongoose.Types.ObjectId(user.id),
       submitter_name: submitter_name || null,
       submitter_email,
-      start_date: start_date || null,
-      end_date: end_date || null,
-    };
-
-    const { data: advertisement, error } = await supabase
-      .from('advertisements')
-      .insert(advertisementData)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating advertisement:', error);
-      return NextResponse.json(
-        { error: 'Failed to create advertisement' },
-        { status: 500 }
-      );
-    }
+      start_date: start_date ? new Date(start_date) : null,
+      end_date: end_date ? new Date(end_date) : null,
+      status: 'pending',
+      is_active: false,
+      priority: 0,
+      payment_id: null,
+      paid_at: null,
+      payment_amount: null
+    });
 
     return NextResponse.json({
       success: true,
       message: 'Advertisement submitted successfully! It will be reviewed by our team.',
-      advertisement,
+      advertisement: {
+        id: advertisement._id,
+        name: advertisement.name,
+        status: advertisement.status
+      },
     });
   } catch (error) {
     console.error('Error in POST /api/advertisements:', error);

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { SearchBar, AlternativesList } from '@/components/ui';
-import { getCategoryBySlug, getAlternativesByCategory, getCategories } from '@/lib/supabase/queries';
+import { getCategoryBySlug, getAlternativesByCategory, getCategories, getProprietarySoftware } from '@/lib/mongodb/queries';
 
 interface Props {
   params: { slug: string };
@@ -23,20 +23,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!category) return { title: 'Not Found' };
 
   return {
-    title: `${category.name} Open Source Alternatives | OSS_Finder`,
+    title: `${category.name} Open Source Alternatives | OS_Finder`,
     description: category.description,
   };
 }
 
 export default async function CategoryPage({ params }: Props) {
-  const [category, categoryAlternatives] = await Promise.all([
+  const [category, categoryAlternatives, categories, proprietarySoftware] = await Promise.all([
     getCategoryBySlug(params.slug),
     getAlternativesByCategory(params.slug),
+    getCategories(),
+    getProprietarySoftware(),
   ]);
 
   if (!category) {
     notFound();
   }
+
+  // Transform to simpler format for the client component
+  const simplifiedCategories = categories.map(c => ({
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+  }));
+
+  const simplifiedProprietary = proprietarySoftware.map(s => ({
+    id: s.id,
+    name: s.name,
+    slug: s.slug,
+  }));
 
   return (
     <div className="min-h-screen bg-dark">
@@ -65,7 +80,11 @@ export default async function CategoryPage({ params }: Props) {
       {/* Alternatives Grid with Filters */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {categoryAlternatives.length > 0 ? (
-          <AlternativesList alternatives={categoryAlternatives} />
+          <AlternativesList 
+            alternatives={categoryAlternatives}
+            categories={simplifiedCategories}
+            proprietarySoftware={simplifiedProprietary}
+          />
         ) : (
           <div className="text-center py-16 bg-surface border border-border rounded-lg">
             <p className="text-muted font-mono mb-4">No alternatives found in this category yet.</p>

@@ -1,45 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-
-// Create server-side Supabase client for auth
-function createServerSupabaseClient() {
-  const cookieStore = cookies();
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set(name: string, value: string, options: any) {
-          try {
-            cookieStore.set({ name, value, ...options });
-          } catch (error) {
-            // Handle cookie errors in read-only contexts
-          }
-        },
-        remove(name: string, options: any) {
-          try {
-            cookieStore.set({ name, value: '', ...options });
-          } catch (error) {
-            // Handle cookie errors in read-only contexts
-          }
-        },
-      },
-    }
-  );
-}
-
-// Create untyped admin client for new tables (discussions, notifications)
-function createUntypedAdminClient() {
-  return createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
+import { getCurrentUser } from '@/lib/mongodb/auth';
+import { connectToDatabase } from '@/lib/mongodb/connection';
+import { Discussion, Alternative, User, CreatorNotification } from '@/lib/mongodb/models';
+import mongoose from 'mongoose';
 
 // GET - Get discussions for an alternative
 export async function GET(request: NextRequest) {
@@ -50,58 +13,79 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'alternativeId is required' }, { status: 400 });
   }
 
-  const supabase = createUntypedAdminClient();
+  try {
+    await connectToDatabase();
 
-  // Get all top-level discussions with author info
-  const { data: discussions, error } = await supabase
-    .from('discussions')
-    .select(`
-      *,
-      author:profiles!discussions_user_id_fkey(id, name, avatar_url)
-    `)
-    .eq('alternative_id', alternativeId)
-    .is('parent_id', null)
-    .order('created_at', { ascending: false });
+    // Get all top-level discussions with author info
+    const discussions = await Discussion.find({
+      alternative_id: new mongoose.Types.ObjectId(alternativeId),
+      parent_id: null
+    })
+      .populate('user_id', 'name avatar_url')
+      .sort({ created_at: -1 })
+      .lean();
 
-  if (error) {
+    // Get discussion IDs
+    const discussionIds = discussions.map(d => d._id);
+
+    // Get all replies for these discussions
+    let replies: any[] = [];
+    if (discussionIds.length > 0) {
+      replies = await Discussion.find({
+        parent_id: { $in: discussionIds }
+      })
+        .populate('user_id', 'name avatar_url')
+        .sort({ created_at: 1 })
+        .lean();
+    }
+
+    // Organize replies under their parent discussions
+    const discussionsWithReplies = discussions.map(discussion => ({
+      id: discussion._id,
+      alternative_id: discussion.alternative_id,
+      user_id: discussion.user_id,
+      content: discussion.content,
+      request_creator_response: discussion.request_creator_response,
+      is_creator_response: discussion.is_creator_response,
+      created_at: discussion.created_at,
+      updated_at: discussion.updated_at,
+      author: discussion.user_id ? {
+        id: (discussion.user_id as any)._id,
+        name: (discussion.user_id as any).name,
+        avatar_url: (discussion.user_id as any).avatar_url
+      } : null,
+      replies: replies
+        .filter(r => r.parent_id?.toString() === discussion._id?.toString())
+        .map(r => ({
+          id: r._id,
+          alternative_id: r.alternative_id,
+          user_id: r.user_id,
+          content: r.content,
+          request_creator_response: r.request_creator_response,
+          is_creator_response: r.is_creator_response,
+          parent_id: r.parent_id,
+          created_at: r.created_at,
+          updated_at: r.updated_at,
+          author: r.user_id ? {
+            id: (r.user_id as any)._id,
+            name: (r.user_id as any).name,
+            avatar_url: (r.user_id as any).avatar_url
+          } : null
+        }))
+    }));
+
+    return NextResponse.json({ discussions: discussionsWithReplies });
+  } catch (error) {
     console.error('Error fetching discussions:', error);
     return NextResponse.json({ error: 'Failed to fetch discussions' }, { status: 500 });
   }
-
-  // Get all replies for these discussions
-  const discussionIds = (discussions as any[])?.map(d => d.id) || [];
-  
-  let replies: any[] = [];
-  if (discussionIds.length > 0) {
-    const { data: replyData } = await supabase
-      .from('discussions')
-      .select(`
-        *,
-        author:profiles!discussions_user_id_fkey(id, name, avatar_url)
-      `)
-      .in('parent_id', discussionIds)
-      .order('created_at', { ascending: true });
-    
-    replies = replyData || [];
-  }
-
-  // Organize replies under their parent discussions
-  const discussionsWithReplies = (discussions as any[])?.map(discussion => ({
-    ...discussion,
-    replies: replies.filter(r => r.parent_id === discussion.id)
-  })) || [];
-
-  return NextResponse.json({ discussions: discussionsWithReplies });
 }
 
 // POST - Create a new discussion or reply
 export async function POST(request: NextRequest) {
-  const authClient = createServerSupabaseClient();
+  const user = await getCurrentUser();
   
-  // Get current user
-  const { data: { user }, error: authError } = await authClient.auth.getUser();
-  
-  if (authError || !user) {
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -112,76 +96,74 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'alternativeId and content are required' }, { status: 400 });
   }
 
-  // Use untyped admin client for new tables
-  const adminClient = createUntypedAdminClient();
+  try {
+    await connectToDatabase();
 
-  // Get the alternative to check if user is the creator
-  const { data: alternative } = await adminClient
-    .from('alternatives')
-    .select('user_id, submitter_email, name, slug')
-    .eq('id', alternativeId)
-    .single();
+    // Get the alternative to check if user is the creator
+    const alternative = await Alternative.findById(alternativeId).lean();
 
-  const isCreator = alternative && (
-    alternative.user_id === user.id || 
-    alternative.submitter_email === user.email
-  );
+    const isCreator = alternative && (
+      alternative.user_id?.toString() === user.id || 
+      alternative.submitter_email === user.email
+    );
 
-  // Create the discussion
-  const { data: discussion, error: insertError } = await adminClient
-    .from('discussions')
-    .insert({
-      alternative_id: alternativeId,
-      user_id: user.id,
+    // Create the discussion
+    const discussion = await Discussion.create({
+      alternative_id: new mongoose.Types.ObjectId(alternativeId),
+      user_id: new mongoose.Types.ObjectId(user.id),
       content,
       request_creator_response: requestCreatorResponse || false,
-      parent_id: parentId || null,
+      parent_id: parentId ? new mongoose.Types.ObjectId(parentId) : null,
       is_creator_response: isCreator || false
-    })
-    .select(`
-      *,
-      author:profiles!discussions_user_id_fkey(id, name, avatar_url)
-    `)
-    .single();
+    });
 
-  if (insertError) {
-    console.error('Error creating discussion:', insertError);
-    return NextResponse.json({ error: 'Failed to create discussion' }, { status: 500 });
-  }
+    // Get author info
+    const author = await User.findById(user.id).select('name avatar_url').lean();
 
-  // If user requested a creator response and they're not the creator, create a notification
-  if (requestCreatorResponse && !isCreator && alternative?.user_id) {
-    // Get the poster's profile for the notification message
-    const { data: posterProfile } = await adminClient
-      .from('profiles')
-      .select('name')
-      .eq('id', user.id)
-      .single();
+    const discussionResponse = {
+      id: discussion._id,
+      alternative_id: discussion.alternative_id,
+      user_id: discussion.user_id,
+      content: discussion.content,
+      request_creator_response: discussion.request_creator_response,
+      is_creator_response: discussion.is_creator_response,
+      parent_id: discussion.parent_id,
+      created_at: discussion.created_at,
+      updated_at: discussion.updated_at,
+      author: author ? {
+        id: author._id,
+        name: author.name,
+        avatar_url: author.avatar_url
+      } : null
+    };
 
-    const posterName = posterProfile?.name || user.email?.split('@')[0] || 'A user';
+    // If user requested a creator response and they're not the creator, create a notification
+    if (requestCreatorResponse && !isCreator && alternative?.user_id) {
+      // Get the poster's profile for the notification message
+      const posterProfile = await User.findById(user.id).select('name').lean();
+      const posterName = posterProfile?.name || user.email?.split('@')[0] || 'A user';
 
-    await adminClient
-      .from('creator_notifications')
-      .insert({
+      await CreatorNotification.create({
         creator_id: alternative.user_id,
-        alternative_id: alternativeId,
-        discussion_id: (discussion as any).id,
+        alternative_id: new mongoose.Types.ObjectId(alternativeId),
+        discussion_id: discussion._id,
         type: 'response_request',
         message: `${posterName} requested your response on "${alternative.name}"`
       });
-  }
+    }
 
-  return NextResponse.json({ discussion });
+    return NextResponse.json({ discussion: discussionResponse });
+  } catch (error) {
+    console.error('Error creating discussion:', error);
+    return NextResponse.json({ error: 'Failed to create discussion' }, { status: 500 });
+  }
 }
 
 // DELETE - Delete a discussion
 export async function DELETE(request: NextRequest) {
-  const authClient = createServerSupabaseClient();
+  const user = await getCurrentUser();
   
-  // Get current user
-  const { data: { user }, error: authError } = await authClient.auth.getUser();
-  
-  if (authError || !user) {
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -192,42 +174,37 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Discussion ID is required' }, { status: 400 });
   }
 
-  const adminClient = createUntypedAdminClient();
+  try {
+    await connectToDatabase();
 
-  // Check if user owns this discussion
-  const { data: discussion } = await adminClient
-    .from('discussions')
-    .select('user_id')
-    .eq('id', discussionId)
-    .single();
+    // Check if user owns this discussion
+    const discussion = await Discussion.findById(discussionId).lean();
 
-  if (!discussion) {
-    return NextResponse.json({ error: 'Discussion not found' }, { status: 404 });
-  }
-
-  if ((discussion as any).user_id !== user.id) {
-    // Check if user is admin
-    const { data: profile } = await adminClient
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if ((profile as any)?.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if (!discussion) {
+      return NextResponse.json({ error: 'Discussion not found' }, { status: 404 });
     }
-  }
 
-  // Delete the discussion (cascade will handle replies and notifications)
-  const { error: deleteError } = await adminClient
-    .from('discussions')
-    .delete()
-    .eq('id', discussionId);
+    if (discussion.user_id?.toString() !== user.id) {
+      // Check if user is admin
+      const profile = await User.findById(user.id).select('role').lean();
 
-  if (deleteError) {
-    console.error('Error deleting discussion:', deleteError);
+      if (profile?.role !== 'admin') {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    }
+
+    // Delete all replies first
+    await Discussion.deleteMany({ parent_id: new mongoose.Types.ObjectId(discussionId) });
+
+    // Delete related notifications
+    await CreatorNotification.deleteMany({ discussion_id: new mongoose.Types.ObjectId(discussionId) });
+
+    // Delete the discussion
+    await Discussion.findByIdAndDelete(discussionId);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting discussion:', error);
     return NextResponse.json({ error: 'Failed to delete discussion' }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true });
 }

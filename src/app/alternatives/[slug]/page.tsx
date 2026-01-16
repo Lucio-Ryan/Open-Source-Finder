@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, ExternalLink, Github, Server, Scale } from 'lucide-react';
-import { getAlternatives, getAlternativeBySlug, getCreatorProfileByUserId, getCreatorProfileByEmail } from '@/lib/supabase/queries';
+import { getAlternatives, getAlternativeBySlug, getCreatorProfileByUserId, getCreatorProfileByEmail } from '@/lib/mongodb/queries';
 import { AlternativeWithRelations } from '@/types/database';
 import { AlternativeCard, RichTextContent, GitHubStatsCard, ScreenshotCarousel, CreatorProfileCard, AlternativeVoteSection, DiscussionSection } from '@/components/ui';
 
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!alternative) return { title: 'Not Found' };
 
   return {
-    title: `${alternative.name} - Open Source Alternative | OSS_Finder`,
+    title: `${alternative.name} - Open Source Alternative | OS_Finder`,
     description: alternative.description,
   };
 }

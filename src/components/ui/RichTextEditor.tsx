@@ -17,9 +17,10 @@ interface RichTextEditorProps {
   content: string;
   onChange: (html: string) => void;
   placeholder?: string;
+  maxLength?: number;
 }
 
-export function RichTextEditor({ content, onChange, placeholder = 'Start typing...' }: RichTextEditorProps) {
+export function RichTextEditor({ content, onChange, placeholder = 'Start typing...', maxLength }: RichTextEditorProps) {
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -47,7 +48,15 @@ export function RichTextEditor({ content, onChange, placeholder = 'Start typing.
     ],
     content,
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
+      const html = editor.getHTML();
+      const text = editor.getText();
+      
+      // Check character limit
+      if (maxLength && text.length > maxLength) {
+        return; // Prevent update if over limit
+      }
+      
+      onChange(html);
     },
     editorProps: {
       attributes: {
@@ -164,6 +173,21 @@ export function RichTextEditor({ content, onChange, placeholder = 'Start typing.
 
       {/* Editor Content */}
       <EditorContent editor={editor} />
+      
+      {/* Character count */}
+      {maxLength && (
+        <div className="px-4 py-2 border-t border-border bg-surface/50 text-right">
+          <span className={`text-xs font-mono ${
+            editor.getText().length > maxLength 
+              ? 'text-red-400' 
+              : editor.getText().length > maxLength * 0.9 
+              ? 'text-yellow-400' 
+              : 'text-muted'
+          }`}>
+            {editor.getText().length} / {maxLength}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

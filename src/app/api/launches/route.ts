@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { connectToDatabase } from '@/lib/mongodb/connection';
+import { Alternative, Category, ProprietarySoftware } from '@/lib/mongodb/models';
+import mongoose from 'mongoose';
 
 export async function GET(request: NextRequest) {
-  const supabase = createAdminClient();
   const { searchParams } = new URL(request.url);
   
   // Get filter parameters
@@ -37,114 +38,156 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Build the base query
-    let query = supabase
-      .from('alternatives')
-      .select(`
-        *,
-        alternative_categories(category_id, categories(*)),
-        alternative_tags(tag_id, tags(*)),
-        alternative_tech_stacks(tech_stack_id, tech_stacks(*)),
-        alternative_to(proprietary_id, proprietary_software(*))
-      `, { count: 'exact' })
-      .eq('approved', true);
+    await connectToDatabase();
+
+    // Build the filter
+    const filter: any = { approved: true };
 
     // Apply time frame filter
     if (startDate) {
-      query = query.gte('created_at', startDate.toISOString());
+      filter.created_at = { $gte: startDate };
     }
 
     // Apply category filter
     if (categorySlug) {
-      const { data: category } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('slug', categorySlug)
-        .single();
-
+      const category = await Category.findOne({ slug: categorySlug }).lean();
       if (category) {
-        // Get alternatives in this category
-        const { data: altCats } = await supabase
-          .from('alternative_categories')
-          .select('alternative_id')
-          .eq('category_id', category.id);
-
-        if (altCats && altCats.length > 0) {
-          const altIds = altCats.map(ac => ac.alternative_id);
-          query = query.in('id', altIds);
-        } else {
-          // No alternatives in this category
-          return NextResponse.json({
-            alternatives: [],
-            total: 0,
-            page,
-            limit,
-            hasMore: false
-          });
-        }
+        filter.categories = category._id;
+      } else {
+        return NextResponse.json({
+          alternatives: [],
+          total: 0,
+          page,
+          limit,
+          hasMore: false
+        });
       }
     }
 
     // Apply alternative-to filter
     if (proprietarySlug) {
-      const { data: proprietary } = await supabase
-        .from('proprietary_software')
-        .select('id')
-        .eq('slug', proprietarySlug)
-        .single();
-
+      const proprietary = await ProprietarySoftware.findOne({ slug: proprietarySlug }).lean();
       if (proprietary) {
-        const { data: altTo } = await supabase
-          .from('alternative_to')
-          .select('alternative_id')
-          .eq('proprietary_id', proprietary.id);
-
-        if (altTo && altTo.length > 0) {
-          const altIds = altTo.map(at => at.alternative_id);
-          query = query.in('id', altIds);
-        } else {
-          return NextResponse.json({
-            alternatives: [],
-            total: 0,
-            page,
-            limit,
-            hasMore: false
-          });
-        }
+        filter.alternative_to = proprietary._id;
+      } else {
+        return NextResponse.json({
+          alternatives: [],
+          total: 0,
+          page,
+          limit,
+          hasMore: false
+        });
       }
     }
 
-    // Apply sorting
+    // Build sort options
+    let sortOptions: any = {};
+    let useAggregation = false;
+    
     switch (sortBy) {
       case 'vote_score':
-        query = query.order('vote_score', { ascending: false });
+        // Use aggregation to sort: positive scores desc, then 0/null, then negative scores
+        useAggregation = true;
         break;
       case 'stars':
-        query = query.order('stars', { ascending: false, nullsFirst: false });
+        sortOptions = { stars: -1 };
         break;
       case 'newest':
-        query = query.order('created_at', { ascending: false });
+        sortOptions = { created_at: -1 };
         break;
       case 'health_score':
-        query = query.order('health_score', { ascending: false });
+        sortOptions = { health_score: -1 };
         break;
       default:
-        query = query.order('vote_score', { ascending: false });
+        useAggregation = true;
     }
 
-    // Apply pagination
-    query = query.range(offset, offset + limit - 1);
+    // Get total count
+    const total = await Alternative.countDocuments(filter);
 
-    const { data, error, count } = await query;
-
-    if (error) {
-      console.error('Error fetching launches:', error);
-      return NextResponse.json({ error: 'Failed to fetch launches' }, { status: 500 });
+    let data: any[];
+    
+    if (useAggregation) {
+      // Use aggregation pipeline to sort properly: positive > 0/null > negative
+      data = await Alternative.aggregate([
+        { $match: filter },
+        {
+          $addFields: {
+            // Create a sort priority: 1 for positive, 2 for 0/null, 3 for negative
+            sortPriority: {
+              $cond: {
+                if: { $gt: [{ $ifNull: ['$vote_score', 0] }, 0] },
+                then: 1,
+                else: {
+                  $cond: {
+                    if: { $lt: [{ $ifNull: ['$vote_score', 0] }, 0] },
+                    then: 3,
+                    else: 2
+                  }
+                }
+              }
+            },
+            // Absolute value for secondary sort within each priority group
+            absVoteScore: { $abs: { $ifNull: ['$vote_score', 0] } }
+          }
+        },
+        // Sort by priority first, then by absolute value desc (so higher positives come first, more negative comes last), then by date
+        { $sort: { sortPriority: 1, absVoteScore: -1, created_at: -1 } },
+        { $skip: offset },
+        { $limit: limit },
+        // Lookup categories
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'categories',
+            foreignField: '_id',
+            as: 'categories'
+          }
+        },
+        // Lookup tags
+        {
+          $lookup: {
+            from: 'tags',
+            localField: 'tags',
+            foreignField: '_id',
+            as: 'tags'
+          }
+        },
+        // Lookup tech_stacks
+        {
+          $lookup: {
+            from: 'techstacks',
+            localField: 'tech_stacks',
+            foreignField: '_id',
+            as: 'tech_stacks'
+          }
+        },
+        // Lookup alternative_to
+        {
+          $lookup: {
+            from: 'proprietarysoftwares',
+            localField: 'alternative_to',
+            foreignField: '_id',
+            as: 'alternative_to'
+          }
+        }
+      ]);
+    } else {
+      // Use regular find with sort for non-vote sorting
+      data = await Alternative.find(filter)
+        .populate('categories', 'id name slug')
+        .populate('tags', 'id name slug')
+        .populate('tech_stacks', 'id name slug type')
+        .populate('alternative_to', 'id name slug')
+        .sort(sortOptions)
+        .skip(offset)
+        .limit(limit)
+        .lean();
     }
 
     // Transform the data
-    const alternatives = data?.map((item: any) => ({
-      id: item.id,
+    const alternatives = data.map((item: any) => ({
+      id: item._id,
       name: item.name,
       slug: item.slug,
       description: item.description,
@@ -165,18 +208,18 @@ export async function GET(request: NextRequest) {
       approved: item.approved,
       created_at: item.created_at,
       updated_at: item.updated_at,
-      categories: item.alternative_categories?.map((ac: any) => ac.categories).filter(Boolean) || [],
-      tags: item.alternative_tags?.map((at: any) => at.tags).filter(Boolean) || [],
-      tech_stacks: item.alternative_tech_stacks?.map((ats: any) => ats.tech_stacks).filter(Boolean) || [],
-      alternative_to: item.alternative_to?.map((at: any) => at.proprietary_software).filter(Boolean) || [],
-    })) || [];
+      categories: item.categories || [],
+      tags: item.tags || [],
+      tech_stacks: item.tech_stacks || [],
+      alternative_to: item.alternative_to || [],
+    }));
 
     return NextResponse.json({
       alternatives,
-      total: count || 0,
+      total,
       page,
       limit,
-      hasMore: (count || 0) > offset + limit
+      hasMore: total > offset + limit
     });
 
   } catch (err) {

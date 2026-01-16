@@ -3,8 +3,8 @@ import { Terminal } from 'lucide-react';
 import { AuthForm } from '@/components/auth';
 
 export const metadata: Metadata = {
-  title: 'Sign Up | OSS_Finder',
-  description: 'Create an OSS_Finder account to submit and manage open source alternatives.',
+  title: 'Sign Up | OS_Finder',
+  description: 'Create an OS_Finder account to submit and manage open source alternatives',
 };
 
 export default function SignUpPage() {

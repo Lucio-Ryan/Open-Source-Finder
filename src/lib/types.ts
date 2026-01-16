@@ -45,6 +45,7 @@ export interface ProprietarySoftware {
   slug: string;
   description: string;
   website: string;
+  icon_url?: string | null;
   created_at: string;
 }
 

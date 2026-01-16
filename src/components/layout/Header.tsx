@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, X, Search, Github, Terminal, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { Menu, X, Search, Terminal, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
 
 export function Header() {
@@ -15,7 +15,6 @@ export function Header() {
     { name: 'Alternatives', href: '/alternatives' },
     { name: 'Categories', href: '/categories' },
     { name: 'Self-Hosted', href: '/self-hosted' },
-    { name: 'Tech Stacks', href: '/tech-stacks' },
     { name: 'Advertise', href: '/advertise' },
   ];
 
@@ -34,7 +33,7 @@ export function Header() {
               <Terminal className="w-5 h-5 text-brand" />
             </div>
             <span className="font-pixel text-sm text-white tracking-wider">
-              OSS<span className="text-brand">_</span>FINDER
+              OS<span className="text-brand">_</span>FINDER
             </span>
           </Link>
 
@@ -121,16 +120,6 @@ export function Header() {
                 Sign In
               </Link>
             )}
-            
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2.5 text-muted hover:text-white border border-transparent hover:border-border rounded-lg transition-all"
-              aria-label="GitHub"
-            >
-              <Github className="w-5 h-5" />
-            </a>
 
             {/* Mobile menu button */}
             <button

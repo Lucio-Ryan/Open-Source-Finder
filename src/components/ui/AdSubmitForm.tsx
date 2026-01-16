@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, CheckCircle, AlertCircle, LogIn } from 'lucide-react';
+import { useAuth } from '@/lib/auth/AuthContext';
 import type { AdType } from '@/types/database';
 
 interface AdSubmitFormProps {
@@ -14,6 +15,7 @@ interface AdSubmitFormProps {
 
 export function AdSubmitForm({ adType, title, description }: AdSubmitFormProps) {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +36,17 @@ export function AdSubmitForm({ adType, title, description }: AdSubmitFormProps) 
     start_date: '',
     end_date: '',
   });
+  
+  // Auto-fill user email if logged in
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        submitter_email: user.email || '',
+        submitter_name: user.user_metadata?.name || prev.submitter_name,
+      }));
+    }
+  }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -42,6 +55,12 @@ export function AdSubmitForm({ adType, title, description }: AdSubmitFormProps) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      router.push(`/login?redirect=/advertise/${adType}`);
+      return;
+    }
+    
     setLoading(true);
     setError(null);
 
@@ -68,8 +87,56 @@ export function AdSubmitForm({ adType, title, description }: AdSubmitFormProps) 
       setLoading(false);
     }
   };
+  
+  // Show loading state while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-dark flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-brand border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted font-mono">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Prompt signin if not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-dark">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="bg-surface border border-border rounded-xl p-8 text-center">
+            <div className="w-16 h-16 bg-brand/10 border border-brand/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <LogIn className="w-8 h-8 text-brand" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-4">
+              Sign In Required<span className="text-brand">_</span>
+            </h1>
+            <p className="text-muted font-mono text-sm mb-8">
+              You need to sign in before submitting an advertisement. This allows you to manage your ads from your dashboard.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link
+                href={`/login?redirect=/advertise/${adType}`}
+                className="px-6 py-3 bg-brand text-dark font-mono text-sm font-medium rounded-lg hover:bg-brand-light transition-all"
+              >
+                Sign In to Continue
+              </Link>
+              <Link
+                href="/advertise"
+                className="px-6 py-3 bg-surface border border-border text-white font-mono text-sm rounded-lg hover:border-brand/50 transition-all"
+              >
+                Back to Advertise
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (success) {
+    const price = adType === 'banner' ? '$49' : '$99';
     return (
       <div className="min-h-screen bg-dark">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -80,16 +147,18 @@ export function AdSubmitForm({ adType, title, description }: AdSubmitFormProps) 
             <h1 className="text-2xl font-bold text-white mb-4">
               Submission Received!<span className="text-brand">_</span>
             </h1>
-            <p className="text-muted font-mono text-sm mb-8">
+            <p className="text-muted font-mono text-sm mb-4">
               Thank you for your advertisement submission. Our team will review it within 24-48 hours.
-              You&apos;ll receive an email once it&apos;s approved and live.
+            </p>
+            <p className="text-muted font-mono text-sm mb-8">
+              Once approved, you&apos;ll be able to complete payment ({price}) from your Ad Dashboard to go live.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link
-                href="/advertise"
+                href="/dashboard/advertisements"
                 className="px-6 py-3 bg-brand text-dark font-mono text-sm font-medium rounded-lg hover:bg-brand-light transition-all"
               >
-                Back to Advertise
+                View Ad Dashboard
               </Link>
               <Link
                 href="/"

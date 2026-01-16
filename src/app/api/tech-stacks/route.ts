@@ -1,21 +1,25 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { connectToDatabase } from '@/lib/mongodb/connection';
+import { TechStack } from '@/lib/mongodb/models';
 
 export async function GET() {
   try {
-    const supabase = await createClient();
+    await connectToDatabase();
     
-    const { data: techStacks, error } = await supabase
-      .from('tech_stacks')
-      .select('id, name, slug, type')
-      .order('name');
+    const techStacks = await TechStack.find({})
+      .select('_id name slug type')
+      .sort({ name: 1 })
+      .lean();
 
-    if (error) {
-      console.error('Error fetching tech stacks:', error);
-      return NextResponse.json({ error: 'Failed to fetch tech stacks' }, { status: 500 });
-    }
+    // Transform to match expected format
+    const transformedTechStacks = techStacks.map(ts => ({
+      id: ts._id,
+      name: ts.name,
+      slug: ts.slug,
+      type: ts.type
+    }));
 
-    return NextResponse.json({ techStacks: techStacks || [] });
+    return NextResponse.json({ techStacks: transformedTechStacks });
   } catch (error) {
     console.error('Error in tech-stacks API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

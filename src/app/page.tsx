@@ -1,12 +1,12 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Code2, ChevronRight, Github, Rocket } from 'lucide-react';
+import { ArrowRight, Code2, ChevronRight } from 'lucide-react';
 import { SearchBar, AlternativeCard, SponsoredAlternativeCard, NewsletterForm, AlternativesGridWithAds, isActiveSponsor } from '@/components/ui';
 import { 
   getFeaturedAlternatives, 
   getProprietarySoftware,
   getAlternatives,
-} from '@/lib/supabase/queries';
+} from '@/lib/mongodb/queries';
 
 // Enable ISR with revalidation
 export const revalidate = 60;
@@ -18,10 +18,9 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const [featuredAlternatives, proprietarySoftware, recentLaunches] = await Promise.all([
+  const [featuredAlternatives, proprietarySoftware] = await Promise.all([
     getFeaturedAlternatives(),
     getProprietarySoftware(),
-    getAlternatives({ approved: true, sortBy: 'created_at', sortOrder: 'desc', limit: 6 }),
   ]);
 
   return (
@@ -79,6 +78,22 @@ export default async function Home() {
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand/50 to-transparent"></div>
       </section>
 
+      {/* Simple Newsletter Section - Below Hero */}
+      <section className="py-8 bg-surface/30 border-b border-border">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-center sm:text-left">
+              <p className="text-white font-mono text-sm">
+                <span className="text-brand">$</span> Get weekly updates on new alternatives
+              </p>
+            </div>
+            <div className="w-full sm:w-auto">
+              <NewsletterForm compact />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Discover Alternatives To Section */}
       <section className="py-16 lg:py-20 bg-surface/30 border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -125,50 +140,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Recently Launched Section */}
-      <section className="py-16 lg:py-20 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-12">
-            <div>
-              <p className="text-brand font-mono text-sm mb-3 flex items-center gap-2">
-                <Rocket className="w-4 h-4" />
-                // RECENTLY LAUNCHED
-              </p>
-              <h2 className="text-3xl sm:text-4xl font-bold text-white">
-                New Arrivals<span className="text-brand">_</span>
-              </h2>
-            </div>
-            <Link
-              href="/launches"
-              className="hidden sm:flex items-center text-muted hover:text-brand font-mono text-sm transition-colors group"
-            >
-              View all launches
-              <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recentLaunches.map((alternative) => (
-              isActiveSponsor(alternative) ? (
-                <SponsoredAlternativeCard key={alternative.id} alternative={alternative} />
-              ) : (
-                <AlternativeCard key={alternative.id} alternative={alternative} />
-              )
-            ))}
-          </div>
-          
-          <div className="mt-10 text-center sm:hidden">
-            <Link
-              href="/launches"
-              className="inline-flex items-center text-brand font-mono text-sm"
-            >
-              View All Launches
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* Featured Alternatives */}
       <section className="py-20 lg:py-28 relative">
         <div className="absolute inset-0 bg-grid-pattern opacity-3"></div>
@@ -204,36 +175,9 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Terminal CTA Section */}
-      <section className="py-20 lg:py-28">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="terminal-box">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-              <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
-              <span className="ml-4 text-muted text-xs font-mono">newsletter.sh</span>
-            </div>
-            <div className="p-8">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-                  Stay Updated<span className="text-brand">_</span>
-                </h2>
-                <p className="text-muted font-mono text-sm">
-                  <span className="text-brand">$</span> Get weekly updates on new alternatives and community picks
-                </p>
-              </div>
-              <NewsletterForm />
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Submit CTA Section */}
-      <section className="py-20 border-t border-border relative">
-        <div className="absolute inset-0 bg-gradient-to-t from-brand/5 to-transparent"></div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="py-20 bg-[#1a1a1a]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center px-4 py-2 bg-surface border border-border rounded-full text-brand font-mono text-sm mb-6">
             <Code2 className="w-4 h-4 mr-2" />
             Contribute to the community
@@ -254,15 +198,6 @@ export default async function Home() {
               Submit Project_
               <ArrowRight className="w-5 h-5 ml-2" />
             </Link>
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center px-8 py-4 bg-surface border border-border text-white font-mono rounded-lg hover:border-brand/50 transition-colors"
-            >
-              <Github className="w-5 h-5 mr-2" />
-              View on GitHub
-            </a>
           </div>
         </div>
       </section>

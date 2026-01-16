@@ -1,9 +1,8 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, Server, Shield, Wrench, Unlock } from 'lucide-react';
-import { SearchBar } from '@/components/ui';
-import { getSelfHostedAlternatives } from '@/lib/supabase/queries';
-import { SelfHostedGrid } from './SelfHostedGrid';
+import { SearchBar, AlternativesList } from '@/components/ui';
+import { getSelfHostedAlternatives, getCategories, getProprietarySoftware } from '@/lib/mongodb/queries';
 
 export const metadata: Metadata = {
   title: 'Self-Hosted Open Source Software - Privacy & Control',
@@ -16,7 +15,24 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function SelfHostedPage() {
-  const selfHostedAlternatives = await getSelfHostedAlternatives();
+  const [selfHostedAlternatives, categories, proprietarySoftware] = await Promise.all([
+    getSelfHostedAlternatives(),
+    getCategories(),
+    getProprietarySoftware(),
+  ]);
+
+  // Transform to simpler format for the client component
+  const simplifiedCategories = categories.map(c => ({
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+  }));
+
+  const simplifiedProprietary = proprietarySoftware.map(s => ({
+    id: s.id,
+    name: s.name,
+    slug: s.slug,
+  }));
 
   return (
     <div className="min-h-screen bg-dark">
@@ -84,9 +100,13 @@ export default async function SelfHostedPage() {
         </div>
       </div>
 
-      {/* Alternatives Grid */}
+      {/* Alternatives Grid with Filters */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <SelfHostedGrid alternatives={selfHostedAlternatives} />
+        <AlternativesList 
+          alternatives={selfHostedAlternatives}
+          categories={simplifiedCategories}
+          proprietarySoftware={simplifiedProprietary}
+        />
       </div>
     </div>
   );

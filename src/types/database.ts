@@ -667,6 +667,7 @@ export interface TagWithCount extends Tag {
 export interface ProprietaryWithCount extends ProprietarySoftware {
   categories: Category[];
   alternative_count: number;
+  icon_url?: string | null;
 }
 
 // Creator profile type for displaying on alternative pages
@@ -715,6 +716,10 @@ export interface Advertisement {
   submitter_email: string;
   impressions: number;
   clicks: number;
+  payment_id: string | null;
+  paid_at: string | null;
+  payment_amount: number | null;
+  expires_at: string | null;
   created_at: string;
   updated_at: string;
 }

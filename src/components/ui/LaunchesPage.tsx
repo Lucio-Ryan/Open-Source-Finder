@@ -129,8 +129,39 @@ export function LaunchesPage({ categories, proprietarySoftware }: LaunchPageProp
 
   const loadMore = () => {
     if (!loading && hasMore) {
-      setPage(prev => prev + 1);
-      fetchLaunches(false);
+      const nextPage = page + 1;
+      setPage(nextPage);
+      // Fetch with the new page number directly
+      const fetchMore = async () => {
+        setLoading(true);
+        try {
+          const params = new URLSearchParams({
+            timeFrame,
+            sortBy,
+            page: nextPage.toString(),
+            limit: '20',
+          });
+
+          if (selectedCategory) {
+            params.set('category', selectedCategory);
+          }
+          if (selectedAlternativeTo) {
+            params.set('alternativeTo', selectedAlternativeTo);
+          }
+
+          const response = await fetch(`/api/launches?${params}`);
+          const data = await response.json();
+
+          setAlternatives(prev => [...prev, ...(data.alternatives || [])]);
+          setHasMore(data.hasMore);
+          setTotal(data.total || 0);
+        } catch (error) {
+          console.error('Failed to fetch launches:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchMore();
     }
   };
 
@@ -163,7 +194,7 @@ export function LaunchesPage({ categories, proprietarySoftware }: LaunchPageProp
   return (
     <div className="min-h-screen bg-dark">
       {/* Header */}
-      <div className="bg-surface/50 border-b border-border sticky top-0 z-40 backdrop-blur-xl">
+      <div className="bg-surface/50 border-b border-border z-40 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
@@ -227,24 +258,6 @@ export function LaunchesPage({ categories, proprietarySoftware }: LaunchPageProp
               </div>
 
               <div className="space-y-6">
-                {/* Sort By */}
-                <div>
-                  <label className="block text-xs font-mono text-muted mb-2 uppercase tracking-wider">
-                    Sort By
-                  </label>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as SortOption)}
-                    className="w-full px-3 py-2.5 bg-dark border border-border rounded-lg text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50"
-                  >
-                    {SORT_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
                 {/* Category Filter */}
                 <div>
                   <label className="block text-xs font-mono text-muted mb-2 uppercase tracking-wider">
@@ -319,20 +332,6 @@ export function LaunchesPage({ categories, proprietarySoftware }: LaunchPageProp
               <div className="mt-4 p-4 bg-surface border border-border rounded-lg space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-mono text-muted mb-2">Sort By</label>
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value as SortOption)}
-                      className="w-full px-3 py-2 bg-dark border border-border rounded-lg text-white font-mono text-sm"
-                    >
-                      {SORT_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
                     <label className="block text-xs font-mono text-muted mb-2">Category</label>
                     <select
                       value={selectedCategory}
@@ -347,21 +346,21 @@ export function LaunchesPage({ categories, proprietarySoftware }: LaunchPageProp
                       ))}
                     </select>
                   </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-mono text-muted mb-2">Alternative To</label>
-                  <select
-                    value={selectedAlternativeTo}
-                    onChange={(e) => setSelectedAlternativeTo(e.target.value)}
-                    className="w-full px-3 py-2 bg-dark border border-border rounded-lg text-white font-mono text-sm"
-                  >
-                    <option value="">All Software</option>
-                    {proprietarySoftware.map((sw) => (
-                      <option key={sw.id} value={sw.slug}>
-                        {sw.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div>
+                    <label className="block text-xs font-mono text-muted mb-2">Alternative To</label>
+                    <select
+                      value={selectedAlternativeTo}
+                      onChange={(e) => setSelectedAlternativeTo(e.target.value)}
+                      className="w-full px-3 py-2 bg-dark border border-border rounded-lg text-white font-mono text-sm"
+                    >
+                      <option value="">All Software</option>
+                      {proprietarySoftware.map((sw) => (
+                        <option key={sw.id} value={sw.slug}>
+                          {sw.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 {hasActiveFilters && (
                   <button

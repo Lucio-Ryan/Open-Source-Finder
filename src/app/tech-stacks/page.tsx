@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, Code, ChevronRight, Blocks } from 'lucide-react';
-import { getTechStacks } from '@/lib/supabase/queries';
+import { getTechStacks } from '@/lib/mongodb/queries';
 
 export const revalidate = 60;
 

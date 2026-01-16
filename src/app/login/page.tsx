@@ -3,8 +3,8 @@ import { Terminal } from 'lucide-react';
 import { AuthForm } from '@/components/auth';
 
 export const metadata: Metadata = {
-  title: 'Sign In | OSS_Finder',
-  description: 'Sign in to your OSS_Finder account to manage your submitted alternatives.',
+  title: 'Sign In | OS_Finder',
+  description: 'Sign in to your OS_Finder account to manage your submitted alternatives',
 };
 
 export default function LoginPage() {

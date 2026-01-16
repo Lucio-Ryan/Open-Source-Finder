@@ -4,9 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Send, CheckCircle, Terminal, Loader2, Upload, X, Crown, Sparkles } from 'lucide-react';
-import { RichTextEditor, TechStackSelector, PlanSelection, BacklinkVerification, type SubmissionPlan } from '@/components/ui';
+import { ArrowLeft, Send, CheckCircle, Terminal, Loader2, Upload, X, Crown, Sparkles, Eye, EyeOff } from 'lucide-react';
+import { RichTextEditor, TechStackSelector, PlanSelection, BacklinkVerification, CreatorProfileCard, type SubmissionPlan } from '@/components/ui';
 import { useAuth } from '@/lib/auth/AuthContext';
+import type { CreatorProfile } from '@/lib/mongodb/queries';
 
 interface Category {
   id: string;
@@ -36,6 +37,13 @@ export default function SubmitPage() {
   const [proprietarySoftware, setProprietarySoftware] = useState<ProprietarySoftware[]>([]);
   const [techStacks, setTechStacks] = useState<TechStack[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreatorPreview, setShowCreatorPreview] = useState(true);
+  const [creatorProfile, setCreatorProfile] = useState<CreatorProfile | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  
+  // Search states
+  const [categorySearch, setCategorySearch] = useState('');
+  const [alternativeToSearch, setAlternativeToSearch] = useState('');
   
   // Plan selection state
   const [selectedPlan, setSelectedPlan] = useState<SubmissionPlan>('free');
@@ -66,6 +74,15 @@ export default function SubmitPage() {
     submitter_email: '',
     screenshots: [] as string[],
   });
+  
+  // Filter categories and proprietary software based on search
+  const filteredCategories = categories.filter(cat =>
+    cat.name.toLowerCase().includes(categorySearch.toLowerCase())
+  );
+  
+  const filteredProprietarySoftware = proprietarySoftware.filter(soft =>
+    soft.name.toLowerCase().includes(alternativeToSearch.toLowerCase())
+  );
 
   // Auto-fill user email if logged in
   useEffect(() => {
@@ -75,6 +92,25 @@ export default function SubmitPage() {
         submitter_email: user.email || '',
         submitter_name: user.user_metadata?.name || prev.submitter_name,
       }));
+      
+      // Fetch creator profile
+      const fetchCreatorProfile = async () => {
+        try {
+          const res = await fetch('/api/profile');
+          if (res.ok) {
+            const data = await res.json();
+            setCreatorProfile(data);
+          }
+        } catch (err) {
+          console.error('Failed to fetch creator profile:', err);
+        } finally {
+          setLoadingProfile(false);
+        }
+      };
+      
+      fetchCreatorProfile();
+    } else {
+      setLoadingProfile(false);
     }
   }, [user]);
 
@@ -168,27 +204,39 @@ export default function SubmitPage() {
   };
 
   const handleCategoryChange = (categoryId: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      category_ids: prev.category_ids.includes(categoryId)
-        ? prev.category_ids.filter((c) => c !== categoryId)
-        : [...prev.category_ids, categoryId],
-    }));
+    setFormData((prev) => {
+      // If already selected, allow removal
+      if (prev.category_ids.includes(categoryId)) {
+        return { ...prev, category_ids: prev.category_ids.filter((c) => c !== categoryId) };
+      }
+      // Only add if under limit of 3
+      if (prev.category_ids.length >= 3) {
+        return prev;
+      }
+      return { ...prev, category_ids: [...prev.category_ids, categoryId] };
+    });
   };
 
   const handleAlternativeToChange = (softwareId: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      alternative_to_ids: prev.alternative_to_ids.includes(softwareId)
-        ? prev.alternative_to_ids.filter((s) => s !== softwareId)
-        : [...prev.alternative_to_ids, softwareId],
-    }));
+    setFormData((prev) => {
+      // If already selected, allow removal
+      if (prev.alternative_to_ids.includes(softwareId)) {
+        return { ...prev, alternative_to_ids: prev.alternative_to_ids.filter((s) => s !== softwareId) };
+      }
+      // Only allow 1 alternative to selection
+      if (prev.alternative_to_ids.length >= 1) {
+        return prev;
+      }
+      return { ...prev, alternative_to_ids: [...prev.alternative_to_ids, softwareId] };
+    });
   };
 
   const handleTechStackChange = (ids: string[]) => {
+    // Limit to 10 tech stacks
+    const limitedIds = ids.slice(0, 10);
     setFormData((prev) => ({
       ...prev,
-      tech_stack_ids: ids,
+      tech_stack_ids: limitedIds,
     }));
   };
 
@@ -337,22 +385,6 @@ export default function SubmitPage() {
       {/* Form */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Plan Selection - First and most important */}
-          <div className="bg-surface rounded-xl border border-border p-6">
-            <h2 className="text-xl font-semibold text-white mb-2 font-mono">
-              <Terminal className="w-5 h-5 inline mr-2 text-brand" />
-              // CHOOSE_YOUR_PLAN
-            </h2>
-            <p className="text-sm text-muted mb-6">
-              Select a submission plan that works for your project.
-            </p>
-            
-            <PlanSelection 
-              selectedPlan={selectedPlan}
-              onPlanSelect={setSelectedPlan}
-            />
-          </div>
-
           {/* Personal Info - Now at the top */}
           <div className="bg-surface rounded-xl border border-border p-6">
             <h2 className="text-xl font-semibold text-white mb-2 font-mono">
@@ -362,6 +394,49 @@ export default function SubmitPage() {
             <p className="text-sm text-muted mb-6">
               Let us know who&apos;s submitting this project (optional but appreciated).
             </p>
+
+            {/* Creator Card Toggle */}
+            <div className="flex items-center justify-between bg-dark rounded-lg border border-border p-3 mb-6">
+              <div className="flex items-center gap-2">
+                {user ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowCreatorPreview(!showCreatorPreview)}
+                    className="p-1 hover:bg-surface rounded transition-colors"
+                    aria-label="Toggle creator preview"
+                  >
+                    {showCreatorPreview ? (
+                      <Eye className="w-4 h-4 text-brand" />
+                    ) : (
+                      <EyeOff className="w-4 h-4 text-muted" />
+                    )}
+                  </button>
+                ) : (
+                  <EyeOff className="w-4 h-4 text-muted" />
+                )}
+                <span className="text-xs text-muted">
+                  {user 
+                    ? (showCreatorPreview ? "Showing" : "Hiding") + " creator card"
+                    : "Hiding creator card"
+                  }
+                </span>
+              </div>
+              {user ? (
+                <Link
+                  href="/dashboard/settings"
+                  className="text-xs text-brand hover:underline font-medium"
+                >
+                  Customize
+                </Link>
+              ) : (
+                <Link
+                  href="/login?redirect=/submit&message=signin_required_for_creator_card"
+                  className="text-xs text-brand hover:underline font-medium"
+                >
+                  Sign in to customize
+                </Link>
+              )}
+            </div>
             
             <div className="space-y-6">
               <div>
@@ -572,12 +647,13 @@ export default function SubmitPage() {
                   about * <span className="text-muted/70">(detailed description)</span>
                 </label>
                 <p className="text-xs text-muted mb-2">
-                  Detailed description for the About section. Supports bold, italic, links, and inline code only.
+                  Detailed description for the About section. Supports bold, italic, links, and inline code only. Max 2000 characters.
                 </p>
                 <RichTextEditor
                   content={formData.description}
                   onChange={(html) => setFormData({ ...formData, description: html })}
                   placeholder="Describe what the project does and what makes it a good alternative. You can use formatting like bold, italic, and links..."
+                  maxLength={2000}
                 />
               </div>
             </div>
@@ -590,12 +666,23 @@ export default function SubmitPage() {
               // CATEGORIES
             </h2>
             <p className="text-sm text-muted mb-4">
-              Select one or more categories that best describe this project.
+              Select up to 3 categories that best describe this project.
+              <span className={`ml-2 font-mono ${formData.category_ids.length >= 3 ? 'text-orange-400' : 'text-brand'}`}>
+                ({formData.category_ids.length}/3)
+              </span>
             </p>
+            
+            <input
+              type="text"
+              value={categorySearch}
+              onChange={(e) => setCategorySearch(e.target.value)}
+              placeholder="Search categories..."
+              className="w-full px-4 py-2 mb-4 bg-dark border border-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-transparent font-mono text-sm"
+            />
             
             <div className="max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {categories.map((category) => (
+              {filteredCategories.map((category) => (
                 <label
                   key={category.id}
                   className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
@@ -631,11 +718,22 @@ export default function SubmitPage() {
             </h2>
             <p className="text-sm text-muted mb-4">
               Select which proprietary software this is an alternative to.
+              <span className={`ml-2 font-mono ${formData.alternative_to_ids.length >= 1 ? 'text-orange-400' : 'text-brand'}`}>
+                ({formData.alternative_to_ids.length}/1)
+              </span>
             </p>
+            
+            <input
+              type="text"
+              value={alternativeToSearch}
+              onChange={(e) => setAlternativeToSearch(e.target.value)}
+              placeholder="Search proprietary software..."
+              className="w-full px-4 py-2 mb-4 bg-dark border border-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-transparent font-mono text-sm"
+            />
             
             <div className="max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {proprietarySoftware.map((software) => (
+              {filteredProprietarySoftware.map((software) => (
                 <label
                   key={software.id}
                   className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
@@ -670,7 +768,10 @@ export default function SubmitPage() {
               // TECH_STACK
             </h2>
             <p className="text-sm text-muted mb-4">
-              What technologies is this project built with? Search and select from the list.
+              What technologies is this project built with? Select up to 10.
+              <span className={`ml-2 font-mono ${formData.tech_stack_ids.length >= 10 ? 'text-orange-400' : 'text-brand'}`}>
+                ({formData.tech_stack_ids.length}/10)
+              </span>
             </p>
             
             <TechStackSelector
@@ -712,6 +813,22 @@ export default function SubmitPage() {
                 />
               </div>
             </div>
+          </div>
+
+          {/* Plan Selection */}
+          <div className="bg-surface rounded-xl border border-border p-6">
+            <h2 className="text-xl font-semibold text-white mb-2 font-mono">
+              <Terminal className="w-5 h-5 inline mr-2 text-brand" />
+              // CHOOSE_YOUR_PLAN
+            </h2>
+            <p className="text-sm text-muted mb-6">
+              Select a submission plan that works for your project.
+            </p>
+            
+            <PlanSelection 
+              selectedPlan={selectedPlan}
+              onPlanSelect={setSelectedPlan}
+            />
           </div>
 
           {/* Backlink Verification (Free Plan Only) */}

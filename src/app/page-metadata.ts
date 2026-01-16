@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'OSS Finder - Find Open Source Alternatives to Proprietary Software',
+    title: 'OS Finder - Find Open Source Alternatives to Proprietary Software',
     description: 'Discover 100+ open source alternatives to popular proprietary software. Free, self-hosted, privacy-focused tools.',
   },
 };

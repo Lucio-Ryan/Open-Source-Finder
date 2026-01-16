@@ -1,40 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
-import { createServerClient } from '@supabase/ssr';
+import { getCurrentUser } from '@/lib/mongodb/auth';
+import { connectToDatabase } from '@/lib/mongodb/connection';
+import { User, TechStack } from '@/lib/mongodb/models';
 
 // Verify admin role
 async function verifyAdmin() {
-  const cookieStore = await cookies();
-  
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   
   if (!user) {
     return { authorized: false, error: 'Unauthorized' };
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
+  await connectToDatabase();
+  
+  const profile = await User.findById(user.id).select('role').lean();
 
   if (!profile || profile.role !== 'admin') {
     return { authorized: false, error: 'Admin access required' };
@@ -58,21 +37,23 @@ export async function GET() {
       return NextResponse.json({ error: auth.error }, { status: 403 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    await connectToDatabase();
 
-    const { data, error } = await supabaseAdmin
-      .from('tech_stacks')
-      .select('*')
-      .order('name');
+    const data = await TechStack.find({})
+      .sort({ name: 1 })
+      .lean();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    // Transform to match expected format
+    const techStacks = data.map(ts => ({
+      id: ts._id,
+      name: ts.name,
+      slug: ts.slug,
+      type: ts.type,
+      created_at: ts.created_at,
+      updated_at: ts.updated_at
+    }));
 
-    return NextResponse.json({ techStacks: data });
+    return NextResponse.json({ techStacks });
   } catch (error) {
     console.error('Admin tech stacks error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -94,39 +75,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    await connectToDatabase();
 
     const slug = generateSlug(name);
 
     // Check if slug exists
-    const { data: existing } = await supabaseAdmin
-      .from('tech_stacks')
-      .select('id')
-      .eq('slug', slug)
-      .single();
+    const existing = await TechStack.findOne({ slug }).lean();
 
     if (existing) {
       return NextResponse.json({ error: 'A tech stack with this name already exists' }, { status: 409 });
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('tech_stacks')
-      .insert({
-        name,
-        slug,
-        type: type || 'Tool',
-      })
-      .select()
-      .single();
+    const techStack = await TechStack.create({
+      name,
+      slug,
+      type: type || 'Tool',
+    });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ success: true, techStack: data });
+    return NextResponse.json({ 
+      success: true, 
+      techStack: {
+        id: techStack._id,
+        name: techStack.name,
+        slug: techStack.slug,
+        type: techStack.type
+      }
+    });
   } catch (error) {
     console.error('Admin tech stack create error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -148,10 +122,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Tech stack ID required' }, { status: 400 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    await connectToDatabase();
 
     const updateData: Record<string, any> = {};
     if (name) {
@@ -160,18 +131,25 @@ export async function PUT(request: NextRequest) {
     }
     if (type) updateData.type = type;
 
-    const { data, error } = await supabaseAdmin
-      .from('tech_stacks')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
+    const data = await TechStack.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    ).lean();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!data) {
+      return NextResponse.json({ error: 'Tech stack not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, techStack: data });
+    return NextResponse.json({ 
+      success: true, 
+      techStack: {
+        id: data._id,
+        name: data.name,
+        slug: data.slug,
+        type: data.type
+      }
+    });
   } catch (error) {
     console.error('Admin tech stack update error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -193,19 +171,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Tech stack ID required' }, { status: 400 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    await connectToDatabase();
 
-    const { error } = await supabaseAdmin
-      .from('tech_stacks')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    await TechStack.findByIdAndDelete(id);
 
     return NextResponse.json({ success: true });
   } catch (error) {

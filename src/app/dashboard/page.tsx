@@ -4,9 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Plus, Edit2, Eye, Clock, CheckCircle, XCircle, Loader2, LogOut, Settings, Sparkles, Zap } from 'lucide-react';
+import { Plus, Edit2, Eye, Clock, CheckCircle, XCircle, Loader2, LogOut, Settings, Sparkles, Zap, Megaphone } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { createClient } from '@/lib/supabase/client';
 import { NotificationsPanel } from '@/components/ui';
 
 interface UserAlternative {
@@ -42,20 +41,16 @@ export default function DashboardPage() {
     const fetchUserAlternatives = async () => {
       if (!user?.id) return;
 
-      const supabase = createClient();
-      // Fetch by user_id first, fallback to email for backwards compatibility
-      const { data, error } = await supabase
-        .from('alternatives')
-        .select('id, name, slug, description, approved, rejection_reason, rejected_at, created_at, icon_url, submission_plan, sponsor_featured_until, sponsor_priority_until')
-        .or(`user_id.eq.${user.id}${user.email ? `,submitter_email.eq.${user.email}` : ''}`)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching alternatives:', error);
+      // Fetch user alternatives via API
+      const response = await fetch(`/api/profile/alternatives`);
+      const result = await response.json();
+      
+      if (result.error) {
+        console.error('Error fetching alternatives:', result.error);
       }
       
-      if (data) {
-        setAlternatives(data as UserAlternative[]);
+      if (result.alternatives) {
+        setAlternatives(result.alternatives as UserAlternative[]);
       }
       setLoading(false);
     };
@@ -156,9 +151,6 @@ export default function DashboardPage() {
     );
   }
 
-  const pendingCount = alternatives.filter(a => !a.approved && !a.rejected_at).length;
-  const approvedCount = alternatives.filter(a => a.approved).length;
-  const rejectedCount = alternatives.filter(a => a.rejected_at).length;
   const displayName = profile?.name || user.user_metadata?.name || user.email?.split('@')[0];
 
   return (
@@ -174,16 +166,16 @@ export default function DashboardPage() {
               </h1>
               <p className="text-muted font-mono text-sm mt-2">
                 {user.email}
-                {profile?.role && profile.role !== 'user' && (
-                  <span className={`ml-2 px-2 py-0.5 rounded text-xs ${
-                    profile.role === 'admin' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'
-                  }`}>
-                    {profile.role}
-                  </span>
-                )}
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <Link
+                href="/dashboard/advertisements"
+                className="flex items-center gap-2 px-4 py-2 text-muted hover:text-white border border-border hover:border-brand/50 rounded-lg font-mono text-sm transition-colors"
+              >
+                <Megaphone className="w-4 h-4" />
+                My Ads
+              </Link>
               <Link
                 href="/dashboard/settings"
                 className="flex items-center gap-2 px-4 py-2 text-muted hover:text-white border border-border hover:border-brand/50 rounded-lg font-mono text-sm transition-colors"
@@ -204,54 +196,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
-          <div className="bg-surface border border-border rounded-xl p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted font-mono text-sm">Total Submissions</p>
-                <p className="text-3xl font-bold text-white mt-1">{alternatives.length}</p>
-              </div>
-              <div className="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center">
-                <Eye className="w-6 h-6 text-brand" />
-              </div>
-            </div>
-          </div>
-          <div className="bg-surface border border-border rounded-xl p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted font-mono text-sm">Approved</p>
-                <p className="text-3xl font-bold text-brand mt-1">{approvedCount}</p>
-              </div>
-              <div className="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-brand" />
-              </div>
-            </div>
-          </div>
-          <div className="bg-surface border border-border rounded-xl p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted font-mono text-sm">Pending Review</p>
-                <p className="text-3xl font-bold text-yellow-500 mt-1">{pendingCount}</p>
-              </div>
-              <div className="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center">
-                <Clock className="w-6 h-6 text-yellow-500" />
-              </div>
-            </div>
-          </div>
-          <div className="bg-surface border border-border rounded-xl p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted font-mono text-sm">Rejected</p>
-                <p className="text-3xl font-bold text-red-500 mt-1">{rejectedCount}</p>
-              </div>
-              <div className="w-12 h-12 bg-red-500/10 rounded-lg flex items-center justify-center">
-                <XCircle className="w-6 h-6 text-red-500" />
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Notifications Panel for Creators */}
         {alternatives.filter(a => a.approved).length > 0 && (
           <NotificationsPanel className="mb-8" />

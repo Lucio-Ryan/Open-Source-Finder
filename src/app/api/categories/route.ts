@@ -1,18 +1,26 @@
 import { NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { connectToDatabase } from '@/lib/mongodb/connection';
+import { Category } from '@/lib/mongodb/models';
 
 export async function GET() {
-  const supabase = createAdminClient();
+  try {
+    await connectToDatabase();
 
-  const { data: categories, error } = await supabase
-    .from('categories')
-    .select('id, name, slug')
-    .order('name');
+    const categories = await Category.find({})
+      .select('_id name slug')
+      .sort({ name: 1 })
+      .lean();
 
-  if (error) {
+    // Transform to match expected format
+    const transformedCategories = categories.map(c => ({
+      id: c._id,
+      name: c.name,
+      slug: c.slug
+    }));
+
+    return NextResponse.json({ categories: transformedCategories });
+  } catch (error) {
     console.error('Error fetching categories:', error);
     return NextResponse.json({ categories: [] });
   }
-
-  return NextResponse.json({ categories });
 }

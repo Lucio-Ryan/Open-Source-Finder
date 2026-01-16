@@ -14,15 +14,31 @@ function isActiveSponsor(alternative: { submission_plan?: string | null; sponsor
   return new Date(alternative.sponsor_priority_until) > new Date();
 }
 
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface ProprietarySoftware {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 interface AlternativesListProps {
   alternatives: AlternativeWithRelations[];
+  categories?: Category[];
+  proprietarySoftware?: ProprietarySoftware[];
 }
 
 type SortOption = 'healthScore' | 'stars' | 'recent' | 'name' | 'votes';
 
-export function AlternativesList({ alternatives }: AlternativesListProps) {
-  const [sortBy, setSortBy] = useState<SortOption>('healthScore');
+export function AlternativesList({ alternatives, categories = [], proprietarySoftware = [] }: AlternativesListProps) {
+  const [sortBy, setSortBy] = useState<SortOption>('votes');
   const [selfHostedOnly, setSelfHostedOnly] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedAlternativeTo, setSelectedAlternativeTo] = useState<string>('');
   const { ads } = useCardAds();
 
   const filteredAndSortedAlternatives = useMemo(() => {
@@ -31,6 +47,20 @@ export function AlternativesList({ alternatives }: AlternativesListProps) {
     // Apply self-hosted filter
     if (selfHostedOnly) {
       filtered = filtered.filter(alt => alt.is_self_hosted);
+    }
+
+    // Apply category filter
+    if (selectedCategory) {
+      filtered = filtered.filter(alt => 
+        alt.categories?.some(cat => cat.slug === selectedCategory)
+      );
+    }
+
+    // Apply alternative-to filter
+    if (selectedAlternativeTo) {
+      filtered = filtered.filter(alt => 
+        alt.alternative_to?.some(prop => prop.slug === selectedAlternativeTo)
+      );
     }
 
     // Separate sponsored and non-sponsored alternatives
@@ -62,21 +92,39 @@ export function AlternativesList({ alternatives }: AlternativesListProps) {
     nonSponsored.sort(sortFn);
 
     return [...sponsored, ...nonSponsored];
-  }, [alternatives, sortBy, selfHostedOnly]);
+  }, [alternatives, sortBy, selfHostedOnly, selectedCategory, selectedAlternativeTo]);
 
   // Intersperse ads into alternatives list
   const itemsWithAds = useMemo(() => {
     return intersperseAds(filteredAndSortedAlternatives, ads, 6);
   }, [filteredAndSortedAlternatives, ads]);
 
+  const hasActiveFilters = selfHostedOnly || selectedCategory || selectedAlternativeTo;
+
+  const clearFilters = () => {
+    setSelfHostedOnly(false);
+    setSelectedCategory('');
+    setSelectedAlternativeTo('');
+  };
+
   return (
     <div className="flex flex-col lg:flex-row gap-8">
       {/* Sidebar Filters */}
       <aside className="lg:w-64 flex-shrink-0">
         <div className="bg-surface rounded-xl border border-border p-6 sticky top-24">
-          <div className="flex items-center space-x-2 mb-4">
-            <Filter className="w-5 h-5 text-brand" />
-            <h2 className="font-mono text-white">// Filters</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              <Filter className="w-5 h-5 text-brand" />
+              <h2 className="font-mono text-white">// Filters</h2>
+            </div>
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="text-xs font-mono text-muted hover:text-brand transition-colors"
+              >
+                Clear all
+              </button>
+            )}
           </div>
           
           <div className="space-y-6">
@@ -98,6 +146,48 @@ export function AlternativesList({ alternatives }: AlternativesListProps) {
               </select>
             </div>
 
+            {/* Category Filter */}
+            {categories.length > 0 && (
+              <div>
+                <label className="block text-xs font-mono text-muted mb-2">
+                  Category
+                </label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-dark border border-border rounded-lg text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50"
+                >
+                  <option value="">All Categories</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.slug}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Alternative To Filter */}
+            {proprietarySoftware.length > 0 && (
+              <div>
+                <label className="block text-xs font-mono text-muted mb-2">
+                  Alternative To
+                </label>
+                <select
+                  value={selectedAlternativeTo}
+                  onChange={(e) => setSelectedAlternativeTo(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-dark border border-border rounded-lg text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50"
+                >
+                  <option value="">All Software</option>
+                  {proprietarySoftware.map((sw) => (
+                    <option key={sw.id} value={sw.slug}>
+                      {sw.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Self-Hosted */}
             <div>
               <label className="flex items-center space-x-2 cursor-pointer group">
@@ -110,23 +200,6 @@ export function AlternativesList({ alternatives }: AlternativesListProps) {
                 <span className="text-sm font-mono text-muted group-hover:text-white transition-colors">Self-Hosted Only</span>
               </label>
             </div>
-
-            {/* Tags */}
-            <div>
-              <label className="block text-xs font-mono text-muted mb-2">
-                Popular Tags
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {['self-hosted', 'privacy-focused', 'ai-powered'].map((tag) => (
-                  <button
-                    key={tag}
-                    className="px-2 py-1 text-xs font-mono bg-dark border border-border text-muted rounded hover:border-brand/30 hover:text-brand transition-colors"
-                  >
-                    #{tag.replace('-', '_')}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </aside>
@@ -136,6 +209,9 @@ export function AlternativesList({ alternatives }: AlternativesListProps) {
         <div className="flex items-center justify-between mb-6">
           <p className="text-muted font-mono text-sm">
             <span className="text-brand">found:</span> {filteredAndSortedAlternatives.length} alternatives
+            {filteredAndSortedAlternatives.length !== alternatives.length && (
+              <span className="text-muted/70"> (filtered from {alternatives.length})</span>
+            )}
           </p>
         </div>
 

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient, isUsingMockData } from '@/lib/supabase/admin';
-import { mockAlternatives, mockProprietary } from '@/lib/mock-data';
+import { connectToDatabase, Alternative, ProprietarySoftware } from '@/lib/mongodb';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -10,175 +9,135 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ results: [], proprietaryMatches: [] });
   }
 
-  // If using mock data, search mock alternatives
-  if (isUsingMockData) {
+  try {
+    await connectToDatabase();
     const lowerQuery = query.toLowerCase();
-    
+
+    // First, search for matching proprietary software
+    const matchingProprietary = await ProprietarySoftware.find({
+      name: { $regex: query, $options: 'i' }
+    })
+      .limit(10)
+      .lean();
+
+    // Get IDs of matching proprietary software
+    const proprietaryIds = matchingProprietary.map((p: any) => p._id);
+
     // Search alternatives by name/description
-    const directResults = mockAlternatives.filter(alt => 
-      alt.name.toLowerCase().includes(lowerQuery) ||
-      alt.description.toLowerCase().includes(lowerQuery)
-    );
+    const directResults = await Alternative.find({
+      approved: true,
+      $or: [
+        { name: { $regex: query, $options: 'i' } },
+        { description: { $regex: query, $options: 'i' } },
+        { short_description: { $regex: query, $options: 'i' } },
+      ],
+    })
+      .populate('categories')
+      .populate('tags')
+      .populate('tech_stacks')
+      .populate('alternative_to')
+      .sort({ health_score: -1 })
+      .limit(20)
+      .lean();
 
-    // Search proprietary software and find alternatives for them
-    const matchingProprietary = mockProprietary.filter(prop =>
-      prop.name.toLowerCase().includes(lowerQuery)
-    );
+    // If we found matching proprietary software, get alternatives for them
+    let proprietaryAlternatives: any[] = [];
+    if (proprietaryIds.length > 0) {
+      proprietaryAlternatives = await Alternative.find({
+        approved: true,
+        alternative_to: { $in: proprietaryIds },
+      })
+        .populate('categories')
+        .populate('tags')
+        .populate('tech_stacks')
+        .populate('alternative_to')
+        .sort({ health_score: -1 })
+        .limit(20)
+        .lean();
+    }
+
+    // Merge results with proprietary alternatives first, avoiding duplicates
+    const combinedResults = [...proprietaryAlternatives];
+    const existingIds = new Set(proprietaryAlternatives.map((r: any) => r._id.toString()));
     
-    // Get alternatives for matching proprietary software
-    const proprietaryAlternatives = mockAlternatives.filter(alt =>
-      alt.proprietarySoftware?.some(prop => 
-        matchingProprietary.some(mp => mp.slug === prop.slug)
-      )
-    );
-
-    // Combine and deduplicate results
-    const allResults = [...directResults];
-    proprietaryAlternatives.forEach(alt => {
-      if (!allResults.find(r => r.id === alt.id)) {
-        allResults.push(alt);
+    directResults.forEach((alt: any) => {
+      if (!existingIds.has(alt._id.toString())) {
+        combinedResults.push(alt);
       }
     });
 
-    // Transform mock data to expected format
-    const results = allResults.map(item => ({
-      id: item.id,
+    // Transform the data to match the expected format
+    const results = combinedResults.map((item: any) => ({
+      id: item._id.toString(),
       name: item.name,
       slug: item.slug,
       description: item.description,
       short_description: item.short_description,
-      long_description: null,
+      long_description: item.long_description,
       icon_url: item.icon_url,
       website: item.website,
       github: item.github,
       stars: item.stars,
       forks: item.forks,
-      last_commit: null,
-      contributors: null,
+      last_commit: item.last_commit ? new Date(item.last_commit).toISOString().split('T')[0] : null,
+      contributors: item.contributors,
       license: item.license,
       is_self_hosted: item.is_self_hosted,
       health_score: item.health_score,
+      vote_score: item.vote_score || 0,
       featured: item.featured,
       approved: item.approved,
       submitter_name: item.submitter_name,
       submitter_email: item.submitter_email,
-      screenshots: item.screenshots,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      categories: item.categories || [],
-      tags: item.tags || [],
-      tech_stacks: item.techStacks || [],
-      alternative_to: item.proprietarySoftware || [],
+      screenshots: item.screenshots || [],
+      submission_plan: item.submission_plan,
+      sponsor_priority_until: item.sponsor_priority_until ? new Date(item.sponsor_priority_until).toISOString() : null,
+      sponsor_featured_until: item.sponsor_featured_until ? new Date(item.sponsor_featured_until).toISOString() : null,
+      created_at: item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString(),
+      updated_at: item.updated_at ? new Date(item.updated_at).toISOString() : new Date().toISOString(),
+      categories: (item.categories || []).map((c: any) => ({
+        id: c._id?.toString() || c.id,
+        name: c.name,
+        slug: c.slug,
+        description: c.description,
+        icon: c.icon,
+        created_at: c.created_at ? new Date(c.created_at).toISOString() : new Date().toISOString(),
+      })),
+      tags: (item.tags || []).map((t: any) => ({
+        id: t._id?.toString() || t.id,
+        name: t.name,
+        slug: t.slug,
+        created_at: t.created_at ? new Date(t.created_at).toISOString() : new Date().toISOString(),
+      })),
+      tech_stacks: (item.tech_stacks || []).map((ts: any) => ({
+        id: ts._id?.toString() || ts.id,
+        name: ts.name,
+        slug: ts.slug,
+        type: ts.type,
+        created_at: ts.created_at ? new Date(ts.created_at).toISOString() : new Date().toISOString(),
+      })),
+      alternative_to: (item.alternative_to || []).map((p: any) => ({
+        id: p._id?.toString() || p.id,
+        name: p.name,
+        slug: p.slug,
+        description: p.description,
+        website: p.website,
+        created_at: p.created_at ? new Date(p.created_at).toISOString() : new Date().toISOString(),
+      })),
     }));
 
+    // Sort by health score
+    results.sort((a, b) => (b.health_score || 0) - (a.health_score || 0));
+
     return NextResponse.json({ 
-      results,
-      proprietaryMatches: matchingProprietary.map(p => ({ name: p.name, slug: p.slug }))
+      results: results.slice(0, 20),
+      proprietaryMatches: matchingProprietary.map((p: any) => ({ 
+        name: p.name, 
+        slug: p.slug 
+      }))
     });
+  } catch (error) {
+    console.error('Search error:', error);
+    return NextResponse.json({ error: 'Search failed' }, { status: 500 });
   }
-
-  const supabase = createAdminClient();
-  const lowerQuery = query.toLowerCase();
-
-  // First, search for matching proprietary software
-  const { data: matchingProprietary } = await supabase
-    .from('proprietary_software')
-    .select('id, name, slug')
-    .ilike('name', `%${query}%`)
-    .limit(10);
-
-  // Get IDs of matching proprietary software
-  const proprietaryIds = matchingProprietary?.map(p => p.id) || [];
-
-  // Search alternatives:
-  // 1. By name/description match
-  // 2. By being an alternative to matching proprietary software
-  let combinedResults: any[] = [];
-
-  // Direct search by name/description
-  const { data: directResults, error: directError } = await supabase
-    .from('alternatives')
-    .select(`
-      *,
-      alternative_categories(category_id, categories(*)),
-      alternative_tags(tag_id, tags(*)),
-      alternative_tech_stacks(tech_stack_id, tech_stacks(*)),
-      alternative_to(proprietary_id, proprietary_software(*))
-    `)
-    .eq('approved', true)
-    .or(`name.ilike.%${query}%,description.ilike.%${query}%,short_description.ilike.%${query}%`)
-    .order('health_score', { ascending: false })
-    .limit(20);
-
-  if (!directError && directResults) {
-    combinedResults = [...directResults];
-  }
-
-  // If we found matching proprietary software, get alternatives for them
-  if (proprietaryIds.length > 0) {
-    const { data: proprietaryAlternatives, error: propError } = await supabase
-      .from('alternatives')
-      .select(`
-        *,
-        alternative_categories(category_id, categories(*)),
-        alternative_tags(tag_id, tags(*)),
-        alternative_tech_stacks(tech_stack_id, tech_stacks(*)),
-        alternative_to!inner(proprietary_id, proprietary_software(*))
-      `)
-      .eq('approved', true)
-      .in('alternative_to.proprietary_id', proprietaryIds)
-      .order('health_score', { ascending: false })
-      .limit(20);
-
-    if (!propError && proprietaryAlternatives) {
-      // Merge results, avoiding duplicates
-      proprietaryAlternatives.forEach((alt: any) => {
-        if (!combinedResults.find((r: any) => r.id === alt.id)) {
-          combinedResults.push(alt);
-        }
-      });
-    }
-  }
-
-  // Transform the data to match the expected format
-  const results = combinedResults.map((item: any) => ({
-    id: item.id,
-    name: item.name,
-    slug: item.slug,
-    description: item.description,
-    short_description: item.short_description,
-    long_description: item.long_description,
-    icon_url: item.icon_url,
-    website: item.website,
-    github: item.github,
-    stars: item.stars,
-    forks: item.forks,
-    last_commit: item.last_commit,
-    contributors: item.contributors,
-    license: item.license,
-    is_self_hosted: item.is_self_hosted,
-    health_score: item.health_score,
-    featured: item.featured,
-    approved: item.approved,
-    submitter_name: item.submitter_name,
-    submitter_email: item.submitter_email,
-    screenshots: item.screenshots,
-    submission_plan: item.submission_plan,
-    sponsor_priority_until: item.sponsor_priority_until,
-    sponsor_featured_until: item.sponsor_featured_until,
-    created_at: item.created_at,
-    updated_at: item.updated_at,
-    categories: item.alternative_categories?.map((ac: any) => ac.categories).filter(Boolean) || [],
-    tags: item.alternative_tags?.map((at: any) => at.tags).filter(Boolean) || [],
-    tech_stacks: item.alternative_tech_stacks?.map((ats: any) => ats.tech_stacks).filter(Boolean) || [],
-    alternative_to: item.alternative_to?.map((at: any) => at.proprietary_software).filter(Boolean) || [],
-  }));
-
-  // Sort by health score
-  results.sort((a, b) => (b.health_score || 0) - (a.health_score || 0));
-
-  return NextResponse.json({ 
-    results: results.slice(0, 20),
-    proprietaryMatches: matchingProprietary?.map(p => ({ name: p.name, slug: p.slug })) || []
-  });
 }

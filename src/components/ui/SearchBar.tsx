@@ -1,22 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface SearchBarProps {
   placeholder?: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  syncWithUrl?: boolean;
 }
 
 export function SearchBar({ 
   placeholder = 'Search for open source alternatives...', 
   size = 'md',
-  className = '' 
+  className = '',
+  syncWithUrl = false
 }: SearchBarProps) {
   const [query, setQuery] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Sync with URL query parameter when on search page
+  useEffect(() => {
+    if (syncWithUrl) {
+      const urlQuery = searchParams.get('q') || '';
+      setQuery(urlQuery);
+    }
+  }, [syncWithUrl, searchParams]);
 
   const sizeClasses = {
     sm: 'py-2.5 px-4 text-sm',

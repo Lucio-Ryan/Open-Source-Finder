@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { Terminal, Target, Users, Shield, Heart, Sparkles, Github } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'About OSS Finder - Our Mission',
-  description: 'Learn about OSS Finder and our mission to help individuals, developers, and organizations discover and adopt the best open source alternatives to proprietary software. Join our community.',
+title: 'About OS Finder - Our Mission',
+  description: 'Learn about OS Finder and our mission to help individuals, developers, and organizations discover and adopt the best open source alternatives to proprietary software. Join our community.',
   alternates: {
     canonical: '/about',
   },

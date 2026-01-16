@@ -1,41 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
-import { createServerClient } from '@supabase/ssr';
-import type { AdStatus } from '@/types/database';
+import { getCurrentUser } from '@/lib/mongodb/auth';
+import { connectToDatabase } from '@/lib/mongodb/connection';
+import { User, Advertisement } from '@/lib/mongodb/models';
+import mongoose from 'mongoose';
 
 // Verify admin role
 async function verifyAdmin() {
-  const cookieStore = await cookies();
-  
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   
   if (!user) {
     return { authorized: false, error: 'Unauthorized' };
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
+  await connectToDatabase();
+  
+  const profile = await User.findById(user.id).select('role').lean();
 
   if (!profile || profile.role !== 'admin') {
     return { authorized: false, error: 'Admin access required' };
@@ -53,34 +32,52 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status') as AdStatus | 'all' | null;
+    const status = searchParams.get('status');
     const adType = searchParams.get('type');
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    await connectToDatabase();
 
-    let query = supabaseAdmin
-      .from('advertisements')
-      .select('*')
-      .order('created_at', { ascending: false });
-
+    const filter: any = {};
+    
     if (status && status !== 'all') {
-      query = query.eq('status', status);
+      filter.status = status;
     }
 
     if (adType) {
-      query = query.eq('ad_type', adType);
+      filter.ad_type = adType;
     }
 
-    const { data, error } = await query;
+    const data = await Advertisement.find(filter)
+      .sort({ created_at: -1 })
+      .lean();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    // Transform to match expected format
+    const advertisements = data.map(ad => ({
+      id: ad._id,
+      name: ad.name,
+      description: ad.description,
+      ad_type: ad.ad_type,
+      company_name: ad.company_name,
+      company_website: ad.company_website,
+      company_logo: ad.company_logo,
+      headline: ad.headline,
+      cta_text: ad.cta_text,
+      destination_url: ad.destination_url,
+      icon_url: ad.icon_url,
+      short_description: ad.short_description,
+      status: ad.status,
+      is_active: ad.is_active,
+      priority: ad.priority,
+      start_date: ad.start_date,
+      end_date: ad.end_date,
+      submitter_name: ad.submitter_name,
+      submitter_email: ad.submitter_email,
+      rejection_reason: ad.rejection_reason,
+      created_at: ad.created_at,
+      updated_at: ad.updated_at
+    }));
 
-    return NextResponse.json({ advertisements: data });
+    return NextResponse.json({ advertisements });
   } catch (error) {
     console.error('Admin advertisements error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -102,10 +99,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Advertisement ID required' }, { status: 400 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    await connectToDatabase();
 
     let updateData: Record<string, any> = {};
 
@@ -113,8 +107,8 @@ export async function PUT(request: NextRequest) {
       updateData = {
         status: 'approved',
         is_active: true,
-        approved_at: new Date().toISOString(),
-        approved_by: auth.userId,
+        approved_at: new Date(),
+        approved_by: new mongoose.Types.ObjectId(auth.userId),
         rejection_reason: null,
       };
     } else if (action === 'reject') {
@@ -146,21 +140,25 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('advertisements')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
+    const data = await Advertisement.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    ).lean();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!data) {
+      return NextResponse.json({ error: 'Advertisement not found' }, { status: 404 });
     }
 
     return NextResponse.json({ 
       success: true, 
       message: action ? `Advertisement ${action}d successfully` : 'Advertisement updated',
-      advertisement: data 
+      advertisement: {
+        id: data._id,
+        name: data.name,
+        status: data.status,
+        is_active: data.is_active
+      }
     });
   } catch (error) {
     console.error('Admin advertisement update error:', error);
@@ -183,19 +181,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Advertisement ID required' }, { status: 400 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    await connectToDatabase();
 
-    const { error } = await supabaseAdmin
-      .from('advertisements')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    await Advertisement.findByIdAndDelete(id);
 
     return NextResponse.json({ success: true, message: 'Advertisement deleted' });
   } catch (error) {

@@ -1,40 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
-import { createServerClient } from '@supabase/ssr';
+import { getCurrentUser } from '@/lib/mongodb/auth';
+import { connectToDatabase } from '@/lib/mongodb/connection';
+import { User, Session } from '@/lib/mongodb/models';
+import mongoose from 'mongoose';
 
 // Verify admin role
 async function verifyAdmin() {
-  const cookieStore = await cookies();
-  
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   
   if (!user) {
     return { authorized: false, error: 'Unauthorized' };
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
+  await connectToDatabase();
+  
+  const profile = await User.findById(user.id).select('role').lean();
 
   if (!profile || profile.role !== 'admin') {
     return { authorized: false, error: 'Admin access required' };
@@ -51,21 +31,28 @@ export async function GET() {
       return NextResponse.json({ error: auth.error }, { status: 403 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    await connectToDatabase();
 
-    const { data, error } = await supabaseAdmin
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const data = await User.find({})
+      .sort({ created_at: -1 })
+      .lean();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    // Transform to match expected format
+    const users = data.map(u => ({
+      id: u._id,
+      email: u.email,
+      name: u.name,
+      avatar_url: u.avatar_url,
+      bio: u.bio,
+      website: u.website,
+      github_username: u.github_username,
+      twitter_username: u.twitter_username,
+      role: u.role,
+      created_at: u.created_at,
+      updated_at: u.updated_at
+    }));
 
-    return NextResponse.json({ users: data });
+    return NextResponse.json({ users });
   } catch (error) {
     console.error('Admin users error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -97,23 +84,27 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Cannot change your own role' }, { status: 400 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    await connectToDatabase();
 
-    const { data, error } = await supabaseAdmin
-      .from('profiles')
-      .update({ role })
-      .eq('id', id)
-      .select()
-      .single();
+    const data = await User.findByIdAndUpdate(
+      id,
+      { role },
+      { new: true }
+    ).lean();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!data) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, user: data });
+    return NextResponse.json({ 
+      success: true, 
+      user: {
+        id: data._id,
+        email: data.email,
+        name: data.name,
+        role: data.role
+      }
+    });
   } catch (error) {
     console.error('Admin user update error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -140,17 +131,13 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Cannot delete your own account' }, { status: 400 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    await connectToDatabase();
 
-    // Delete the auth user (profile will cascade delete)
-    const { error } = await supabaseAdmin.auth.admin.deleteUser(id);
+    // Delete user sessions
+    await Session.deleteMany({ user_id: new mongoose.Types.ObjectId(id) });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    // Delete the user
+    await User.findByIdAndDelete(id);
 
     return NextResponse.json({ success: true });
   } catch (error) {

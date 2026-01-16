@@ -12,12 +12,13 @@ interface ProprietaryMatch {
   slug: string;
 }
 
-type SortOption = 'health_score' | 'stars' | 'name' | 'recent';
+type SortOption = 'health_score' | 'stars' | 'name' | 'recent' | 'votes';
 
 interface Filters {
   sortBy: SortOption;
   selfHostedOnly: boolean;
   selectedTags: string[];
+  selectedCategory: string;
 }
 
 function SearchResults() {
@@ -30,9 +31,10 @@ function SearchResults() {
   
   // Filter state
   const [filters, setFilters] = useState<Filters>({
-    sortBy: 'health_score',
+    sortBy: 'votes',
     selfHostedOnly: false,
     selectedTags: [],
+    selectedCategory: '',
   });
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
@@ -65,7 +67,7 @@ function SearchResults() {
     fetchResults();
   }, [query]);
 
-  // Extract available tags from results
+  // Extract available tags and categories from results
   const availableTags = useMemo(() => {
     const tagMap = new Map<string, { name: string; slug: string; count: number }>();
     results.forEach(alt => {
@@ -81,9 +83,31 @@ function SearchResults() {
     return Array.from(tagMap.values()).sort((a, b) => b.count - a.count).slice(0, 6);
   }, [results]);
 
+  const availableCategories = useMemo(() => {
+    const categoryMap = new Map<string, { name: string; slug: string; count: number }>();
+    results.forEach(alt => {
+      alt.categories?.forEach(cat => {
+        const existing = categoryMap.get(cat.slug);
+        if (existing) {
+          existing.count++;
+        } else {
+          categoryMap.set(cat.slug, { name: cat.name, slug: cat.slug, count: 1 });
+        }
+      });
+    });
+    return Array.from(categoryMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [results]);
+
   // Apply filters and sorting to results
   const filteredResults = useMemo(() => {
     let filtered = [...results];
+
+    // Filter by category
+    if (filters.selectedCategory) {
+      filtered = filtered.filter(alt => 
+        alt.categories?.some(cat => cat.slug === filters.selectedCategory)
+      );
+    }
 
     // Filter by self-hosted
     if (filters.selfHostedOnly) {
@@ -99,6 +123,9 @@ function SearchResults() {
 
     // Sort results
     switch (filters.sortBy) {
+      case 'votes':
+        filtered.sort((a, b) => ((b as any).vote_score || 0) - ((a as any).vote_score || 0));
+        break;
       case 'stars':
         filtered.sort((a, b) => (b.stars || 0) - (a.stars || 0));
         break;
@@ -139,13 +166,14 @@ function SearchResults() {
 
   const clearFilters = () => {
     setFilters({
-      sortBy: 'health_score',
+      sortBy: 'votes',
       selfHostedOnly: false,
       selectedTags: [],
+      selectedCategory: '',
     });
   };
 
-  const hasActiveFilters = filters.selfHostedOnly || filters.selectedTags.length > 0 || filters.sortBy !== 'health_score';
+  const hasActiveFilters = filters.selfHostedOnly || filters.selectedTags.length > 0 || filters.sortBy !== 'votes' || filters.selectedCategory !== '';
 
   // Filter sidebar component (reused for desktop and mobile)
   const FilterSidebar = ({ isMobile = false }: { isMobile?: boolean }) => (
@@ -185,12 +213,34 @@ function SearchResults() {
             onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value as SortOption }))}
             className="w-full px-3 py-2.5 bg-dark border border-border rounded-lg text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50"
           >
+            <option value="votes">Most Upvoted</option>
             <option value="health_score">Health Score</option>
             <option value="stars">GitHub Stars</option>
             <option value="recent">Recently Updated</option>
             <option value="name">Name (A-Z)</option>
           </select>
         </div>
+
+        {/* Category Filter */}
+        {availableCategories.length > 0 && (
+          <div>
+            <label className="block text-xs font-mono text-muted mb-2">
+              Category
+            </label>
+            <select
+              value={filters.selectedCategory}
+              onChange={(e) => setFilters(prev => ({ ...prev, selectedCategory: e.target.value }))}
+              className="w-full px-3 py-2.5 bg-dark border border-border rounded-lg text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50"
+            >
+              <option value="">All Categories</option>
+              {availableCategories.map((cat) => (
+                <option key={cat.slug} value={cat.slug}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Self-Hosted */}
         <div>
@@ -396,7 +446,7 @@ export default function SearchPage() {
             </h1>
           </div>
           <div className="max-w-2xl">
-            <SearchBar size="lg" placeholder="Search for software like Photoshop, Slack, Notion..." />
+            <SearchBar size="lg" placeholder="Search for software like Photoshop, Slack, Notion..." syncWithUrl />
           </div>
         </div>
       </div>

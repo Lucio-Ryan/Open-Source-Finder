@@ -9,14 +9,14 @@ import { BannerAd, PopupAd } from '@/components/ui';
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   title: {
-    default: 'OSS Finder - Discover Open Source Alternatives to Proprietary Software',
-    template: '%s | OSS Finder',
+    default: 'OS Finder - Discover Open Source Alternatives to Proprietary Software',
+    template: '%s | OS Finder',
   },
   description: 'Discover the best open source alternatives to popular proprietary software. Browse 100+ free, self-hosted tools by category and tech stack. Find privacy-focused replacements for Notion, Slack, Figma and more.',
   keywords: ['open source', 'alternatives', 'free software', 'self-hosted', 'privacy', 'open source software', 'proprietary software alternatives', 'FOSS', 'free open source'],
-  authors: [{ name: 'OSS Finder', url: 'https://ossfinder.com' }],
-  creator: 'OSS Finder',
-  publisher: 'OSS Finder',
+  authors: [{ name: 'OS Finder', url: 'https://osfinder.com' }],
+  creator: 'OS Finder',
+  publisher: 'OS Finder',
   formatDetection: {
     email: false,
     address: false,
@@ -35,15 +35,15 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: '/',
-    siteName: 'OSS Finder',
-    title: 'OSS Finder - Discover Open Source Alternatives',
+    siteName: 'OS Finder',
+    title: 'OS Finder - Discover Open Source Alternatives',
     description: 'Find the best open source alternatives to popular proprietary software. Browse by category, tech stack, or search directly.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'OSS Finder - Open Source Alternatives',
+    title: 'OS Finder - Open Source Alternatives',
     description: 'Discover free, open source alternatives to proprietary software',
-    creator: '@ossfinder',
+    creator: '@osfinder',
   },
   robots: {
     index: true,
@@ -75,8 +75,8 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-dark text-white flex flex-col antialiased">
         <AuthProvider>
-          <Header />
           <BannerAd />
+          <Header />
           <main className="flex-grow" role="main">
             {children}
           </main>

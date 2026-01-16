@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Tag } from 'lucide-react';
 import { AlternativeCard, SponsoredAlternativeCard, SearchBar, isActiveSponsor } from '@/components/ui';
-import { getTags, getTagBySlug, getAlternativesByTag } from '@/lib/supabase/queries';
+import { getTags, getTagBySlug, getAlternativesByTag } from '@/lib/mongodb/queries';
 
 export const revalidate = 60;
 
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!tag) return { title: 'Not Found' };
 
   return {
-    title: `${tag.name} Open Source Alternatives | OSS_Finder`,
+    title: `${tag.name} Open Source Alternatives | OS_Finder`,
     description: `Discover open source alternatives tagged with ${tag.name}`,
   };
 }

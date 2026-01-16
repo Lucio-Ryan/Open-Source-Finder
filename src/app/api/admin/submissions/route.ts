@@ -1,40 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
-import { createServerClient } from '@supabase/ssr';
+import { getCurrentUser } from '@/lib/mongodb/auth';
+import { connectToDatabase } from '@/lib/mongodb/connection';
+import { User, Alternative } from '@/lib/mongodb/models';
+import mongoose from 'mongoose';
 
 // Verify admin role
 async function verifyAdmin() {
-  const cookieStore = await cookies();
-  
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   
   if (!user) {
     return { authorized: false, error: 'Unauthorized' };
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
+  await connectToDatabase();
+  
+  const profile = await User.findById(user.id).select('role').lean();
 
   if (!profile || profile.role !== 'admin') {
     return { authorized: false, error: 'Admin access required' };
@@ -59,37 +39,56 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status'); // 'pending', 'approved', 'all'
+    const status = searchParams.get('status'); // 'pending', 'approved', 'rejected', 'all'
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    await connectToDatabase();
 
-    let query = supabaseAdmin
-      .from('alternatives')
-      .select(`
-        *,
-        alternative_categories(category_id, categories(*)),
-        alternative_to(proprietary_id, proprietary_software(*))
-      `)
-      .order('created_at', { ascending: false });
+    const filter: any = {};
 
     if (status === 'pending') {
-      query = query.eq('approved', false).is('rejected_at', null);
+      filter.approved = false;
+      filter.rejected_at = null;
     } else if (status === 'approved') {
-      query = query.eq('approved', true);
+      filter.approved = true;
     } else if (status === 'rejected') {
-      query = query.not('rejected_at', 'is', null);
+      filter.rejected_at = { $ne: null };
     }
 
-    const { data, error } = await query;
+    const data = await Alternative.find(filter)
+      .populate('categories', 'id name slug')
+      .populate('alternative_to', 'id name slug')
+      .sort({ created_at: -1 })
+      .lean();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    // Transform to match expected format
+    const submissions = data.map(item => ({
+      id: item._id,
+      name: item.name,
+      slug: item.slug,
+      description: item.description,
+      short_description: item.short_description,
+      long_description: item.long_description,
+      icon_url: item.icon_url,
+      website: item.website,
+      github: item.github,
+      stars: item.stars,
+      forks: item.forks,
+      license: item.license,
+      is_self_hosted: item.is_self_hosted,
+      health_score: item.health_score,
+      vote_score: item.vote_score,
+      featured: item.featured,
+      approved: item.approved,
+      rejection_reason: item.rejection_reason,
+      rejected_at: item.rejected_at,
+      submitter_email: item.submitter_email,
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+      categories: item.categories || [],
+      alternative_to: item.alternative_to || []
+    }));
 
-    return NextResponse.json({ submissions: data });
+    return NextResponse.json({ submissions });
   } catch (error) {
     console.error('Admin submissions error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -111,10 +110,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Submission ID required' }, { status: 400 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    await connectToDatabase();
 
     let updateData: Record<string, any> = {};
 
@@ -126,20 +122,28 @@ export async function PUT(request: NextRequest) {
       // Mark as rejected with reason instead of deleting
       updateData.approved = false;
       updateData.rejection_reason = rejection_reason || 'No reason provided';
-      updateData.rejected_at = new Date().toISOString();
+      updateData.rejected_at = new Date();
 
-      const { data, error } = await supabaseAdmin
-        .from('alternatives')
-        .update(updateData)
-        .eq('id', id)
-        .select()
-        .single();
+      const data = await Alternative.findByIdAndUpdate(
+        id,
+        updateData,
+        { new: true }
+      ).lean();
 
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+      if (!data) {
+        return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
       }
 
-      return NextResponse.json({ success: true, message: 'Submission rejected', submission: data });
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Submission rejected', 
+        submission: {
+          id: data._id,
+          name: data.name,
+          approved: data.approved,
+          rejection_reason: data.rejection_reason
+        }
+      });
     } else {
       // Regular update
       const allowedFields = [
@@ -160,18 +164,25 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('alternatives')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
+    const data = await Alternative.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    ).lean();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!data) {
+      return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, submission: data });
+    return NextResponse.json({ 
+      success: true, 
+      submission: {
+        id: data._id,
+        name: data.name,
+        slug: data.slug,
+        approved: data.approved
+      }
+    });
   } catch (error) {
     console.error('Admin submission update error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -193,19 +204,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Submission ID required' }, { status: 400 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    await connectToDatabase();
 
-    const { error } = await supabaseAdmin
-      .from('alternatives')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    await Alternative.findByIdAndDelete(id);
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, Crown, Clock, Link, Newspaper, Zap, Sparkles, Code } from 'lucide-react';
+import { Check, Crown, Clock, Link, Newspaper, Zap, Sparkles, Code, X } from 'lucide-react';
 
 export type SubmissionPlan = 'free' | 'sponsor';
 
@@ -61,6 +61,22 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
           <li className="flex items-start gap-2 text-sm">
             <Check className="w-4 h-4 text-brand mt-0.5 flex-shrink-0" />
             <span className="text-muted">Basic project card</span>
+          </li>
+          <li className="flex items-start gap-2 text-sm">
+            <X className="w-4 h-4 text-muted/40 mt-0.5 flex-shrink-0" />
+            <span className="text-muted/60 line-through">Featured on homepage</span>
+          </li>
+          <li className="flex items-start gap-2 text-sm">
+            <X className="w-4 h-4 text-muted/40 mt-0.5 flex-shrink-0" />
+            <span className="text-muted/60 line-through">Newsletter feature</span>
+          </li>
+          <li className="flex items-start gap-2 text-sm">
+            <X className="w-4 h-4 text-muted/40 mt-0.5 flex-shrink-0" />
+            <span className="text-muted/60 line-through">Verified sponsor badge</span>
+          </li>
+          <li className="flex items-start gap-2 text-sm">
+            <X className="w-4 h-4 text-muted/40 mt-0.5 flex-shrink-0" />
+            <span className="text-muted/60 line-through">SEO boost with dofollow links</span>
           </li>
         </ul>
 

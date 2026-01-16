@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { MessageCircle, Send, Trash2, Reply, Bell, ChevronDown, ChevronUp, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { DiscussionWithAuthor } from '@/types/database';
+import DiscussionEditor from './DiscussionEditor';
 
 interface DiscussionSectionProps {
   alternativeId: string;
@@ -57,7 +58,9 @@ export default function DiscussionSection({ alternativeId, alternativeName, crea
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !user) return;
+    // Strip HTML tags for validation - check if there's actual content
+    const textContent = newComment.replace(/<[^>]*>/g, '').trim();
+    if (!textContent || !user) return;
 
     setSubmitting(true);
     try {
@@ -184,7 +187,10 @@ export default function DiscussionSection({ alternativeId, alternativeName, crea
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async () => {
-      if (!content.trim()) return;
+      // Strip HTML tags for validation
+      const textContent = content.replace(/<[^>]*>/g, '').trim();
+      if (!textContent) return;
+      
       setIsSubmitting(true);
       const success = await handleReply(discussionId, content);
       if (success) {
@@ -195,24 +201,24 @@ export default function DiscussionSection({ alternativeId, alternativeName, crea
 
     return (
       <div className="mt-3 ml-8">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSubmit()}
+        <div className="flex flex-col gap-2">
+          <DiscussionEditor
+            content={content}
+            onChange={setContent}
             placeholder="Write a reply..."
-            className="flex-1 px-3 py-2 bg-dark border border-border rounded-lg text-white text-sm focus:outline-none focus:border-brand font-mono"
             disabled={isSubmitting}
-            autoFocus
+            minHeight="80px"
           />
-          <button
-            onClick={handleSubmit}
-            disabled={!content.trim() || isSubmitting}
-            className="px-4 py-2 bg-brand text-dark font-mono text-sm font-medium rounded-lg hover:bg-brand-light disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-          </button>
+          <div className="flex justify-end">
+            <button
+              onClick={handleSubmit}
+              disabled={!content.trim() || isSubmitting}
+              className="px-4 py-2 bg-brand text-dark font-mono text-sm font-medium rounded-lg hover:bg-brand-light disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            >
+              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              Reply
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -295,9 +301,10 @@ export default function DiscussionSection({ alternativeId, alternativeName, crea
           </div>
 
           {/* Content */}
-          <p className="mt-3 text-gray-300 text-sm whitespace-pre-wrap">
-            {discussion.content}
-          </p>
+          <div 
+            className="mt-3 text-gray-300 text-sm prose prose-invert prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: discussion.content }}
+          />
 
           {/* Replies Toggle */}
           {hasReplies && !isReply && (
@@ -344,13 +351,12 @@ export default function DiscussionSection({ alternativeId, alternativeName, crea
       {/* New Comment Form */}
       {user ? (
         <form onSubmit={handleSubmit} className="mb-6">
-          <textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
+          <DiscussionEditor
+            content={newComment}
+            onChange={setNewComment}
             placeholder={`Share your thoughts about ${alternativeName}...`}
-            rows={3}
-            className="w-full px-4 py-3 bg-dark border border-border rounded-lg text-white placeholder-muted focus:outline-none focus:border-brand font-mono text-sm resize-none"
             disabled={submitting}
+            minHeight="100px"
           />
           <div className="mt-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             {/* Request Creator Response Checkbox */}

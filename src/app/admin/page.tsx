@@ -15,7 +15,8 @@ import {
   ChevronRight,
   AlertCircle,
   Megaphone,
-  Mail
+  Mail,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
 
@@ -142,6 +143,12 @@ export default function AdminDashboardPage() {
       label: 'Users',
       description: 'Manage user accounts and roles',
       count: stats?.totalUsers,
+    },
+    {
+      href: '/admin/policies',
+      icon: FileText,
+      label: 'Policies',
+      description: 'Edit legal policies and terms',
     },
   ];
 

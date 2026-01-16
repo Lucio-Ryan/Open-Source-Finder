@@ -1,6 +1,6 @@
 # OSS_Finder
 
-A directory platform for discovering open source alternatives to popular proprietary software. Built with Next.js, Supabase, and optimized for Vercel deployment.
+A directory platform for discovering open source alternatives to popular proprietary software. Built with Next.js, MongoDB, and optimized for Vercel deployment.
 
 ![OSS_Finder](https://via.placeholder.com/1200x630/0d0d0d/3ecf8e?text=OSS_Finder)
 
@@ -18,7 +18,8 @@ A directory platform for discovering open source alternatives to popular proprie
 ## Tech Stack
 
 - **Framework:** Next.js 14 (App Router)
-- **Database:** Supabase (PostgreSQL)
+- **Database:** MongoDB with Mongoose
+- **Authentication:** JWT (jose + bcryptjs)
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
 - **Icons:** Lucide React
@@ -30,7 +31,7 @@ A directory platform for discovering open source alternatives to popular proprie
 
 - Node.js 18+ 
 - npm or yarn
-- A Supabase account (free tier available)
+- MongoDB (local or MongoDB Atlas)
 
 ### Installation
 
@@ -45,19 +46,23 @@ cd open-source-finder
 npm install
 ```
 
-3. Set up Supabase:
-   - Create a new project at [supabase.com](https://supabase.com)
-   - Go to SQL Editor and run the contents of `supabase/schema.sql`
-   - Go to Project Settings > API and copy your credentials
+3. Set up MongoDB:
+   - **Option A (Local):** Install MongoDB locally and start the service
+   - **Option B (Atlas):** Create a free cluster at [mongodb.com/atlas](https://mongodb.com/atlas) and get your connection string
 
 4. Configure environment variables:
 ```bash
 cp .env.example .env.local
 ```
-Then edit `.env.local` with your Supabase credentials:
+Then edit `.env.local` with your MongoDB credentials:
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+MONGODB_URI=mongodb://localhost:27017/open-source-finder
+JWT_SECRET=your-super-secret-jwt-key
+```
+
+For MongoDB Atlas:
+```
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?retryWrites=true&w=majority
 ```
 
 5. Run the development server:
@@ -69,15 +74,20 @@ npm run dev
 
 ## Database Schema
 
-The Supabase database includes:
+The MongoDB database includes the following collections:
 
+- **users** - User accounts with authentication
 - **alternatives** - Open source software entries
 - **categories** - Software categories (Project Management, Communication, etc.)
-- **tech_stacks** - Programming languages and frameworks
+- **techstacks** - Programming languages and frameworks
 - **tags** - Feature tags (Self-Hosted, Privacy-Focused, etc.)
-- **proprietary_software** - Proprietary software that alternatives replace
-
-Junction tables handle many-to-many relationships between these entities.
+- **proprietarysoftwares** - Proprietary software that alternatives replace
+- **votes** - User votes on alternatives
+- **discussions** - Discussion threads on alternatives
+- **discussionvotes** - User votes on discussions
+- **creatornotifications** - Notifications for project creators
+- **advertisements** - Ad placements
+- **sessions** - User authentication sessions
 
 ## Project Structure
 
@@ -101,12 +111,10 @@ src/
 │   ├── layout/             # Header, Footer
 │   └── ui/                 # Reusable UI components
 ├── lib/
-│   └── supabase/           # Supabase client and query functions
+│   ├── mongodb/            # MongoDB connection, models, and queries
+│   └── auth/               # Authentication context and utilities
 ├── types/
-│   ├── index.ts            # TypeScript interfaces
-│   └── database.ts         # Supabase database types
-└── supabase/
-    └── schema.sql          # Database schema and seed data
+│   └── index.ts            # TypeScript interfaces
 ```
 
 ## Deployment

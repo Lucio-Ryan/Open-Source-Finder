@@ -154,20 +154,6 @@ export default function ProfileSettingsPage() {
             </div>
           )}
 
-          {/* Email (read-only) */}
-          <div>
-            <label className="block text-gray-300 font-mono text-sm mb-2">
-              Email Address
-            </label>
-            <input
-              type="email"
-              value={user.email || ''}
-              disabled
-              className="w-full px-4 py-3 bg-dark border border-border rounded-lg text-gray-500 cursor-not-allowed"
-            />
-            <p className="text-gray-500 text-sm mt-2">Email cannot be changed</p>
-          </div>
-
           {/* Profile Picture */}
           <div>
             <label className="block text-gray-300 font-mono text-sm mb-2">
@@ -245,6 +231,20 @@ export default function ProfileSettingsPage() {
               className="w-full px-4 py-3 bg-dark border border-border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-brand transition-colors"
               maxLength={100}
             />
+          </div>
+
+          {/* Email (read-only) */}
+          <div>
+            <label className="block text-gray-300 font-mono text-sm mb-2">
+              Email Address
+            </label>
+            <input
+              type="email"
+              value={user.email || ''}
+              disabled
+              className="w-full px-4 py-3 bg-dark border border-border rounded-lg text-gray-500 cursor-not-allowed"
+            />
+            <p className="text-gray-500 text-sm mt-2">Email cannot be changed</p>
           </div>
 
           {/* Bio */}
@@ -376,26 +376,6 @@ export default function ProfileSettingsPage() {
             </div>
           </div>
 
-          {/* Role Badge */}
-          {profile && (
-            <div>
-              <label className="block text-gray-300 font-mono text-sm mb-2">
-                Account Role
-              </label>
-              <span
-                className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
-                  profile.role === 'admin'
-                    ? 'bg-red-500/20 text-red-400'
-                    : profile.role === 'moderator'
-                    ? 'bg-yellow-500/20 text-yellow-400'
-                    : 'bg-brand/20 text-brand'
-                }`}
-              >
-                {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}
-              </span>
-            </div>
-          )}
-
           {/* Submit Button */}
           <div className="flex justify-end pt-4">
             <button
@@ -417,106 +397,6 @@ export default function ProfileSettingsPage() {
             </button>
           </div>
         </form>
-
-        {/* Creator Profile Preview */}
-        <div className="mt-12 pt-8 border-t border-border">
-          <h2 className="text-xl font-bold text-white font-mono mb-2">
-            Creator Profile Preview<span className="text-brand">_</span>
-          </h2>
-          <p className="text-gray-500 text-sm mb-6">
-            This is how your profile will appear on alternatives pages you submit.
-          </p>
-          
-          <div className="bg-surface rounded-xl border border-border p-6 max-w-sm">
-            <h3 className="text-lg font-mono text-brand mb-6">// creator</h3>
-            
-            <div className="space-y-6">
-              {/* Profile Header */}
-              <div className="flex items-start gap-4">
-                {formData.avatar_url ? (
-                  <Image
-                    src={formData.avatar_url}
-                    alt="Profile picture"
-                    width={64}
-                    height={64}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-brand/20"
-                  />
-                ) : (
-                  <div className="w-16 h-16 bg-brand/10 border-2 border-brand/20 rounded-full flex items-center justify-center text-brand font-bold text-xl">
-                    {(formData.name || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
-                  </div>
-                )}
-                
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-lg font-semibold text-white truncate">
-                    {formData.name || user?.email?.split('@')[0] || 'Anonymous'}
-                  </h4>
-                  {formData.bio && (
-                    <p className="text-sm text-muted mt-1 line-clamp-2">
-                      {formData.bio}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Links */}
-              {(formData.website || formData.github_username || formData.twitter_username || formData.linkedin_url || formData.youtube_url || formData.discord_username) && (
-                <div className="space-y-2">
-                  {formData.website && (
-                    <div className="flex items-center gap-2 text-sm text-muted">
-                      <Globe className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">
-                        {formData.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
-                      </span>
-                    </div>
-                  )}
-                  
-                  {formData.github_username && (
-                    <div className="flex items-center gap-2 text-sm text-muted">
-                      <Github className="w-4 h-4 flex-shrink-0" />
-                      <span>@{formData.github_username}</span>
-                    </div>
-                  )}
-
-                  {formData.twitter_username && (
-                    <div className="flex items-center gap-2 text-sm text-muted">
-                      <Twitter className="w-4 h-4 flex-shrink-0" />
-                      <span>@{formData.twitter_username}</span>
-                    </div>
-                  )}
-
-                  {formData.linkedin_url && (
-                    <div className="flex items-center gap-2 text-sm text-muted">
-                      <Linkedin className="w-4 h-4 flex-shrink-0" />
-                      <span>LinkedIn</span>
-                    </div>
-                  )}
-
-                  {formData.youtube_url && (
-                    <div className="flex items-center gap-2 text-sm text-muted">
-                      <Youtube className="w-4 h-4 flex-shrink-0" />
-                      <span>YouTube</span>
-                    </div>
-                  )}
-
-                  {formData.discord_username && (
-                    <div className="flex items-center gap-2 text-sm text-muted">
-                      <MessageCircle className="w-4 h-4 flex-shrink-0" />
-                      <span>Discord: {formData.discord_username}</span>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Empty State */}
-              {!formData.website && !formData.github_username && !formData.twitter_username && !formData.linkedin_url && !formData.youtube_url && !formData.discord_username && !formData.bio && (
-                <p className="text-gray-500 text-sm italic">
-                  Add more details above to enhance your creator profile.
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
 
         {/* Account Info */}
         <div className="mt-12 pt-8 border-t border-border">

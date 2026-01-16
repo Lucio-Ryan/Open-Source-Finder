@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { User, Globe, Github, Twitter, Linkedin, Youtube, MessageCircle, Package } from 'lucide-react';
-import type { CreatorProfile } from '@/lib/supabase/queries';
+import type { CreatorProfile } from '@/lib/mongodb/queries';
 
 interface CreatorProfileCardProps {
   creator: CreatorProfile;

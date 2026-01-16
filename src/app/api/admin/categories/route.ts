@@ -1,40 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
-import { createServerClient } from '@supabase/ssr';
+import { getCurrentUser } from '@/lib/mongodb/auth';
+import { connectToDatabase } from '@/lib/mongodb/connection';
+import { User, Category } from '@/lib/mongodb/models';
 
 // Verify admin role
 async function verifyAdmin() {
-  const cookieStore = await cookies();
-  
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   
   if (!user) {
     return { authorized: false, error: 'Unauthorized' };
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
+  await connectToDatabase();
+  
+  const profile = await User.findById(user.id).select('role').lean();
 
   if (!profile || profile.role !== 'admin') {
     return { authorized: false, error: 'Admin access required' };
@@ -58,21 +37,24 @@ export async function GET() {
       return NextResponse.json({ error: auth.error }, { status: 403 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    await connectToDatabase();
 
-    const { data, error } = await supabaseAdmin
-      .from('categories')
-      .select('*')
-      .order('name');
+    const data = await Category.find({})
+      .sort({ name: 1 })
+      .lean();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    // Transform to match expected format
+    const categories = data.map(c => ({
+      id: c._id,
+      name: c.name,
+      slug: c.slug,
+      description: c.description,
+      icon: c.icon,
+      created_at: c.created_at,
+      updated_at: c.updated_at
+    }));
 
-    return NextResponse.json({ categories: data });
+    return NextResponse.json({ categories });
   } catch (error) {
     console.error('Admin categories error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -94,40 +76,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Name and description are required' }, { status: 400 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    await connectToDatabase();
 
     const slug = generateSlug(name);
 
     // Check if slug exists
-    const { data: existing } = await supabaseAdmin
-      .from('categories')
-      .select('id')
-      .eq('slug', slug)
-      .single();
+    const existing = await Category.findOne({ slug }).lean();
 
     if (existing) {
       return NextResponse.json({ error: 'A category with this name already exists' }, { status: 409 });
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('categories')
-      .insert({
-        name,
-        slug,
-        description,
-        icon: icon || 'Folder',
-      })
-      .select()
-      .single();
+    const category = await Category.create({
+      name,
+      slug,
+      description,
+      icon: icon || 'Folder',
+    });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ success: true, category: data });
+    return NextResponse.json({ 
+      success: true, 
+      category: {
+        id: category._id,
+        name: category.name,
+        slug: category.slug,
+        description: category.description,
+        icon: category.icon
+      }
+    });
   } catch (error) {
     console.error('Admin category create error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -149,10 +125,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Category ID required' }, { status: 400 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    await connectToDatabase();
 
     const updateData: Record<string, any> = {};
     if (name) {
@@ -162,18 +135,26 @@ export async function PUT(request: NextRequest) {
     if (description) updateData.description = description;
     if (icon) updateData.icon = icon;
 
-    const { data, error } = await supabaseAdmin
-      .from('categories')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
+    const data = await Category.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    ).lean();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!data) {
+      return NextResponse.json({ error: 'Category not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, category: data });
+    return NextResponse.json({ 
+      success: true, 
+      category: {
+        id: data._id,
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        icon: data.icon
+      }
+    });
   } catch (error) {
     console.error('Admin category update error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -195,19 +176,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Category ID required' }, { status: 400 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    await connectToDatabase();
 
-    const { error } = await supabaseAdmin
-      .from('categories')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    await Category.findByIdAndDelete(id);
 
     return NextResponse.json({ success: true });
   } catch (error) {

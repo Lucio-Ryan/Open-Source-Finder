@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Terminal, Github, Twitter, Mail } from 'lucide-react';
+import { Terminal, Mail } from 'lucide-react';
 
 export function Footer() {
   const footerLinks = {
@@ -12,12 +12,11 @@ export function Footer() {
     resources: [
       { name: 'About Us', href: '/about' },
       { name: 'Submit Project', href: '/submit' },
-      { name: 'Blog', href: '/blog' },
-      { name: 'Newsletter', href: '/newsletter' },
     ],
     legal: [
       { name: 'Privacy Policy', href: '/privacy' },
       { name: 'Terms of Service', href: '/terms' },
+      { name: 'Refund Policy', href: '/refund' },
     ],
   };
 
@@ -36,31 +35,13 @@ export function Footer() {
                   <Terminal className="w-5 h-5 text-brand" />
                 </div>
                 <span className="font-pixel text-sm text-white tracking-wider">
-                  OSS<span className="text-brand">_</span>FINDER
+                  OS<span className="text-brand">_</span>FINDER
                 </span>
               </Link>
               <p className="text-muted text-sm font-mono leading-relaxed mb-6">
                 <span className="text-brand">$</span> Discover the best open source alternatives to proprietary software.
               </p>
               <div className="flex items-center space-x-3">
-                <a
-                  href="https://github.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2.5 bg-surface border border-border text-muted hover:text-brand hover:border-brand/30 rounded-lg transition-all"
-                  aria-label="GitHub"
-                >
-                  <Github className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://twitter.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2.5 bg-surface border border-border text-muted hover:text-brand hover:border-brand/30 rounded-lg transition-all"
-                  aria-label="Twitter"
-                >
-                  <Twitter className="w-4 h-4" />
-                </a>
                 <a
                   href="mailto:hello@opensourcefinder.com"
                   className="p-2.5 bg-surface border border-border text-muted hover:text-brand hover:border-brand/30 rounded-lg transition-all"

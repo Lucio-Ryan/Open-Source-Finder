@@ -1,22 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient as createServerClient } from '@/lib/supabase/server';
-import { createAdminClient, isUsingMockData } from '@/lib/supabase/admin';
+import { connectToDatabase, Alternative } from '@/lib/mongodb';
+import { getCurrentUser } from '@/lib/mongodb/auth';
+import mongoose from 'mongoose';
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    if (isUsingMockData) {
-      return NextResponse.json(
-        { error: 'Database not configured' },
-        { status: 503 }
-      );
-    }
+    await connectToDatabase();
 
-    // Get the current user from the server client
-    const serverClient = createServerClient();
-    const { data: { user } } = await serverClient.auth.getUser();
+    // Get the current user
+    const user = await getCurrentUser();
 
     if (!user) {
       return NextResponse.json(
@@ -26,14 +21,9 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const supabase = createAdminClient();
 
     // Verify ownership
-    const { data: existing } = await supabase
-      .from('alternatives')
-      .select('id, submitter_email')
-      .eq('id', params.id)
-      .single();
+    const existing = await Alternative.findById(params.id).lean();
 
     if (!existing) {
       return NextResponse.json(
@@ -42,7 +32,7 @@ export async function PUT(
       );
     }
 
-    if (existing.submitter_email !== user.email) {
+    if ((existing as any).submitter_email !== user.email) {
       return NextResponse.json(
         { error: 'You do not have permission to edit this alternative' },
         { status: 403 }
@@ -66,88 +56,35 @@ export async function PUT(
     } = body;
 
     // Update the alternative
-    const { error: updateError } = await supabase
-      .from('alternatives')
-      .update({
-        name,
-        short_description,
-        description,
-        long_description,
-        icon_url: icon_url || null,
-        website,
-        github,
-        is_self_hosted: is_self_hosted || false,
-        license: license || null,
-        screenshots: screenshots?.length > 0 ? screenshots : null,
-        updated_at: new Date().toISOString(),
-        // Clear rejection fields when user edits - this resubmits for review
-        approved: false,
-        rejection_reason: null,
-        rejected_at: null,
-      })
-      .eq('id', params.id);
+    const updateData: any = {
+      name,
+      short_description,
+      description,
+      long_description,
+      icon_url: icon_url || null,
+      website,
+      github,
+      is_self_hosted: is_self_hosted || false,
+      license: license || null,
+      screenshots: screenshots?.length > 0 ? screenshots : [],
+      // Sponsored apps don't need approval on edit, free submissions are resubmitted for review
+      approved: (existing as any).submission_plan === 'sponsor' ? true : false,
+      rejection_reason: null,
+      rejected_at: null,
+    };
 
-    if (updateError) {
-      console.error('Error updating alternative:', updateError);
-      return NextResponse.json(
-        { error: 'Failed to update alternative' },
-        { status: 500 }
-      );
-    }
-
-    // Update categories
+    // Update relations if provided
     if (category_ids !== undefined) {
-      // Delete existing
-      await supabase
-        .from('alternative_categories')
-        .delete()
-        .eq('alternative_id', params.id);
-
-      // Insert new
-      if (category_ids.length > 0) {
-        const categoryInserts = category_ids.map((categoryId: string) => ({
-          alternative_id: params.id,
-          category_id: categoryId,
-        }));
-        await supabase.from('alternative_categories').insert(categoryInserts);
-      }
+      updateData.categories = category_ids.map((id: string) => new mongoose.Types.ObjectId(id));
     }
-
-    // Update alternative_to
     if (alternative_to_ids !== undefined) {
-      // Delete existing
-      await supabase
-        .from('alternative_to')
-        .delete()
-        .eq('alternative_id', params.id);
-
-      // Insert new
-      if (alternative_to_ids.length > 0) {
-        const altToInserts = alternative_to_ids.map((propId: string) => ({
-          alternative_id: params.id,
-          proprietary_id: propId,
-        }));
-        await supabase.from('alternative_to').insert(altToInserts);
-      }
+      updateData.alternative_to = alternative_to_ids.map((id: string) => new mongoose.Types.ObjectId(id));
     }
-
-    // Update tech stacks
     if (tech_stack_ids !== undefined) {
-      // Delete existing
-      await supabase
-        .from('alternative_tech_stacks')
-        .delete()
-        .eq('alternative_id', params.id);
-
-      // Insert new
-      if (tech_stack_ids.length > 0) {
-        const techStackInserts = tech_stack_ids.map((techStackId: string) => ({
-          alternative_id: params.id,
-          tech_stack_id: techStackId,
-        }));
-        await supabase.from('alternative_tech_stacks').insert(techStackInserts);
-      }
+      updateData.tech_stacks = tech_stack_ids.map((id: string) => new mongoose.Types.ObjectId(id));
     }
+
+    await Alternative.findByIdAndUpdate(params.id, { $set: updateData });
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -164,33 +101,44 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    if (isUsingMockData) {
-      return NextResponse.json(
-        { error: 'Database not configured' },
-        { status: 503 }
-      );
-    }
-
-    const supabase = createAdminClient();
+    await connectToDatabase();
     
-    const { data, error } = await supabase
-      .from('alternatives')
-      .select(`
-        *,
-        alternative_categories(category_id, categories(*)),
-        alternative_to(proprietary_id, proprietary_software(*))
-      `)
-      .eq('id', params.id)
-      .single();
+    const alternative = await Alternative.findById(params.id)
+      .populate('categories')
+      .populate('alternative_to')
+      .lean();
 
-    if (error || !data) {
+    if (!alternative) {
       return NextResponse.json(
         { error: 'Alternative not found' },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ alternative: data });
+    // Transform the data
+    const transformedAlt = {
+      id: (alternative as any)._id.toString(),
+      ...(alternative as any),
+      _id: undefined,
+      categories: ((alternative as any).categories || []).map((c: any) => ({
+        id: c._id.toString(),
+        name: c.name,
+        slug: c.slug,
+        description: c.description,
+        icon: c.icon,
+        created_at: c.created_at?.toISOString(),
+      })),
+      alternative_to: ((alternative as any).alternative_to || []).map((p: any) => ({
+        id: p._id.toString(),
+        name: p.name,
+        slug: p.slug,
+        description: p.description,
+        website: p.website,
+        created_at: p.created_at?.toISOString(),
+      })),
+    };
+
+    return NextResponse.json({ alternative: transformedAlt });
   } catch (error) {
     console.error('Error in GET /api/alternatives/[id]:', error);
     return NextResponse.json(

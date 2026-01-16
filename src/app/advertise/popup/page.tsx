@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import { AdSubmitForm } from '@/components/ui/AdSubmitForm';
 
 export const metadata: Metadata = {
-  title: 'Submit Popup Ad - Advertise on OSS Finder',
-  description: 'Submit a popup advertisement card to be displayed in the bottom-right corner of OSS Finder.',
+  title: 'Submit Popup Ad - Advertise on OS Finder',
+  description: 'Submit a popup advertisement card to be displayed in the bottom-right corner of OS Finder.',
   alternates: {
     canonical: '/advertise/popup',
   },

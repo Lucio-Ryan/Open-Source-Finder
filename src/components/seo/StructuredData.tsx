@@ -6,20 +6,20 @@ export function StructuredData() {
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'OSS Finder',
+    name: 'OS Finder',
     url: siteUrl,
     logo: `${siteUrl}/assets/logo.svg`,
     description: 'Discover the best open source alternatives to popular proprietary software',
     sameAs: [
-      'https://github.com/ossfinder',
-      'https://twitter.com/ossfinder',
+      'https://github.com/osfinder',
+      'https://twitter.com/osfinder',
     ],
   };
 
   const websiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'OSS Finder',
+    name: 'OS Finder',
     url: siteUrl,
     description: 'Find the best open source alternatives to proprietary software',
     potentialAction: {

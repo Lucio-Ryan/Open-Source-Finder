@@ -4,10 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Save, Loader2, Upload, X, Terminal, CheckCircle, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Upload, X, Terminal, CheckCircle, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { createClient } from '@/lib/supabase/client';
-import { RichTextEditor, TechStackSelector } from '@/components/ui';
+import { RichTextEditor, TechStackSelector, CreatorProfileCard } from '@/components/ui';
+import type { CreatorProfile } from '@/lib/mongodb/queries';
 
 interface Category {
   id: string;
@@ -42,6 +42,9 @@ export default function EditAlternativePage({ params }: { params: { id: string }
   const [iconPreview, setIconPreview] = useState<string | null>(null);
   const [screenshotPreviews, setScreenshotPreviews] = useState<string[]>([]);
   const [rejectionInfo, setRejectionInfo] = useState<{ reason: string | null; rejected_at: string | null } | null>(null);
+  const [showCreatorPreview, setShowCreatorPreview] = useState(true);
+  const [creatorProfile, setCreatorProfile] = useState<CreatorProfile | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const screenshotInputRef = useRef<HTMLInputElement>(null);
   
@@ -72,26 +75,17 @@ export default function EditAlternativePage({ params }: { params: { id: string }
       if (!user?.email) return;
 
       try {
-        const supabase = createClient();
+        // Fetch the alternative via API
+        const altResponse = await fetch(`/api/alternatives/${params.id}`);
+        const altResult = await altResponse.json();
         
-        // Fetch the alternative with tech stacks
-        const { data: alternative, error: altError } = await supabase
-          .from('alternatives')
-          .select(`
-            *,
-            alternative_categories(category_id),
-            alternative_to(proprietary_id),
-            alternative_tech_stacks(tech_stack_id)
-          `)
-          .eq('id', params.id)
-          .eq('submitter_email', user.email)
-          .single();
-
-        if (altError || !alternative) {
+        if (!altResponse.ok || !altResult.alternative) {
           setError('Alternative not found or you do not have permission to edit it.');
           setLoading(false);
           return;
         }
+        
+        const alternative = altResult.alternative;
 
         // Check if this was a rejected submission
         if (alternative.rejected_at) {
@@ -112,9 +106,9 @@ export default function EditAlternativePage({ params }: { params: { id: string }
           icon_url: alternative.icon_url || '',
           license: alternative.license || '',
           is_self_hosted: alternative.is_self_hosted || false,
-          category_ids: alternative.alternative_categories?.map((c: any) => c.category_id) || [],
-          alternative_to_ids: alternative.alternative_to?.map((a: any) => a.proprietary_id) || [],
-          tech_stack_ids: alternative.alternative_tech_stacks?.map((t: any) => t.tech_stack_id) || [],
+          category_ids: alternative.categories?.map((c: any) => c.id) || [],
+          alternative_to_ids: alternative.alternative_to?.map((a: any) => a.id) || [],
+          tech_stack_ids: alternative.tech_stacks?.map((t: any) => t.id) || [],
           screenshots: alternative.screenshots || [],
         });
 
@@ -156,6 +150,25 @@ export default function EditAlternativePage({ params }: { params: { id: string }
     
     if (user) {
       fetchData();
+      
+      // Fetch creator profile
+      const fetchCreatorProfile = async () => {
+        try {
+          const res = await fetch('/api/profile');
+          if (res.ok) {
+            const data = await res.json();
+            setCreatorProfile(data);
+          }
+        } catch (err) {
+          console.error('Failed to fetch creator profile:', err);
+        } finally {
+          setLoadingProfile(false);
+        }
+      };
+      
+      fetchCreatorProfile();
+    } else {
+      setLoadingProfile(false);
     }
   }, [user, params.id]);
 
@@ -349,6 +362,33 @@ export default function EditAlternativePage({ params }: { params: { id: string }
               <Terminal className="w-5 h-5 inline mr-2 text-brand" />
               // BASIC_INFO
             </h2>
+
+            {/* Creator Card Toggle */}
+            <div className="flex items-center justify-between bg-dark rounded-lg border border-border p-3 mb-6">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCreatorPreview(!showCreatorPreview)}
+                  className="p-1 hover:bg-surface rounded transition-colors"
+                  aria-label="Toggle creator preview"
+                >
+                  {showCreatorPreview ? (
+                    <Eye className="w-4 h-4 text-brand" />
+                  ) : (
+                    <EyeOff className="w-4 h-4 text-muted" />
+                  )}
+                </button>
+                <span className="text-xs text-muted">
+                  {showCreatorPreview ? "Showing" : "Hiding"} creator card
+                </span>
+              </div>
+              <Link
+                href="/dashboard/settings"
+                className="text-xs text-brand hover:underline font-medium"
+              >
+                Customize
+              </Link>
+            </div>
             
             <div className="space-y-6">
               {/* Icon Upload */}

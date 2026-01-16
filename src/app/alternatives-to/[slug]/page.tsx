@@ -1,9 +1,9 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { AlternativeCard, SearchBar } from '@/components/ui';
-import { getProprietarySoftware, getProprietaryBySlug, getAlternativesFor } from '@/lib/supabase/queries';
+import { getProprietarySoftware, getProprietaryBySlug, getAlternativesFor } from '@/lib/mongodb/queries';
 
 export const revalidate = 60;
 
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!software) return { title: 'Not Found' };
 
   return {
-    title: `Open Source Alternatives to ${software.name} | OSS_Finder`,
+    title: `Open Source Alternatives to ${software.name} | OS_Finder`,
     description: `Discover the best open source alternatives to ${software.name}. ${software.description}`,
   };
 }
@@ -50,7 +50,7 @@ export default async function AlternativesToPage({ params }: Props) {
             <ArrowLeft className="w-4 h-4 mr-1" />
             cd ../alternatives
           </Link>
-          <h1 className="text-4xl font-bold mb-4 font-mono text-white">
+          <h1 className="text-4xl font-bold font-mono text-white mb-4">
             alternatives_to/<span className="text-orange-400">{software.name}</span><span className="text-brand">_</span>
           </h1>
           <p className="text-muted max-w-2xl mb-6 font-mono">
@@ -109,7 +109,7 @@ async function OtherProprietarySoftware({ currentSlug }: { currentSlug: string }
           <Link
             key={s.id}
             href={`/alternatives-to/${s.slug}`}
-            className="px-4 py-2 bg-surface border border-border rounded-lg text-muted hover:border-brand hover:text-orange-400 transition-colors font-mono"
+            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg text-muted hover:border-brand hover:text-orange-400 transition-colors font-mono"
           >
             {s.name}
           </Link>

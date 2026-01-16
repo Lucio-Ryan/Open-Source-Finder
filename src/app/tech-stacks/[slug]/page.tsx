@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Code } from 'lucide-react';
 import { SearchBar, AlternativesList } from '@/components/ui';
-import { getTechStacks, getTechStackBySlug, getAlternativesByTechStack } from '@/lib/supabase/queries';
+import { getTechStacks, getTechStackBySlug, getAlternativesByTechStack } from '@/lib/mongodb/queries';
 
 export const revalidate = 60;
 
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!techStack) return { title: 'Not Found' };
 
   return {
-    title: `${techStack.name} Open Source Alternatives | OSS_Finder`,
+    title: `${techStack.name} Open Source Alternatives | OS_Finder`,
     description: `Discover open source alternatives built with ${techStack.name}`,
   };
 }

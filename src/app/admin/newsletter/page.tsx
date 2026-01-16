@@ -17,7 +17,6 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { createClient } from '@/lib/supabase/client';
 
 interface SponsoredAlternative {
   id: string;
@@ -86,23 +85,22 @@ export default function AdminNewsletterPage() {
       if (profile?.role !== 'admin') return;
       
       setLoading(true);
-      const supabase = createClient();
       
-      // Get sponsors who were paid/approved during the selected week
-      const { data, error } = await supabase
-        .from('alternatives')
-        .select('id, name, slug, description, icon_url, website, sponsor_paid_at, sponsor_featured_until, newsletter_included')
-        .eq('submission_plan', 'sponsor')
-        .eq('approved', true)
-        .gte('sponsor_paid_at', weekRange.start.toISOString())
-        .lte('sponsor_paid_at', weekRange.end.toISOString())
-        .order('sponsor_paid_at', { ascending: true });
-
-      if (error) {
+      try {
+        const response = await fetch(
+          `/api/admin/newsletter?weekStart=${weekRange.start.toISOString()}&weekEnd=${weekRange.end.toISOString()}`
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          setSponsors(data || []);
+        } else {
+          console.error('Error fetching sponsors');
+        }
+      } catch (error) {
         console.error('Error fetching sponsors:', error);
-      } else {
-        setSponsors(data || []);
       }
+      
       setLoading(false);
     };
 
@@ -111,20 +109,24 @@ export default function AdminNewsletterPage() {
 
   const toggleNewsletterIncluded = async (alternativeId: string, currentValue: boolean) => {
     setSaving(alternativeId);
-    const supabase = createClient();
     
-    const { error } = await supabase
-      .from('alternatives')
-      .update({ newsletter_included: !currentValue })
-      .eq('id', alternativeId);
+    try {
+      const response = await fetch('/api/admin/newsletter', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ alternativeId, newsletter_included: !currentValue }),
+      });
 
-    if (error) {
-      console.error('Error updating newsletter status:', error);
-      alert('Failed to update. Please try again.');
-    } else {
+      if (!response.ok) {
+        throw new Error('Failed to update');
+      }
+
       setSponsors(prev => prev.map(s => 
         s.id === alternativeId ? { ...s, newsletter_included: !currentValue } : s
       ));
+    } catch (error) {
+      console.error('Error updating newsletter status:', error);
+      alert('Failed to update. Please try again.');
     }
     setSaving(null);
   };

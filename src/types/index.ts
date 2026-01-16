@@ -39,6 +39,7 @@ export interface ProprietarySoftware {
   slug: string;
   description: string;
   logo?: string;
+  icon_url?: string | null;
   website: string;
   categories: string[];
   alternativeCount: number;

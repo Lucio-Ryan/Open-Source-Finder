@@ -5,7 +5,7 @@ import {
   getTags, 
   getTechStacks, 
   getProprietarySoftware 
-} from '@/lib/supabase/queries';
+} from '@/lib/mongodb/queries';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ossfinder.com';

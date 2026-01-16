@@ -18,20 +18,29 @@ interface AlternativesGridWithAdsProps {
   maxAds?: number;
 }
 
-export function AlternativesGridWithAds({ alternatives, maxAds = 1 }: AlternativesGridWithAdsProps) {
+export function AlternativesGridWithAds({ alternatives, maxAds = 10 }: AlternativesGridWithAdsProps) {
   const { ads } = useCardAds();
 
-  // Intersperse a limited number of ads into the grid
+  // Intersperse ads into the grid - show one ad every 8 alternatives
+  // Rotate through available ads, ordered by approved_at (oldest first from API)
   const itemsWithAds = useMemo(() => {
     if (ads.length === 0) return alternatives;
     
-    const result: (AlternativeWithRelations | Advertisement)[] = [...alternatives];
-    const adsToInsert = ads.slice(0, maxAds);
+    const result: (AlternativeWithRelations | Advertisement)[] = [];
+    let adIndex = 0;
+    let adsInserted = 0;
     
-    // Insert ads at strategic positions (after every 3rd item)
-    adsToInsert.forEach((ad, index) => {
-      const insertPosition = Math.min((index + 1) * 3, result.length);
-      result.splice(insertPosition + index, 0, ad);
+    alternatives.forEach((alt, index) => {
+      result.push(alt);
+      
+      // Insert an ad after every 8 alternatives
+      if ((index + 1) % 8 === 0 && adsInserted < maxAds && ads.length > 0) {
+        // Get the next ad (cycling through available ads)
+        const ad = ads[adIndex % ads.length];
+        result.push(ad);
+        adIndex++;
+        adsInserted++;
+      }
     });
     
     return result;
@@ -39,9 +48,9 @@ export function AlternativesGridWithAds({ alternatives, maxAds = 1 }: Alternativ
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {itemsWithAds.map((item) => (
+      {itemsWithAds.map((item, index) => (
         isAdvertisement(item) ? (
-          <CardAd key={`ad-${item.id}`} ad={item} />
+          <CardAd key={`ad-${item.id}-${index}`} ad={item} />
         ) : isActiveSponsor(item) ? (
           <SponsoredAlternativeCard key={item.id} alternative={item} />
         ) : (

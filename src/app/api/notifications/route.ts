@@ -1,155 +1,126 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-
-// Create server-side Supabase client for auth
-function createServerSupabaseClient() {
-  const cookieStore = cookies();
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set(name: string, value: string, options: any) {
-          try {
-            cookieStore.set({ name, value, ...options });
-          } catch (error) {
-            // Handle cookie errors in read-only contexts
-          }
-        },
-        remove(name: string, options: any) {
-          try {
-            cookieStore.set({ name, value: '', ...options });
-          } catch (error) {
-            // Handle cookie errors in read-only contexts
-          }
-        },
-      },
-    }
-  );
-}
-
-// Create untyped admin client for new tables (discussions, notifications)
-function createUntypedAdminClient() {
-  return createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
+import { getCurrentUser } from '@/lib/mongodb/auth';
+import { connectToDatabase } from '@/lib/mongodb/connection';
+import { CreatorNotification, Alternative, Discussion, User } from '@/lib/mongodb/models';
+import mongoose from 'mongoose';
 
 // GET - Get notifications for the current user
 export async function GET(request: NextRequest) {
-  const authClient = createServerSupabaseClient();
+  const user = await getCurrentUser();
   
-  // Get current user
-  const { data: { user }, error: authError } = await authClient.auth.getUser();
-  
-  if (authError || !user) {
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);
   const unreadOnly = searchParams.get('unreadOnly') === 'true';
 
-  const adminClient = createUntypedAdminClient();
+  try {
+    await connectToDatabase();
 
-  let query = adminClient
-    .from('creator_notifications')
-    .select(`
-      *,
-      alternative:alternatives(name, slug),
-      discussion:discussions(content, author:profiles!discussions_user_id_fkey(name, avatar_url))
-    `)
-    .eq('creator_id', user.id)
-    .order('created_at', { ascending: false });
+    const filter: any = { creator_id: new mongoose.Types.ObjectId(user.id) };
+    if (unreadOnly) {
+      filter.is_read = false;
+    }
 
-  if (unreadOnly) {
-    query = query.eq('is_read', false);
-  }
+    const notifications = await CreatorNotification.find(filter)
+      .populate('alternative_id', 'name slug')
+      .populate({
+        path: 'discussion_id',
+        select: 'content user_id',
+        populate: {
+          path: 'user_id',
+          select: 'name avatar_url'
+        }
+      })
+      .sort({ created_at: -1 })
+      .lean();
 
-  const { data: notifications, error } = await query;
+    // Get unread count
+    const unreadCount = await CreatorNotification.countDocuments({
+      creator_id: new mongoose.Types.ObjectId(user.id),
+      is_read: false
+    });
 
-  if (error) {
+    // Transform notifications to match expected format
+    const transformedNotifications = notifications.map(n => ({
+      id: n._id,
+      creator_id: n.creator_id,
+      alternative_id: n.alternative_id ? (n.alternative_id as any)._id : null,
+      discussion_id: n.discussion_id ? (n.discussion_id as any)._id : null,
+      type: n.type,
+      message: n.message,
+      is_read: n.is_read,
+      created_at: n.created_at,
+      alternative: n.alternative_id ? {
+        name: (n.alternative_id as any).name,
+        slug: (n.alternative_id as any).slug
+      } : null,
+      discussion: n.discussion_id ? {
+        content: (n.discussion_id as any).content,
+        author: (n.discussion_id as any).user_id ? {
+          name: (n.discussion_id as any).user_id.name,
+          avatar_url: (n.discussion_id as any).user_id.avatar_url
+        } : null
+      } : null
+    }));
+
+    return NextResponse.json({ 
+      notifications: transformedNotifications, 
+      unreadCount 
+    });
+  } catch (error) {
     console.error('Error fetching notifications:', error);
     return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 });
   }
-
-  // Get unread count
-  const { count: unreadCount } = await adminClient
-    .from('creator_notifications')
-    .select('*', { count: 'exact', head: true })
-    .eq('creator_id', user.id)
-    .eq('is_read', false);
-
-  return NextResponse.json({ 
-    notifications: notifications || [], 
-    unreadCount: unreadCount || 0 
-  });
 }
 
 // PATCH - Mark notification(s) as read
 export async function PATCH(request: NextRequest) {
-  const authClient = createServerSupabaseClient();
+  const user = await getCurrentUser();
   
-  // Get current user
-  const { data: { user }, error: authError } = await authClient.auth.getUser();
-  
-  if (authError || !user) {
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const body = await request.json();
   const { notificationId, markAllRead } = body;
 
-  const adminClient = createUntypedAdminClient();
+  try {
+    await connectToDatabase();
 
-  if (markAllRead) {
-    // Mark all notifications as read for this user
-    const { error } = await adminClient
-      .from('creator_notifications')
-      .update({ is_read: true })
-      .eq('creator_id', user.id)
-      .eq('is_read', false);
+    if (markAllRead) {
+      // Mark all notifications as read for this user
+      await CreatorNotification.updateMany(
+        { creator_id: new mongoose.Types.ObjectId(user.id), is_read: false },
+        { is_read: true }
+      );
 
-    if (error) {
-      console.error('Error marking notifications as read:', error);
-      return NextResponse.json({ error: 'Failed to update notifications' }, { status: 500 });
+      return NextResponse.json({ success: true });
     }
 
+    if (!notificationId) {
+      return NextResponse.json({ error: 'notificationId or markAllRead is required' }, { status: 400 });
+    }
+
+    // Mark single notification as read
+    await CreatorNotification.updateOne(
+      { _id: new mongoose.Types.ObjectId(notificationId), creator_id: new mongoose.Types.ObjectId(user.id) },
+      { is_read: true }
+    );
+
     return NextResponse.json({ success: true });
-  }
-
-  if (!notificationId) {
-    return NextResponse.json({ error: 'notificationId or markAllRead is required' }, { status: 400 });
-  }
-
-  // Mark single notification as read
-  const { error } = await adminClient
-    .from('creator_notifications')
-    .update({ is_read: true })
-    .eq('id', notificationId)
-    .eq('creator_id', user.id);
-
-  if (error) {
+  } catch (error) {
     console.error('Error marking notification as read:', error);
     return NextResponse.json({ error: 'Failed to update notification' }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true });
 }
 
 // DELETE - Delete a notification
 export async function DELETE(request: NextRequest) {
-  const authClient = createServerSupabaseClient();
+  const user = await getCurrentUser();
   
-  // Get current user
-  const { data: { user }, error: authError } = await authClient.auth.getUser();
-  
-  if (authError || !user) {
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -160,18 +131,17 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Notification ID is required' }, { status: 400 });
   }
 
-  const adminClient = createUntypedAdminClient();
+  try {
+    await connectToDatabase();
 
-  const { error } = await adminClient
-    .from('creator_notifications')
-    .delete()
-    .eq('id', notificationId)
-    .eq('creator_id', user.id);
+    await CreatorNotification.deleteOne({
+      _id: new mongoose.Types.ObjectId(notificationId),
+      creator_id: new mongoose.Types.ObjectId(user.id)
+    });
 
-  if (error) {
+    return NextResponse.json({ success: true });
+  } catch (error) {
     console.error('Error deleting notification:', error);
     return NextResponse.json({ error: 'Failed to delete notification' }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true });
 }

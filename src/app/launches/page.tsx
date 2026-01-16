@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { LaunchesPage } from '@/components/ui/LaunchesPage';
-import { getCategories, getProprietarySoftware } from '@/lib/supabase/queries';
+import { getCategories, getProprietarySoftware } from '@/lib/mongodb/queries';
 
 export const metadata: Metadata = {
   title: 'Launches - Discover New Open Source Alternatives',

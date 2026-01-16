@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, Terminal } from 'lucide-react';
 import { SearchBar, AlternativesList } from '@/components/ui';
-import { getAlternatives } from '@/lib/supabase/queries';
+import { getAlternatives, getCategories, getProprietarySoftware } from '@/lib/mongodb/queries';
 
 export const metadata: Metadata = {
   title: 'All Open Source Alternatives',
@@ -15,7 +15,24 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function AlternativesPage() {
-  const alternatives = await getAlternatives({ approved: true, sortBy: 'health_score' });
+  const [alternatives, categories, proprietarySoftware] = await Promise.all([
+    getAlternatives({ approved: true, sortBy: 'health_score' }),
+    getCategories(),
+    getProprietarySoftware(),
+  ]);
+
+  // Transform to simpler format for the client component
+  const simplifiedCategories = categories.map(c => ({
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+  }));
+
+  const simplifiedProprietary = proprietarySoftware.map(s => ({
+    id: s.id,
+    name: s.name,
+    slug: s.slug,
+  }));
 
   return (
     <div className="min-h-screen bg-dark">
@@ -45,7 +62,11 @@ export default async function AlternativesPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <AlternativesList alternatives={alternatives} />
+        <AlternativesList 
+          alternatives={alternatives} 
+          categories={simplifiedCategories}
+          proprietarySoftware={simplifiedProprietary}
+        />
       </div>
     </div>
   );
