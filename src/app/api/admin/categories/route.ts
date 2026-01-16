@@ -50,8 +50,7 @@ export async function GET() {
       slug: c.slug,
       description: c.description,
       icon: c.icon,
-      created_at: c.created_at,
-      updated_at: c.updated_at
+      created_at: c.created_at
     }));
 
     return NextResponse.json({ categories });
