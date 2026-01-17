@@ -105,6 +105,7 @@ export interface ProprietaryData {
   description: string;
   website: string;
   created_at: string;
+  icon_url?: string | null;
 }
 
 export interface ProprietaryWithCount extends ProprietaryData {
