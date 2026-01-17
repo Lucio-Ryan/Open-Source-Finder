@@ -43,7 +43,7 @@ export function AdSubmitForm({ adType, title, description }: AdSubmitFormProps) 
       setFormData(prev => ({
         ...prev,
         submitter_email: user.email || '',
-        submitter_name: user.user_metadata?.name || prev.submitter_name,
+        submitter_name: user.name || prev.submitter_name,
       }));
     }
   }, [user]);
