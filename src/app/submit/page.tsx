@@ -90,7 +90,7 @@ export default function SubmitPage() {
       setFormData(prev => ({
         ...prev,
         submitter_email: user.email || '',
-        submitter_name: user.user_metadata?.name || prev.submitter_name,
+        submitter_name: user.name || prev.submitter_name,
       }));
       
       // Fetch creator profile

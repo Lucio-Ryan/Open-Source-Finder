@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Copy, Check, ExternalLink, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface BacklinkVerificationProps {
@@ -124,10 +125,12 @@ export function BacklinkVerification({ projectName, githubUrl, onVerificationCom
         <div className="mt-4 pt-4 border-t border-border">
           <label className="text-xs text-muted mb-2 block">Preview</label>
           <div className="flex items-center gap-2">
-            <img 
+            <Image 
               src="/badge.svg" 
               alt="Open Source Finder Badge Preview" 
-              className="h-5"
+              width={100}
+              height={20}
+              className="h-5 w-auto"
             />
             <span className="text-xs text-muted">← This is how the badge will look</span>
           </div>
