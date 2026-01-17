@@ -49,8 +49,7 @@ export async function GET() {
       name: ts.name,
       slug: ts.slug,
       type: ts.type,
-      created_at: ts.created_at,
-      updated_at: ts.updated_at
+      created_at: ts.created_at
     }));
 
     return NextResponse.json({ techStacks });
