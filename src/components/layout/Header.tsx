@@ -82,7 +82,7 @@ export function Header() {
                     >
                       <User className="w-5 h-5" />
                       <span className="hidden sm:inline font-mono text-sm">
-                        {user.user_metadata?.name || user.email?.split('@')[0]}
+                        {user.name || user.email?.split('@')[0]}
                       </span>
                     </button>
                     
