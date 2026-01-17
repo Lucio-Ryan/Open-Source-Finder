@@ -151,7 +151,7 @@ export default function DashboardPage() {
     );
   }
 
-  const displayName = profile?.name || user.user_metadata?.name || user.email?.split('@')[0];
+  const displayName = profile?.name || user.name || user.email?.split('@')[0];
 
   return (
     <div className="min-h-screen bg-dark">
