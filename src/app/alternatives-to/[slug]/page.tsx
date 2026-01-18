@@ -12,10 +12,19 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const software = await getProprietarySoftware();
-  return software.map((s) => ({
-    slug: s.slug,
-  }));
+  try {
+    // Skip static generation if MONGODB_URI is not available (e.g., during build)
+    if (!process.env.MONGODB_URI) {
+      return [];
+    }
+    const software = await getProprietarySoftware();
+    return software.map((s) => ({
+      slug: s.slug,
+    }));
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

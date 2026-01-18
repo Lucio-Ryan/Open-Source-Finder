@@ -14,10 +14,19 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const alternatives = await getAlternatives({ approved: true });
-  return alternatives.map((alt) => ({
-    slug: alt.slug,
-  }));
+  try {
+    // Skip static generation if MONGODB_URI is not available (e.g., during build)
+    if (!process.env.MONGODB_URI) {
+      return [];
+    }
+    const alternatives = await getAlternatives({ approved: true });
+    return alternatives.map((alt) => ({
+      slug: alt.slug,
+    }));
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

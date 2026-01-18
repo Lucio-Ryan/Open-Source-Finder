@@ -12,10 +12,19 @@ interface Props {
 export const revalidate = 60;
 
 export async function generateStaticParams() {
-  const categories = await getCategories();
-  return categories.map((cat) => ({
-    slug: cat.slug,
-  }));
+  try {
+    // Skip static generation if MONGODB_URI is not available (e.g., during build)
+    if (!process.env.MONGODB_URI) {
+      return [];
+    }
+    const categories = await getCategories();
+    return categories.map((cat) => ({
+      slug: cat.slug,
+    }));
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
