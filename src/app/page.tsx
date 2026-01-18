@@ -8,8 +8,8 @@ import {
   getAlternatives,
 } from '@/lib/mongodb/queries';
 
-// Enable ISR with revalidation
-export const revalidate = 60;
+// Force dynamic rendering to access MongoDB at runtime
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   alternates: {

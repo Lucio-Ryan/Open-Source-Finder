@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb/connection';
 import { Policy } from '@/lib/mongodb/models';
 
+// Force dynamic rendering for routes that use MongoDB
+export const dynamic = 'force-dynamic';
+
 // GET /api/policies/:type - Fetch a specific policy
 export async function GET(
   request: NextRequest,

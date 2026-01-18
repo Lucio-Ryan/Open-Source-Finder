@@ -7,26 +7,18 @@ import { getAlternatives, getAlternativeBySlug, getCreatorProfileByUserId, getCr
 import { AlternativeWithRelations } from '@/types/database';
 import { AlternativeCard, RichTextContent, GitHubStatsCard, ScreenshotCarousel, CreatorProfileCard, AlternativeVoteSection, DiscussionSection } from '@/components/ui';
 
-export const revalidate = 60;
+// Force dynamic rendering to access MongoDB at runtime
+export const dynamic = 'force-dynamic';
+// Allow dynamic paths not generated at build time
+export const dynamicParams = true;
 
 interface Props {
   params: { slug: string };
 }
 
 export async function generateStaticParams() {
-  try {
-    // Skip static generation if MONGODB_URI is not available (e.g., during build)
-    if (!process.env.MONGODB_URI) {
-      return [];
-    }
-    const alternatives = await getAlternatives({ approved: true });
-    return alternatives.map((alt) => ({
-      slug: alt.slug,
-    }));
-  } catch (error) {
-    console.error('Error generating static params:', error);
-    return [];
-  }
+  // Return empty array to skip static generation - all pages will be dynamically rendered
+  return [];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

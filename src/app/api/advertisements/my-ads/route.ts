@@ -4,6 +4,9 @@ import { connectToDatabase } from '@/lib/mongodb/connection';
 import { Advertisement } from '@/lib/mongodb/models';
 import mongoose from 'mongoose';
 
+// Force dynamic rendering for routes that use cookies
+export const dynamic = 'force-dynamic';
+
 // GET - Fetch current user's advertisements
 export async function GET(request: NextRequest) {
   try {

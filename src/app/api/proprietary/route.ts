@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb/connection';
 import { ProprietarySoftware } from '@/lib/mongodb/models';
 
+// Force dynamic rendering for routes that use MongoDB
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     await connectToDatabase();

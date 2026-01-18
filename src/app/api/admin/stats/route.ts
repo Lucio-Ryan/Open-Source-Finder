@@ -3,6 +3,9 @@ import { getCurrentUser } from '@/lib/mongodb/auth';
 import { connectToDatabase } from '@/lib/mongodb/connection';
 import { User, Alternative, Category, TechStack } from '@/lib/mongodb/models';
 
+// Force dynamic rendering for routes that use cookies
+export const dynamic = 'force-dynamic';
+
 // Verify admin role
 async function verifyAdmin() {
   const user = await getCurrentUser();

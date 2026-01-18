@@ -15,7 +15,8 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 60;
+// Force dynamic rendering to access MongoDB at runtime
+export const dynamic = 'force-dynamic';
 
 export default async function LaunchesPageRoute() {
   const [categories, proprietarySoftware] = await Promise.all([

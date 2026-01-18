@@ -4,6 +4,9 @@ import connectDB from '@/lib/mongodb/connection';
 import { Alternative } from '@/lib/mongodb/models';
 import mongoose from 'mongoose';
 
+// Force dynamic rendering for routes that use cookies
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const user = await getCurrentUser();

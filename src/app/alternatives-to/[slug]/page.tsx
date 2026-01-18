@@ -5,26 +5,18 @@ import { ArrowLeft } from 'lucide-react';
 import { AlternativeCard, SearchBar } from '@/components/ui';
 import { getProprietarySoftware, getProprietaryBySlug, getAlternativesFor } from '@/lib/mongodb/queries';
 
-export const revalidate = 60;
+// Force dynamic rendering to access MongoDB at runtime
+export const dynamic = 'force-dynamic';
+// Allow dynamic paths not generated at build time
+export const dynamicParams = true;
 
 interface Props {
   params: { slug: string };
 }
 
 export async function generateStaticParams() {
-  try {
-    // Skip static generation if MONGODB_URI is not available (e.g., during build)
-    if (!process.env.MONGODB_URI) {
-      return [];
-    }
-    const software = await getProprietarySoftware();
-    return software.map((s) => ({
-      slug: s.slug,
-    }));
-  } catch (error) {
-    console.error('Error generating static params:', error);
-    return [];
-  }
+  // Return empty array to skip static generation - all pages will be dynamically rendered
+  return [];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

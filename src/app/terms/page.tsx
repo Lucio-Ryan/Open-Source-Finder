@@ -1,12 +1,23 @@
 import { Metadata } from 'next';
+import { connectToDatabase } from '@/lib/mongodb/connection';
+import { Policy } from '@/lib/mongodb/models';
+
+// Force dynamic rendering to access MongoDB at runtime
+export const dynamic = 'force-dynamic';
 
 async function getPolicy() {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/policies/terms`, {
-      cache: 'no-store'
-    });
-    if (!response.ok) throw new Error('Failed to fetch policy');
-    return await response.json();
+    await connectToDatabase();
+    const policy = await Policy.findOne({ type: 'terms' });
+    if (!policy) return null;
+    return {
+      id: policy._id.toString(),
+      type: policy.type,
+      title: policy.title,
+      content: policy.content,
+      updated_at: policy.updated_at,
+      created_at: policy.created_at
+    };
   } catch (error) {
     console.error('Error fetching terms policy:', error);
     return null;

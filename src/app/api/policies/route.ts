@@ -3,6 +3,9 @@ import { connectToDatabase } from '@/lib/mongodb/connection';
 import { Policy, User } from '@/lib/mongodb/models';
 import { verifyToken } from '@/lib/mongodb/auth';
 
+// Force dynamic rendering for routes that use MongoDB
+export const dynamic = 'force-dynamic';
+
 // GET /api/policies - Fetch all policies
 export async function GET() {
   try {

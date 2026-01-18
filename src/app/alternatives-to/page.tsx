@@ -4,7 +4,8 @@ import { ArrowRight } from 'lucide-react';
 import { SearchBar } from '@/components/ui';
 import { getProprietarySoftware } from '@/lib/mongodb/queries';
 
-export const revalidate = 60;
+// Force dynamic rendering to access MongoDB at runtime
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'All Proprietary Software | OS_Finder',

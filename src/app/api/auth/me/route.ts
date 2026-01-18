@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser, getUserProfile } from '@/lib/mongodb/auth';
 
+// Force dynamic rendering for routes that use cookies
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const user = await getCurrentUser();

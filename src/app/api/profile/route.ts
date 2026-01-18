@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser, getUserProfile, updateUserProfile } from '@/lib/mongodb/auth';
 
+// Force dynamic rendering for routes that use cookies
+export const dynamic = 'force-dynamic';
+
 // GET /api/profile - Get current user's profile
 export async function GET() {
   try {

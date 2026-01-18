@@ -42,7 +42,7 @@ const UserSchema = new Schema<IUser>(
 );
 
 // Index for faster lookups
-UserSchema.index({ email: 1 });
+// Note: email index is already created by unique: true
 UserSchema.index({ role: 1 });
 
 // ============ CATEGORY SCHEMA ============
@@ -67,7 +67,7 @@ const CategorySchema = new Schema<ICategory>(
   }
 );
 
-CategorySchema.index({ slug: 1 });
+// Note: slug index is already created by unique: true
 
 // ============ TECH STACK SCHEMA ============
 export interface ITechStack extends Document {
@@ -89,7 +89,7 @@ const TechStackSchema = new Schema<ITechStack>(
   }
 );
 
-TechStackSchema.index({ slug: 1 });
+// Note: slug index is already created by unique: true
 TechStackSchema.index({ type: 1 });
 
 // ============ TAG SCHEMA ============
@@ -110,7 +110,7 @@ const TagSchema = new Schema<ITag>(
   }
 );
 
-TagSchema.index({ slug: 1 });
+// Note: slug index is already created by unique: true
 
 // ============ PROPRIETARY SOFTWARE SCHEMA ============
 export interface IProprietarySoftware extends Document {
@@ -138,7 +138,7 @@ const ProprietarySoftwareSchema = new Schema<IProprietarySoftware>(
   }
 );
 
-ProprietarySoftwareSchema.index({ slug: 1 });
+// Note: slug index is already created by unique: true
 
 // ============ ALTERNATIVE SCHEMA ============
 export interface IAlternative extends Document {
@@ -230,7 +230,7 @@ const AlternativeSchema = new Schema<IAlternative>(
 );
 
 // Indexes
-AlternativeSchema.index({ slug: 1 });
+// Note: slug index is already created by unique: true
 AlternativeSchema.index({ approved: 1 });
 AlternativeSchema.index({ featured: 1 });
 AlternativeSchema.index({ health_score: -1 });
@@ -439,7 +439,7 @@ const SessionSchema = new Schema<ISession>(
   }
 );
 
-SessionSchema.index({ token: 1 });
+// Note: token index is already created by unique: true
 SessionSchema.index({ user_id: 1 });
 SessionSchema.index({ expires_at: 1 }, { expireAfterSeconds: 0 }); // TTL index
 
@@ -471,7 +471,7 @@ const PolicySchema = new Schema<IPolicy>(
   }
 );
 
-PolicySchema.index({ type: 1 });
+// Note: type index is already created by unique: true
 
 // ============ MODEL EXPORTS ============
 // Use this pattern to prevent model recompilation in development

@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { ArrowLeft, Code, ChevronRight, Blocks } from 'lucide-react';
 import { getTechStacks } from '@/lib/mongodb/queries';
 
-export const revalidate = 60;
+// Force dynamic rendering to access MongoDB at runtime
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Browse Open Source Software by Tech Stack',

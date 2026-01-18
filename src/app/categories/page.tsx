@@ -12,7 +12,8 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 60;
+// Force dynamic rendering to access MongoDB at runtime
+export const dynamic = 'force-dynamic';
 
 export default async function CategoriesPage() {
   const categories = await getCategories();
