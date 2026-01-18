@@ -104,6 +104,7 @@ export interface ProprietaryData {
   slug: string;
   description: string;
   website: string;
+  icon_url: string | null;
   created_at: string;
 }
 
