@@ -18,10 +18,17 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const [featuredAlternatives, proprietarySoftware] = await Promise.all([
-    getFeaturedAlternatives(),
-    getProprietarySoftware(),
-  ]);
+  let featuredAlternatives: Awaited<ReturnType<typeof getFeaturedAlternatives>> = [];
+  let proprietarySoftware: Awaited<ReturnType<typeof getProprietarySoftware>> = [];
+  
+  try {
+    [featuredAlternatives, proprietarySoftware] = await Promise.all([
+      getFeaturedAlternatives(),
+      getProprietarySoftware(),
+    ]);
+  } catch (error) {
+    console.error('Error fetching home page data:', error);
+  }
 
   return (
     <div className="bg-dark min-h-screen">

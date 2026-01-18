@@ -20,22 +20,36 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const category = await getCategoryBySlug(params.slug);
-  if (!category) return { title: 'Not Found' };
+  try {
+    const category = await getCategoryBySlug(params.slug);
+    if (!category) return { title: 'Not Found' };
 
-  return {
-    title: `${category.name} Open Source Alternatives | OS_Finder`,
-    description: category.description,
-  };
+    return {
+      title: `${category.name} Open Source Alternatives | OS_Finder`,
+      description: category.description,
+    };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return { title: 'Category | OS_Finder' };
+  }
 }
 
 export default async function CategoryPage({ params }: Props) {
-  const [category, categoryAlternatives, categories, proprietarySoftware] = await Promise.all([
-    getCategoryBySlug(params.slug),
-    getAlternativesByCategory(params.slug),
-    getCategories(),
-    getProprietarySoftware(),
-  ]);
+  let category: Awaited<ReturnType<typeof getCategoryBySlug>> = null;
+  let categoryAlternatives: Awaited<ReturnType<typeof getAlternativesByCategory>> = [];
+  let categories: Awaited<ReturnType<typeof getCategories>> = [];
+  let proprietarySoftware: Awaited<ReturnType<typeof getProprietarySoftware>> = [];
+  
+  try {
+    [category, categoryAlternatives, categories, proprietarySoftware] = await Promise.all([
+      getCategoryBySlug(params.slug),
+      getAlternativesByCategory(params.slug),
+      getCategories(),
+      getProprietarySoftware(),
+    ]);
+  } catch (error) {
+    console.error('Error fetching category page data:', error);
+  }
 
   if (!category) {
     notFound();

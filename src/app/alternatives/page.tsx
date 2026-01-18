@@ -16,11 +16,19 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function AlternativesPage() {
-  const [alternatives, categories, proprietarySoftware] = await Promise.all([
-    getAlternatives({ approved: true, sortBy: 'health_score' }),
-    getCategories(),
-    getProprietarySoftware(),
-  ]);
+  let alternatives: Awaited<ReturnType<typeof getAlternatives>> = [];
+  let categories: Awaited<ReturnType<typeof getCategories>> = [];
+  let proprietarySoftware: Awaited<ReturnType<typeof getProprietarySoftware>> = [];
+  
+  try {
+    [alternatives, categories, proprietarySoftware] = await Promise.all([
+      getAlternatives({ approved: true, sortBy: 'health_score' }),
+      getCategories(),
+      getProprietarySoftware(),
+    ]);
+  } catch (error) {
+    console.error('Error fetching alternatives page data:', error);
+  }
 
   // Transform to simpler format for the client component
   const simplifiedCategories = categories.map(c => ({

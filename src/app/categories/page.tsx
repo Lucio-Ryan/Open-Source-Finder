@@ -16,7 +16,13 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function CategoriesPage() {
-  const categories = await getCategories();
+  let categories: Awaited<ReturnType<typeof getCategories>> = [];
+  
+  try {
+    categories = await getCategories();
+  } catch (error) {
+    console.error('Error fetching categories page data:', error);
+  }
 
   return (
     <div className="min-h-screen bg-dark">

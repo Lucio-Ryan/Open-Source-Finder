@@ -22,17 +22,28 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const alternative = await getAlternativeBySlug(params.slug);
-  if (!alternative) return { title: 'Not Found' };
+  try {
+    const alternative = await getAlternativeBySlug(params.slug);
+    if (!alternative) return { title: 'Not Found' };
 
-  return {
-    title: `${alternative.name} - Open Source Alternative | OS_Finder`,
-    description: alternative.description,
-  };
+    return {
+      title: `${alternative.name} - Open Source Alternative | OS_Finder`,
+      description: alternative.description,
+    };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return { title: 'Alternative | OS_Finder' };
+  }
 }
 
 export default async function AlternativeDetailPage({ params }: Props) {
-  const alternative = await getAlternativeBySlug(params.slug);
+  let alternative: AlternativeWithRelations | null = null;
+  
+  try {
+    alternative = await getAlternativeBySlug(params.slug);
+  } catch (error) {
+    console.error('Error fetching alternative:', error);
+  }
 
   if (!alternative) {
     notFound();
@@ -40,21 +51,30 @@ export default async function AlternativeDetailPage({ params }: Props) {
 
   // Fetch creator profile - first try by user_id, then by submitter_email
   let creatorProfile = null;
-  if (alternative.user_id) {
-    creatorProfile = await getCreatorProfileByUserId(alternative.user_id);
-  } else if (alternative.submitter_email) {
-    creatorProfile = await getCreatorProfileByEmail(alternative.submitter_email);
+  try {
+    if (alternative.user_id) {
+      creatorProfile = await getCreatorProfileByUserId(alternative.user_id);
+    } else if (alternative.submitter_email) {
+      creatorProfile = await getCreatorProfileByEmail(alternative.submitter_email);
+    }
+  } catch (error) {
+    console.error('Error fetching creator profile:', error);
   }
   
   // Get similar alternatives based on categories
-  const allAlternatives = await getAlternatives({ approved: true });
-  const alternativeCategories = alternative.categories?.map((c: { slug: string }) => c.slug) || [];
-  const similarAlternatives = allAlternatives
-    .filter((a) => 
-      a.id !== alternative.id && 
-      a.categories?.some((c: { slug: string }) => alternativeCategories.includes(c.slug))
-    )
-    .slice(0, 3);
+  let similarAlternatives: AlternativeWithRelations[] = [];
+  try {
+    const allAlternatives = await getAlternatives({ approved: true });
+    const alternativeCategories = alternative.categories?.map((c: { slug: string }) => c.slug) || [];
+    similarAlternatives = allAlternatives
+      .filter((a) => 
+        a.id !== alternative!.id && 
+        a.categories?.some((c: { slug: string }) => alternativeCategories.includes(c.slug))
+      )
+      .slice(0, 3);
+  } catch (error) {
+    console.error('Error fetching similar alternatives:', error);
+  }
 
   return (
     <div className="min-h-screen bg-dark">

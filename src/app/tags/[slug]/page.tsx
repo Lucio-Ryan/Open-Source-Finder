@@ -20,20 +20,32 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const tag = await getTagBySlug(params.slug);
-  if (!tag) return { title: 'Not Found' };
+  try {
+    const tag = await getTagBySlug(params.slug);
+    if (!tag) return { title: 'Not Found' };
 
-  return {
-    title: `${tag.name} Open Source Alternatives | OS_Finder`,
-    description: `Discover open source alternatives tagged with ${tag.name}`,
-  };
+    return {
+      title: `${tag.name} Open Source Alternatives | OS_Finder`,
+      description: `Discover open source alternatives tagged with ${tag.name}`,
+    };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return { title: 'Tag | OS_Finder' };
+  }
 }
 
 export default async function TagPage({ params }: Props) {
-  const [tag, tagAlternatives] = await Promise.all([
-    getTagBySlug(params.slug),
-    getAlternativesByTag(params.slug)
-  ]);
+  let tag: Awaited<ReturnType<typeof getTagBySlug>> = null;
+  let tagAlternatives: Awaited<ReturnType<typeof getAlternativesByTag>> = [];
+  
+  try {
+    [tag, tagAlternatives] = await Promise.all([
+      getTagBySlug(params.slug),
+      getAlternativesByTag(params.slug)
+    ]);
+  } catch (error) {
+    console.error('Error fetching tag page data:', error);
+  }
 
   if (!tag) {
     notFound();

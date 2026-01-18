@@ -53,7 +53,13 @@ const typeLabels: Record<string, string> = {
 };
 
 export default async function TechStacksPage() {
-  const techStacks = await getTechStacks();
+  let techStacks: Awaited<ReturnType<typeof getTechStacks>> = [];
+  
+  try {
+    techStacks = await getTechStacks();
+  } catch (error) {
+    console.error('Error fetching tech-stacks page data:', error);
+  }
 
   // Group tech stacks by type
   const groupedStacks = techStacks.reduce((acc, stack) => {

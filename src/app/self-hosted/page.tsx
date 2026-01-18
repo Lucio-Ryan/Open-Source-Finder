@@ -16,11 +16,19 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function SelfHostedPage() {
-  const [selfHostedAlternatives, categories, proprietarySoftware] = await Promise.all([
-    getSelfHostedAlternatives(),
-    getCategories(),
-    getProprietarySoftware(),
-  ]);
+  let selfHostedAlternatives: Awaited<ReturnType<typeof getSelfHostedAlternatives>> = [];
+  let categories: Awaited<ReturnType<typeof getCategories>> = [];
+  let proprietarySoftware: Awaited<ReturnType<typeof getProprietarySoftware>> = [];
+  
+  try {
+    [selfHostedAlternatives, categories, proprietarySoftware] = await Promise.all([
+      getSelfHostedAlternatives(),
+      getCategories(),
+      getProprietarySoftware(),
+    ]);
+  } catch (error) {
+    console.error('Error fetching self-hosted page data:', error);
+  }
 
   // Transform to simpler format for the client component
   const simplifiedCategories = categories.map(c => ({

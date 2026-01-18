@@ -20,20 +20,32 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const techStack = await getTechStackBySlug(params.slug);
-  if (!techStack) return { title: 'Not Found' };
+  try {
+    const techStack = await getTechStackBySlug(params.slug);
+    if (!techStack) return { title: 'Not Found' };
 
-  return {
-    title: `${techStack.name} Open Source Alternatives | OS_Finder`,
-    description: `Discover open source alternatives built with ${techStack.name}`,
-  };
+    return {
+      title: `${techStack.name} Open Source Alternatives | OS_Finder`,
+      description: `Discover open source alternatives built with ${techStack.name}`,
+    };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return { title: 'Tech Stack | OS_Finder' };
+  }
 }
 
 export default async function TechStackPage({ params }: Props) {
-  const [techStack, alternatives] = await Promise.all([
-    getTechStackBySlug(params.slug),
-    getAlternativesByTechStack(params.slug)
-  ]);
+  let techStack: Awaited<ReturnType<typeof getTechStackBySlug>> = null;
+  let alternatives: Awaited<ReturnType<typeof getAlternativesByTechStack>> = [];
+  
+  try {
+    [techStack, alternatives] = await Promise.all([
+      getTechStackBySlug(params.slug),
+      getAlternativesByTechStack(params.slug)
+    ]);
+  } catch (error) {
+    console.error('Error fetching tech stack page data:', error);
+  }
 
   if (!techStack) {
     notFound();

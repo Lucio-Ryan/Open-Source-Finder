@@ -13,7 +13,13 @@ export const metadata: Metadata = {
 };
 
 export default async function AllProprietarySoftwarePage() {
-  const proprietarySoftware = await getProprietarySoftware();
+  let proprietarySoftware: Awaited<ReturnType<typeof getProprietarySoftware>> = [];
+  
+  try {
+    proprietarySoftware = await getProprietarySoftware();
+  } catch (error) {
+    console.error('Error fetching alternatives-to page data:', error);
+  }
 
   return (
     <div className="min-h-screen bg-dark">

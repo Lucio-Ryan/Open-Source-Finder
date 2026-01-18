@@ -20,20 +20,32 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const software = await getProprietaryBySlug(params.slug);
-  if (!software) return { title: 'Not Found' };
+  try {
+    const software = await getProprietaryBySlug(params.slug);
+    if (!software) return { title: 'Not Found' };
 
-  return {
-    title: `Open Source Alternatives to ${software.name} | OS_Finder`,
-    description: `Discover the best open source alternatives to ${software.name}. ${software.description}`,
-  };
+    return {
+      title: `Open Source Alternatives to ${software.name} | OS_Finder`,
+      description: `Discover the best open source alternatives to ${software.name}. ${software.description}`,
+    };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return { title: 'Alternatives | OS_Finder' };
+  }
 }
 
 export default async function AlternativesToPage({ params }: Props) {
-  const [software, alternatives] = await Promise.all([
-    getProprietaryBySlug(params.slug),
-    getAlternativesFor(params.slug)
-  ]);
+  let software: Awaited<ReturnType<typeof getProprietaryBySlug>> = null;
+  let alternatives: Awaited<ReturnType<typeof getAlternativesFor>> = [];
+  
+  try {
+    [software, alternatives] = await Promise.all([
+      getProprietaryBySlug(params.slug),
+      getAlternativesFor(params.slug)
+    ]);
+  } catch (error) {
+    console.error('Error fetching alternatives-to data:', error);
+  }
 
   if (!software) {
     notFound();

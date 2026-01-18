@@ -19,10 +19,17 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function LaunchesPageRoute() {
-  const [categories, proprietarySoftware] = await Promise.all([
-    getCategories(),
-    getProprietarySoftware(),
-  ]);
+  let categories: Awaited<ReturnType<typeof getCategories>> = [];
+  let proprietarySoftware: Awaited<ReturnType<typeof getProprietarySoftware>> = [];
+  
+  try {
+    [categories, proprietarySoftware] = await Promise.all([
+      getCategories(),
+      getProprietarySoftware(),
+    ]);
+  } catch (error) {
+    console.error('Error fetching launches page data:', error);
+  }
 
   // Transform to simpler format for the client component
   const simplifiedCategories = categories.map(c => ({
