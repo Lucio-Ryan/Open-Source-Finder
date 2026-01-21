@@ -5,7 +5,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, Send, CheckCircle, Terminal, Loader2, Upload, X, Crown, Sparkles, Eye, EyeOff } from 'lucide-react';
-import { RichTextEditor, TechStackSelector, PlanSelection, BacklinkVerification, CreatorProfileCard, type SubmissionPlan } from '@/components/ui';
+import { RichTextEditor, TechStackSelector, PlanSelection, BacklinkVerification, CreatorProfileCard, PayPalButton, type SubmissionPlan } from '@/components/ui';
 import { useAuth } from '@/lib/auth/AuthContext';
 import type { CreatorProfile } from '@/lib/mongodb/queries';
 
@@ -51,6 +51,15 @@ export default function SubmitPage() {
   const [backlinkUrl, setBacklinkUrl] = useState<string | undefined>();
   const [sponsorPaymentId, setSponsorPaymentId] = useState<string | null>(null);
   
+  // Duplicate check state
+  const [duplicateError, setDuplicateError] = useState<string | null>(null);
+  const [checkingDuplicate, setCheckingDuplicate] = useState(false);
+  const [duplicateChecked, setDuplicateChecked] = useState(false);
+  
+  // Payment modal state
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  
   const [iconPreview, setIconPreview] = useState<string | null>(null);
   const [screenshotPreviews, setScreenshotPreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,6 +92,18 @@ export default function SubmitPage() {
   const filteredProprietarySoftware = proprietarySoftware.filter(soft =>
     soft.name.toLowerCase().includes(alternativeToSearch.toLowerCase())
   );
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (showPaymentModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showPaymentModal]);
 
   // Auto-fill user email if logged in
   useEffect(() => {
@@ -148,10 +169,82 @@ export default function SubmitPage() {
     fetchData();
   }, []);
 
+  // Check for duplicate name/github when fields change
+  const checkDuplicate = async () => {
+    if (!formData.name && !formData.github) {
+      setDuplicateError(null);
+      setDuplicateChecked(false);
+      return false;
+    }
+
+    setCheckingDuplicate(true);
+    setDuplicateError(null);
+
+    try {
+      const res = await fetch('/api/submit/check-duplicate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          github: formData.github,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.duplicate) {
+        setDuplicateError(data.errors.join('. '));
+        setDuplicateChecked(true);
+        setError(data.errors.join('. '));
+        return false;
+      } else {
+        setDuplicateError(null);
+        setDuplicateChecked(true);
+        return true;
+      }
+    } catch (err) {
+      console.error('Error checking duplicate:', err);
+      setError('Failed to check for duplicates. Please try again.');
+      return false;
+    } finally {
+      setCheckingDuplicate(false);
+    }
+  };
+
+  // Reset duplicate check when name or github changes
+  useEffect(() => {
+    setDuplicateChecked(false);
+    setDuplicateError(null);
+  }, [formData.name, formData.github]);
+
+  // Check if all required fields for payment are filled
+  const canShowPayment = formData.name && 
+    formData.website && 
+    formData.github && 
+    formData.short_description && 
+    formData.description && 
+    formData.license && 
+    formData.alternative_to_ids.length > 0 &&
+    duplicateChecked &&
+    !duplicateError;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
+
+    // Validate required fields
+    if (!formData.license) {
+      setError('Please specify a license for your project.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (formData.alternative_to_ids.length === 0) {
+      setError('Please select which proprietary software this is an alternative to.');
+      setIsSubmitting(false);
+      return;
+    }
 
     // Plan-specific validation
     if (selectedPlan === 'free' && !backlinkVerified) {
@@ -160,12 +253,14 @@ export default function SubmitPage() {
       return;
     }
 
+    // For sponsor plan, payment must be completed first via PayPal button
     if (selectedPlan === 'sponsor' && !sponsorPaymentId) {
-      setError('Please complete the payment to submit with the Sponsor plan.');
+      setError('Please complete PayPal payment before submitting.');
       setIsSubmitting(false);
       return;
     }
 
+    // Free plan submission or sponsor with completed payment
     try {
       const response = await fetch('/api/submit', {
         method: 'POST',
@@ -714,11 +809,11 @@ export default function SubmitPage() {
           <div className="bg-surface rounded-xl border border-border p-6">
             <h2 className="text-xl font-semibold text-white mb-2 font-mono">
               <Terminal className="w-5 h-5 inline mr-2 text-brand" />
-              // ALTERNATIVE_TO
+              // ALTERNATIVE_TO *
             </h2>
             <p className="text-sm text-muted mb-4">
-              Select which proprietary software this is an alternative to.
-              <span className={`ml-2 font-mono ${formData.alternative_to_ids.length >= 1 ? 'text-orange-400' : 'text-brand'}`}>
+              Select which proprietary software this is an alternative to. <span className="text-emerald-400">(Required)</span>
+              <span className="ml-2 font-mono text-emerald-400">
                 ({formData.alternative_to_ids.length}/1)
               </span>
             </p>
@@ -801,11 +896,12 @@ export default function SubmitPage() {
 
               <div>
                 <label htmlFor="license" className="block text-sm font-medium font-mono text-muted mb-2">
-                  license
+                  license *
                 </label>
                 <input
                   type="text"
                   id="license"
+                  required
                   value={formData.license}
                   onChange={(e) => setFormData({ ...formData, license: e.target.value })}
                   className="w-full px-4 py-3 bg-dark border border-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-transparent"
@@ -853,57 +949,6 @@ export default function SubmitPage() {
             </div>
           )}
 
-          {/* Sponsor Payment (Sponsor Plan Only) */}
-          {selectedPlan === 'sponsor' && (
-            <div className="bg-surface rounded-xl border border-emerald-500/30 p-6">
-              <h2 className="text-xl font-semibold text-white mb-2 font-mono">
-                <Crown className="w-5 h-5 inline mr-2 text-emerald-500" />
-                // SPONSOR_PAYMENT
-              </h2>
-              <p className="text-sm text-muted mb-6">
-                Complete payment to activate your sponsor benefits immediately.
-              </p>
-              
-              <div className="bg-dark/50 rounded-lg p-6 border border-emerald-500/20">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-white font-semibold">Sponsor Plan</h3>
-                    <p className="text-sm text-muted">7 days featured + newsletter + instant approval + dofollow links</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-emerald-500">$19</p>
-                    <p className="text-xs text-muted">one-time</p>
-                  </div>
-                </div>
-                
-                {sponsorPaymentId ? (
-                  <div className="flex items-center gap-2 text-green-400 bg-green-500/10 border border-green-500/30 rounded-lg p-3">
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="font-medium">Payment completed!</span>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // In production, this would open Stripe checkout
-                      // For now, we'll simulate a successful payment
-                      const mockPaymentId = `sp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                      setSponsorPaymentId(mockPaymentId);
-                    }}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-dark font-bold rounded-lg hover:opacity-90 transition-opacity"
-                  >
-                    <Crown className="w-5 h-5" />
-                    Pay $19 - Become a Sponsor
-                  </button>
-                )}
-                
-                <p className="text-xs text-muted mt-3 text-center">
-                  Secure payment powered by Stripe. No recurring charges.
-                </p>
-              </div>
-            </div>
-          )}
-
           {/* Error Message */}
           {error && (
             <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
@@ -911,10 +956,133 @@ export default function SubmitPage() {
             </div>
           )}
 
+          {/* Payment Modal */}
+          {showPaymentModal && (
+            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-40 pt-8">
+              <div className="bg-surface border border-border rounded-xl max-w-lg w-full relative max-h-[80vh] flex flex-col mx-4">
+                <button
+                  onClick={() => setShowPaymentModal(false)}
+                  className="absolute top-4 right-4 text-muted hover:text-white transition-colors z-10"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                
+                {/* Scrollable Content */}
+                <div className="overflow-y-auto flex-1">
+                  {/* Header Section */}
+                  <div className="p-6 border-b border-border">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center">
+                        <Crown className="w-6 h-6 text-emerald-500" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-white font-mono">
+                          Sponsor {formData.name}
+                        </h3>
+                        <p className="text-muted text-sm">
+                          Get instant approval and premium features
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Benefits Section */}
+                  <div className="p-6 border-b border-border">
+                    <h4 className="text-sm font-mono text-muted mb-3">// SPONSOR_BENEFITS</h4>
+                    <ul className="text-sm text-white space-y-2">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                        Featured on home page for 7 days
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                        Priority in search results
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                        Included in weekly newsletter
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                        Instant approval & dofollow links
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Payment Section */}
+                  <div className="p-6">
+                    <div className="bg-white rounded-lg p-6 border border-emerald-500/30">
+                      <div className="flex items-center justify-between mb-6">
+                        <div>
+                          <h5 className="text-gray-900 font-semibold">Sponsor Plan</h5>
+                          <p className="text-sm text-gray-600">7 days of premium features</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold text-emerald-600">$19</p>
+                          <p className="text-xs text-gray-500">one-time</p>
+                        </div>
+                      </div>
+
+                      {paymentError && (
+                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg mb-4">
+                          <p className="text-red-600 text-sm">{paymentError}</p>
+                        </div>
+                      )}
+
+                      <PayPalButton
+                        paymentType="sponsor_submission"
+                        amount="19"
+                        projectName={formData.name}
+                        onSuccess={(data) => {
+                          setSponsorPaymentId(data.captureId);
+                          setError(null);
+                          setShowPaymentModal(false);
+                        }}
+                        onError={(error) => setPaymentError(error)}
+                        onCancel={() => setPaymentError('Payment was cancelled. Please try again.')}
+                      />
+                    </div>
+                    
+                    <p className="text-xs text-muted text-center mt-4">
+                      Secure payment powered by PayPal
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Submit Button */}
           <button
-            type="submit"
-            disabled={isSubmitting || (selectedPlan === 'free' && !backlinkVerified) || (selectedPlan === 'sponsor' && !sponsorPaymentId)}
+            type={selectedPlan === 'sponsor' && !sponsorPaymentId ? 'button' : 'submit'}
+            disabled={isSubmitting || (selectedPlan === 'free' && !backlinkVerified) || checkingDuplicate}
+            onClick={async (e) => {
+              if (selectedPlan === 'sponsor' && !sponsorPaymentId) {
+                e.preventDefault();
+                
+                // Clear previous errors
+                setError(null);
+                setDuplicateError(null);
+                
+                // Check if all required fields are filled
+                if (!formData.name || !formData.website || !formData.github || !formData.short_description || !formData.description || !formData.license || formData.alternative_to_ids.length === 0) {
+                  setError('Please complete all required fields: project name, website, GitHub URL, descriptions, license, and select at least one alternative.');
+                  return;
+                }
+                
+                // Always run duplicate check
+                const duplicateCheckResult = await checkDuplicate();
+                
+                // If duplicate check failed, error is already set by checkDuplicate
+                if (!duplicateCheckResult) {
+                  return;
+                }
+                
+                // If all checks passed, open payment modal
+                setShowPaymentModal(true);
+                setPaymentError(null);
+              }
+            }}
             className={`w-full flex items-center justify-center px-6 py-4 font-medium font-mono rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
               selectedPlan === 'sponsor' 
                 ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-dark hover:opacity-90' 
@@ -926,27 +1094,21 @@ export default function SubmitPage() {
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                 Submitting...
               </>
+            ) : checkingDuplicate ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Checking availability...
+              </>
             ) : selectedPlan === 'sponsor' ? (
               <>
-                <Crown className="w-5 h-5 mr-2" />
-                Launch as Sponsor<span className="text-dark/70">_</span>
+                {sponsorPaymentId ? 'Launch as Sponsor' : 'Complete Payment'}<span className="text-dark/70">_</span>
               </>
             ) : (
               <>
-                <Send className="w-5 h-5 mr-2" />
                 Submit for Review<span className="text-dark/70">_</span>
               </>
             )}
           </button>
-          
-          {/* Submission info based on plan */}
-          <div className={`text-center text-sm ${selectedPlan === 'sponsor' ? 'text-emerald-500/70' : 'text-muted'}`}>
-            {selectedPlan === 'sponsor' ? (
-              <p>✨ Your project will go live immediately upon submission</p>
-            ) : (
-              <p>📋 Your project will be reviewed within approximately 1 week</p>
-            )}
-          </div>
         </form>
       </div>
     </div>

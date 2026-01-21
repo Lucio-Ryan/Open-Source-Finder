@@ -161,6 +161,7 @@ export interface IAlternative extends Document {
   vote_score: number;
   featured: boolean;
   approved: boolean;
+  status: 'draft' | 'pending' | 'approved' | 'rejected';
   rejection_reason: string | null;
   rejected_at: Date | null;
   submitter_name: string | null;
@@ -204,6 +205,7 @@ const AlternativeSchema = new Schema<IAlternative>(
     vote_score: { type: Number, default: 0 },
     featured: { type: Boolean, default: false },
     approved: { type: Boolean, default: false },
+    status: { type: String, enum: ['draft', 'pending', 'approved', 'rejected'], default: 'pending' },
     rejection_reason: { type: String, default: null },
     rejected_at: { type: Date, default: null },
     submitter_name: { type: String, default: null },
@@ -232,6 +234,7 @@ const AlternativeSchema = new Schema<IAlternative>(
 // Indexes
 // Note: slug index is already created by unique: true
 AlternativeSchema.index({ approved: 1 });
+AlternativeSchema.index({ status: 1 });
 AlternativeSchema.index({ featured: 1 });
 AlternativeSchema.index({ health_score: -1 });
 AlternativeSchema.index({ is_self_hosted: 1 });
@@ -473,6 +476,69 @@ const PolicySchema = new Schema<IPolicy>(
 
 // Note: type index is already created by unique: true
 
+// ============ DRAFT SCHEMA ============
+export interface IDraft extends Document {
+  _id: mongoose.Types.ObjectId;
+  user_id: mongoose.Types.ObjectId;
+  // Form data fields
+  name: string;
+  website: string;
+  github: string;
+  short_description: string;
+  description: string;
+  long_description: string;
+  icon_url: string;
+  license: string;
+  is_self_hosted: boolean;
+  category_ids: string[];
+  alternative_to_ids: string[];
+  tag_ids: string[];
+  tech_stack_ids: string[];
+  submitter_name: string;
+  submitter_email: string;
+  screenshots: string[];
+  // Plan and payment fields
+  selected_plan: 'free' | 'sponsor';
+  backlink_verified: boolean;
+  backlink_url: string | null;
+  sponsor_payment_id: string | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+const DraftSchema = new Schema<IDraft>(
+  {
+    user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+    // Form data fields
+    name: { type: String, default: '' },
+    website: { type: String, default: '' },
+    github: { type: String, default: '' },
+    short_description: { type: String, default: '' },
+    description: { type: String, default: '' },
+    long_description: { type: String, default: '' },
+    icon_url: { type: String, default: '' },
+    license: { type: String, default: '' },
+    is_self_hosted: { type: Boolean, default: false },
+    category_ids: [{ type: String }],
+    alternative_to_ids: [{ type: String }],
+    tag_ids: [{ type: String }],
+    tech_stack_ids: [{ type: String }],
+    submitter_name: { type: String, default: '' },
+    submitter_email: { type: String, default: '' },
+    screenshots: [{ type: String }],
+    // Plan and payment fields
+    selected_plan: { type: String, enum: ['free', 'sponsor'], default: 'free' },
+    backlink_verified: { type: Boolean, default: false },
+    backlink_url: { type: String, default: null },
+    sponsor_payment_id: { type: String, default: null },
+  },
+  {
+    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
+  }
+);
+
+// Note: user_id index is already created by unique: true
+
 // ============ MODEL EXPORTS ============
 // Use this pattern to prevent model recompilation in development
 export const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
@@ -488,3 +554,4 @@ export const CreatorNotification: Model<ICreatorNotification> = mongoose.models.
 export const Advertisement: Model<IAdvertisement> = mongoose.models.Advertisement || mongoose.model<IAdvertisement>('Advertisement', AdvertisementSchema);
 export const Session: Model<ISession> = mongoose.models.Session || mongoose.model<ISession>('Session', SessionSchema);
 export const Policy: Model<IPolicy> = mongoose.models.Policy || mongoose.model<IPolicy>('Policy', PolicySchema);
+export const Draft: Model<IDraft> = mongoose.models.Draft || mongoose.model<IDraft>('Draft', DraftSchema);

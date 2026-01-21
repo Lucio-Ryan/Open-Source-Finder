@@ -15,7 +15,7 @@ export function Header() {
     { name: 'Alternatives', href: '/alternatives' },
     { name: 'Categories', href: '/categories' },
     { name: 'Self-Hosted', href: '/self-hosted' },
-    { name: 'Advertise', href: '/advertise' },
+    // { name: 'Advertise', href: '/advertise' },
   ];
 
   const handleSignOut = async () => {

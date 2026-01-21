@@ -17,9 +17,9 @@ export function BacklinkVerification({ projectName, githubUrl, onVerificationCom
   const [errorMessage, setErrorMessage] = useState<string>('');
 
   // Generate embed code - this is what users need to add to their README
-  const embedCode = `[![Open Source Finder](https://opensourcefinder.com/badge.svg)](https://opensourcefinder.com/alternatives/${projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-')})`;
+  const embedCode = `[![Open Source Finder](https://osfinder.vercel.app/badge.svg)](https://osfinder.vercel.app/alternatives/${projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-')})`;
 
-  const htmlBadge = `<a href="https://opensourcefinder.com/alternatives/${projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}"><img src="https://opensourcefinder.com/badge.svg" alt="Open Source Finder" /></a>`;
+  const htmlBadge = `<a href="https://osfinder.vercel.app/alternatives/${projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}"><img src="https://osfinder.vercel.app/badge.svg" alt="Open Source Finder" /></a>`;
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -120,21 +120,6 @@ export function BacklinkVerification({ projectName, githubUrl, onVerificationCom
             </button>
           </div>
         </div>
-
-        {/* Badge preview */}
-        <div className="mt-4 pt-4 border-t border-border">
-          <label className="text-xs text-muted mb-2 block">Preview</label>
-          <div className="flex items-center gap-2">
-            <Image 
-              src="/badge.svg" 
-              alt="Open Source Finder Badge Preview" 
-              width={100}
-              height={20}
-              className="h-5 w-auto"
-            />
-            <span className="text-xs text-muted">← This is how the badge will look</span>
-          </div>
-        </div>
       </div>
 
       <div className="bg-dark/50 rounded-lg p-4 border border-border">
@@ -190,7 +175,7 @@ export function BacklinkVerification({ projectName, githubUrl, onVerificationCom
       </div>
 
       {!githubUrl && (
-        <div className="flex items-start gap-2 text-sm text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+        <div className="flex items-start gap-2 text-sm text-green-400 bg-green-500/10 border border-green-500/30 rounded-lg p-3">
           <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
           <span>Please fill in your GitHub repository URL above before verifying the backlink.</span>
         </div>

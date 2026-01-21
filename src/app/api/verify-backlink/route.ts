@@ -38,6 +38,7 @@ async function checkReadmeForBacklink(owner: string, repo: string): Promise<{ fo
           
           // Check for various forms of our backlink
           const patterns = [
+            'osfinder.vercel.app',
             'opensourcefinder.com',
             'open-source-finder.com',
             'OpenSourceFinder',
@@ -86,7 +87,7 @@ async function checkRepoWebsite(owner: string, repo: string): Promise<{ found: b
 
           if (homepageResponse.ok) {
             const content = await homepageResponse.text();
-            if (content.toLowerCase().includes('opensourcefinder.com')) {
+            if (content.toLowerCase().includes('osfinder.vercel.app') || content.toLowerCase().includes('opensourcefinder.com')) {
               return { found: true, url: repoData.homepage };
             }
           }

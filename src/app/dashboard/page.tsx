@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Plus, Edit2, Eye, Clock, CheckCircle, XCircle, Loader2, LogOut, Settings, Sparkles, Zap, Megaphone } from 'lucide-react';
+import { Plus, Edit2, Eye, Clock, CheckCircle, XCircle, Loader2, LogOut, Settings, Sparkles, Zap, Megaphone, X } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { NotificationsPanel } from '@/components/ui';
+import { NotificationsPanel, PayPalButton } from '@/components/ui';
 
 interface UserAlternative {
   id: string;
@@ -23,6 +23,12 @@ interface UserAlternative {
   sponsor_priority_until: string | null;
 }
 
+interface BoostModalState {
+  isOpen: boolean;
+  alternativeId: string | null;
+  alternativeName: string | null;
+}
+
 export default function DashboardPage() {
   const { user, profile, loading: authLoading, signOut } = useAuth();
   const router = useRouter();
@@ -30,6 +36,24 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [upgradingId, setUpgradingId] = useState<string | null>(null);
   const [upgradeSuccess, setUpgradeSuccess] = useState<string | null>(null);
+  const [boostModal, setBoostModal] = useState<BoostModalState>({
+    isOpen: false,
+    alternativeId: null,
+    alternativeName: null,
+  });
+  const [boostError, setBoostError] = useState<string | null>(null);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (boostModal.isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [boostModal.isOpen]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -61,42 +85,45 @@ export default function DashboardPage() {
   }, [user]);
 
   const handleUpgradeToSponsor = async (alternativeId: string, alternativeName: string) => {
-    if (!confirm(`Upgrade "${alternativeName}" to Sponsor Plan for $19?\n\nThis will:\n• Feature your project on the home page for 7 days\n• Show at the top of search results for 7 days\n• Include in our weekly newsletter\n• Auto-approve if pending`)) {
-      return;
-    }
+    // Open boost modal instead of confirm dialog
+    setBoostModal({
+      isOpen: true,
+      alternativeId,
+      alternativeName,
+    });
+    setBoostError(null);
+  };
 
-    setUpgradingId(alternativeId);
-    setUpgradeSuccess(null);
+  const closeBoostModal = () => {
+    setBoostModal({
+      isOpen: false,
+      alternativeId: null,
+      alternativeName: null,
+    });
+    setBoostError(null);
+  };
 
+  const handleBoostPaymentSuccess = async (captureData: { captureId: string }) => {
+    if (!boostModal.alternativeId) return;
+    
+    setUpgradingId(boostModal.alternativeId);
+    
     try {
-      const response = await fetch(`/api/alternatives/${alternativeId}/upgrade`, {
+      const response = await fetch(`/api/alternatives/${boostModal.alternativeId}/upgrade`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payment_id: captureData.captureId }),
       });
 
-      let result;
-      try {
-        result = await response.json();
-      } catch (e) {
-        console.error('Failed to parse response:', e);
-        alert('Failed to upgrade. Please try again.');
-        return;
-      }
+      const result = await response.json();
 
       if (!response.ok) {
-        console.error('Upgrade failed:', result);
-        alert(result.error || 'Failed to upgrade. Please try again.');
-        return;
-      }
-
-      if (!result.features) {
-        console.error('Invalid response format:', result);
-        alert('Failed to upgrade. Invalid response from server.');
-        return;
+        throw new Error(result.error || 'Failed to upgrade');
       }
 
       // Update local state
       setAlternatives(prev => prev.map(alt => {
-        if (alt.id === alternativeId) {
+        if (alt.id === boostModal.alternativeId) {
           return {
             ...alt,
             submission_plan: 'sponsor',
@@ -108,11 +135,12 @@ export default function DashboardPage() {
         return alt;
       }));
 
-      setUpgradeSuccess(alternativeId);
+      setUpgradeSuccess(boostModal.alternativeId);
+      closeBoostModal();
       setTimeout(() => setUpgradeSuccess(null), 5000);
     } catch (error) {
       console.error('Error upgrading:', error);
-      alert('Failed to upgrade. Please try again.');
+      setBoostError(error instanceof Error ? error.message : 'Failed to upgrade. Please try again.');
     } finally {
       setUpgradingId(null);
     }
@@ -169,13 +197,13 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <Link
+              {/* <Link
                 href="/dashboard/advertisements"
                 className="flex items-center gap-2 px-4 py-2 text-muted hover:text-white border border-border hover:border-brand/50 rounded-lg font-mono text-sm transition-colors"
               >
                 <Megaphone className="w-4 h-4" />
                 My Ads
-              </Link>
+              </Link> */}
               <Link
                 href="/dashboard/settings"
                 className="flex items-center gap-2 px-4 py-2 text-muted hover:text-white border border-border hover:border-brand/50 rounded-lg font-mono text-sm transition-colors"
@@ -396,6 +424,99 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Boost Modal */}
+      {boostModal.isOpen && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-40 pt-8">
+          <div className="bg-surface border border-border rounded-xl max-w-lg w-full relative max-h-[80vh] flex flex-col mx-4">
+            <button
+              onClick={closeBoostModal}
+              className="absolute top-4 right-4 text-muted hover:text-white transition-colors z-10"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            {/* Scrollable Content */}
+            <div className="overflow-y-auto flex-1">
+              {/* Header Section */}
+              <div className="p-6 border-b border-border">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center">
+                    <Zap className="w-6 h-6 text-emerald-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white font-mono">
+                      Boost {boostModal.alternativeName}
+                    </h3>
+                    <p className="text-muted text-sm">
+                      Get more visibility for your project
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Benefits Section */}
+              <div className="p-6 border-b border-border">
+                <h4 className="text-sm font-mono text-muted mb-3">// SPONSOR_BENEFITS</h4>
+                <ul className="text-sm text-white space-y-2">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    Featured on home page &quot;Top Alternatives&quot;
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    Top of search results for 7 days
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    Included in weekly newsletter
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    Auto-approve if pending review
+                  </li>
+                </ul>
+              </div>
+
+              {/* Payment Section - Separate Card */}
+              <div className="p-6">
+                <div className="bg-white rounded-lg p-6 border border-emerald-500/30">
+                  <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h5 className="text-gray-900 font-semibold">Sponsor Boost</h5>
+                    <p className="text-sm text-gray-600">7 days of premium features</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-emerald-600">$19</p>
+                    <p className="text-xs text-gray-500">one-time</p>
+                  </div>
+                </div>
+
+                {boostError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg mb-4">
+                    <p className="text-red-600 text-sm">{boostError}</p>
+                  </div>
+                )}
+
+                <PayPalButton
+                  paymentType="boost_alternative"
+                  amount="19"
+                  alternativeId={boostModal.alternativeId || undefined}
+                  projectName={boostModal.alternativeName || undefined}
+                  onSuccess={handleBoostPaymentSuccess}
+                  onError={(error) => setBoostError(error)}
+                  onCancel={() => setBoostError('Payment was cancelled. Please try again.')}
+                />
+                </div>
+              
+                <p className="text-xs text-muted text-center mt-4">
+                  Secure payment powered by PayPal
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

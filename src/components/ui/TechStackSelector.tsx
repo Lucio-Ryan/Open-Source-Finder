@@ -48,7 +48,7 @@ export function TechStackSelector({ selectedIds, onChange, techStacks }: TechSta
   const filteredStacks = techStacks.filter(
     (stack) =>
       stack.name.toLowerCase().includes(search.toLowerCase()) ||
-      stack.type.toLowerCase().includes(search.toLowerCase())
+      (stack.type && stack.type.toLowerCase().includes(search.toLowerCase()))
   );
 
   const selectedStacks = techStacks.filter((stack) => selectedIds.includes(stack.id));

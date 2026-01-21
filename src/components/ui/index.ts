@@ -29,6 +29,9 @@ export { PlanSelection, type SubmissionPlan } from './PlanSelection';
 export { BacklinkVerification } from './BacklinkVerification';
 export { SponsoredAlternativeCard } from './SponsoredAlternativeCard';
 
+// Payment components
+export { PayPalButton, PayPalRedirectButton } from './PayPalButton';
+
 // Helper to check if an alternative is an active sponsor
 export function isActiveSponsor(alternative: { submission_plan?: string | null; sponsor_priority_until?: string | null }): boolean {
   if (alternative.submission_plan !== 'sponsor') return false;

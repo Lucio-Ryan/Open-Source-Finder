@@ -18,10 +18,12 @@ export async function GET() {
     await connectDB();
 
     // Fetch alternatives by user_id or submitter_email
+    // Exclude drafts - they are shown separately on the dashboard
     const filter: Record<string, unknown> = {
       $or: [
         { user_id: new mongoose.Types.ObjectId(user.id) }
-      ]
+      ],
+      status: { $ne: 'draft' }
     };
     
     if (user.email) {
@@ -29,7 +31,7 @@ export async function GET() {
     }
 
     const data = await Alternative.find(filter)
-      .select('_id name slug description approved rejection_reason rejected_at created_at icon_url submission_plan sponsor_featured_until sponsor_priority_until')
+      .select('_id name slug description approved status rejection_reason rejected_at created_at icon_url submission_plan sponsor_featured_until sponsor_priority_until')
       .sort({ created_at: -1 })
       .lean();
 

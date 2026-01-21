@@ -17,6 +17,17 @@ export async function POST(
       );
     }
 
+    const body = await request.json().catch(() => ({}));
+    const { payment_id } = body;
+
+    // Require payment ID for boost
+    if (!payment_id) {
+      return NextResponse.json(
+        { error: 'Payment required to boost alternative' },
+        { status: 400 }
+      );
+    }
+
     await connectToDatabase();
 
     // Verify ownership and get the alternative
@@ -39,13 +50,30 @@ export async function POST(
       );
     }
 
-    // If already sponsored, return current dates
+    // If already sponsored with active boost, extend the dates
     if (existing.submission_plan === 'sponsor') {
+      const now = new Date();
+      const currentFeatured = existing.sponsor_featured_until ? new Date(existing.sponsor_featured_until) : now;
+      const currentPriority = existing.sponsor_priority_until ? new Date(existing.sponsor_priority_until) : now;
+      
+      // Start from current end date if still active, otherwise from now
+      const baseDate = currentFeatured > now ? currentFeatured : now;
+      const featuredUntil = new Date(baseDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const priorityUntil = new Date(baseDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+      // Update with extended dates
+      await Alternative.findByIdAndUpdate(params.id, {
+        sponsor_featured_until: featuredUntil,
+        sponsor_priority_until: priorityUntil,
+        sponsor_payment_id: payment_id,
+        sponsor_paid_at: now,
+      });
+
       return NextResponse.json({
         success: true,
         features: {
-          featured_until: existing.sponsor_featured_until?.toISOString(),
-          priority_until: existing.sponsor_priority_until?.toISOString(),
+          featured_until: featuredUntil.toISOString(),
+          priority_until: priorityUntil.toISOString(),
         },
       });
     }
@@ -55,18 +83,16 @@ export async function POST(
     const featuredUntil = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     const priorityUntil = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-    // Generate a mock payment ID (in production, this would come from Stripe)
-    const paymentId = `sp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
     // Update the alternative to sponsor plan
     const updated = await Alternative.findByIdAndUpdate(
       params.id,
       {
         submission_plan: 'sponsor',
         approved: true,
+        approved_at: now,
         sponsor_featured_until: featuredUntil,
         sponsor_priority_until: priorityUntil,
-        sponsor_payment_id: paymentId,
+        sponsor_payment_id: payment_id,
         sponsor_paid_at: now,
         newsletter_included: true,
         rejection_reason: null,

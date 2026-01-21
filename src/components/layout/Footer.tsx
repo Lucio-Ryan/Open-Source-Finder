@@ -43,7 +43,7 @@ export function Footer() {
               </p>
               <div className="flex items-center space-x-3">
                 <a
-                  href="mailto:hello@opensourcefinder.com"
+                  href="mailto:hello@osfinder.vercel.app"
                   className="p-2.5 bg-surface border border-border text-muted hover:text-brand hover:border-brand/30 rounded-lg transition-all"
                   aria-label="Email"
                 >

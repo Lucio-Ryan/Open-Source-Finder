@@ -10,6 +10,58 @@ interface PlanSelectionProps {
 }
 
 export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps) {
+  const benefits = [
+    { 
+      name: 'Listed in search & categories', 
+      description: 'Discoverable by users',
+      free: true, 
+      sponsor: true,
+      icon: Check 
+    },
+    { 
+      name: 'Featured on homepage', 
+      description: 'Top Alternatives section for 7 days',
+      free: false, 
+      sponsor: true,
+      icon: Sparkles 
+    },
+    { 
+      name: 'Newsletter feature', 
+      description: 'Shared with our weekly subscribers',
+      free: false, 
+      sponsor: true,
+      icon: Newspaper 
+    },
+    { 
+      name: 'Verified sponsor badge', 
+      description: 'Green checkmark on your listing',
+      free: false, 
+      sponsor: true,
+      icon: Check 
+    },
+    { 
+      name: 'SEO boost with dofollow links', 
+      description: 'Full SEO credit',
+      free: false, 
+      sponsor: true,
+      icon: Check 
+    },
+    { 
+      name: 'Premium card design', 
+      description: 'Full-width with screenshots',
+      free: false, 
+      sponsor: true,
+      icon: Check 
+    },
+    { 
+      name: 'Unlimited updates', 
+      description: 'Edit your listing anytime',
+      free: false, 
+      sponsor: true,
+      icon: Check 
+    },
+  ];
+
   return (
     <div className="grid md:grid-cols-2 gap-6">
       {/* Free Plan */}
@@ -29,7 +81,7 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
           </div>
         )}
 
-        <div className="mb-4">
+        <div className="mb-4 mt-2">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-10 h-10 bg-surface border border-border rounded-lg flex items-center justify-center">
               <Code className="w-5 h-5 text-muted" />
@@ -54,30 +106,30 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
               <span className="text-white font-medium">~1 week approval time</span> - Manual review by our team
             </span>
           </li>
-          <li className="flex items-start gap-2 text-sm">
-            <Check className="w-4 h-4 text-brand mt-0.5 flex-shrink-0" />
-            <span className="text-muted">Listed in search & categories</span>
-          </li>
-          <li className="flex items-start gap-2 text-sm">
-            <Check className="w-4 h-4 text-brand mt-0.5 flex-shrink-0" />
-            <span className="text-muted">Basic project card</span>
-          </li>
-          <li className="flex items-start gap-2 text-sm">
-            <X className="w-4 h-4 text-muted/40 mt-0.5 flex-shrink-0" />
-            <span className="text-muted/60 line-through">Featured on homepage</span>
-          </li>
-          <li className="flex items-start gap-2 text-sm">
-            <X className="w-4 h-4 text-muted/40 mt-0.5 flex-shrink-0" />
-            <span className="text-muted/60 line-through">Newsletter feature</span>
-          </li>
-          <li className="flex items-start gap-2 text-sm">
-            <X className="w-4 h-4 text-muted/40 mt-0.5 flex-shrink-0" />
-            <span className="text-muted/60 line-through">Verified sponsor badge</span>
-          </li>
-          <li className="flex items-start gap-2 text-sm">
-            <X className="w-4 h-4 text-muted/40 mt-0.5 flex-shrink-0" />
-            <span className="text-muted/60 line-through">SEO boost with dofollow links</span>
-          </li>
+          {benefits.map((benefit, idx) => {
+            const Icon = benefit.icon;
+            const included = benefit.free;
+            return (
+              <li key={idx} className="flex items-start gap-2 text-sm">
+                {included ? (
+                  <Check className="w-4 h-4 text-brand mt-0.5 flex-shrink-0" />
+                ) : (
+                  <X className="w-4 h-4 text-muted/40 mt-0.5 flex-shrink-0" />
+                )}
+                <span className={included ? 'text-muted' : 'text-muted/60 line-through'}>
+                  {included ? (
+                    <>
+                      <span className="font-medium">{benefit.name}</span> - {benefit.description}
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-medium">{benefit.name}</span> - {benefit.description}
+                    </>
+                  )}
+                </span>
+              </li>
+            );
+          })}
         </ul>
 
         <div className="text-xs text-muted bg-dark/50 rounded-lg p-3 font-mono">
@@ -123,53 +175,29 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
 
         <ul className="space-y-3 mb-6">
           <li className="flex items-start gap-2 text-sm">
-            <Sparkles className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+            <Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
             <span className="text-muted">
-              <span className="text-white font-medium">Featured on homepage</span> - Top Alternatives section for 7 days
+              <span className="text-white font-medium">No backlink required</span> - Get listed without adding our badge
             </span>
           </li>
           <li className="flex items-start gap-2 text-sm">
-            <Zap className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+            <Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
             <span className="text-muted">
               <span className="text-white font-medium">Instant approval</span> - No waiting, go live immediately
             </span>
           </li>
-          <li className="flex items-start gap-2 text-sm">
-            <Newspaper className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-            <span className="text-muted">
-              <span className="text-white font-medium">Newsletter feature</span> - Shared with our weekly subscribers
-            </span>
-          </li>
-          <li className="flex items-start gap-2 text-sm">
-            <Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-            <span className="text-muted">
-              <span className="text-white font-medium">Verified sponsor badge</span> - Green checkmark on your listing
-            </span>
-          </li>
-          <li className="flex items-start gap-2 text-sm">
-            <Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-            <span className="text-muted">
-              <span className="text-white font-medium">SEO boost with dofollow links</span> - Full SEO credit
-            </span>
-          </li>
-          <li className="flex items-start gap-2 text-sm">
-            <Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-            <span className="text-muted">
-              <span className="text-white font-medium">No backlink required</span>
-            </span>
-          </li>
-          <li className="flex items-start gap-2 text-sm">
-            <Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-            <span className="text-muted">
-              <span className="text-white font-medium">Premium card design</span> - Full-width with screenshots
-            </span>
-          </li>
-          <li className="flex items-start gap-2 text-sm">
-            <Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-            <span className="text-muted">
-              <span className="text-white font-medium">Unlimited updates</span> - Edit your listing anytime
-            </span>
-          </li>
+          {benefits.map((benefit, idx) => {
+            const Icon = benefit.icon;
+            return (
+              <li key={idx} className="flex items-start gap-2 text-sm">
+                <Icon className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                <span className="text-muted">
+                  <span className="text-white font-medium">{benefit.name}</span>
+                  {benefit.description && ` - ${benefit.description}`}
+                </span>
+              </li>
+            );
+          })}
         </ul>
 
         <div className="text-xs text-emerald-500/80 bg-emerald-500/10 rounded-lg p-3 font-mono border border-emerald-500/20">

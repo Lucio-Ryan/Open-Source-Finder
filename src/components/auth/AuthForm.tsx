@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
 
@@ -21,6 +21,10 @@ export function AuthForm({ mode }: AuthFormProps) {
   
   const { signIn, signUp } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Get the return URL from query params, default to dashboard
+  const returnTo = searchParams.get('returnTo') || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +38,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         if (error) {
           setError(error.message);
         } else {
-          router.push('/dashboard');
+          router.push(returnTo);
           router.refresh();
         }
       } else {
@@ -42,7 +46,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         if (error) {
           setError(error.message);
         } else {
-          router.push('/dashboard');
+          router.push(returnTo);
           router.refresh();
         }
       }
@@ -136,14 +140,14 @@ export function AuthForm({ mode }: AuthFormProps) {
         {mode === 'login' ? (
           <>
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-brand hover:text-brand-light transition-colors">
+            <Link href={`/signup${returnTo !== '/dashboard' ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`} className="text-brand hover:text-brand-light transition-colors">
               Sign up
             </Link>
           </>
         ) : (
           <>
             Already have an account?{' '}
-            <Link href="/login" className="text-brand hover:text-brand-light transition-colors">
+            <Link href={`/login${returnTo !== '/dashboard' ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`} className="text-brand hover:text-brand-light transition-colors">
               Sign in
             </Link>
           </>

@@ -378,3 +378,81 @@ body {
 .ProseMirror a:hover {
   color: #30A46C;
 }
+
+/* PayPal Dark Mode Styles */
+/* Override PayPal's default light theme for card inputs */
+.paypal-button-container {
+  font-family: 'Inter', system-ui, sans-serif;
+  position: relative;
+  z-index: 10;
+}
+
+/* Ensure PayPal overlays/modals don't appear above site header */
+div[data-paypal-overlay],
+.paypal-checkout-sandbox,
+.paypal-overlay-context-popup {
+  z-index: 40 !important;
+}
+
+/* Style the debit/credit card section */
+.paypal-button-container .paypal-card-container {
+  background-color: #181818 !important;
+  border-radius: 8px !important;
+}
+
+/* Dark mode for PayPal card form elements */
+.paypal-card-form {
+  background: #0d0d0d !important;
+  border: 1px solid #2d2d2d !important;
+  border-radius: 8px !important;
+}
+
+/* Target the expandable card section */
+[data-funding-source="card"] .paypal-button,
+.paypal-button-container [data-funding-source="card"] {
+  background-color: #1a1a2e !important;
+  border: 1px solid #2d2d2d !important;
+}
+
+/* Card number, expiry, cvv input backgrounds */
+.paypal-button-container .card-field,
+.paypal-button-container .paypal-card-field {
+  background-color: #0d0d14 !important;
+  border: 1px solid #2d2d2d !important;
+  border-radius: 6px !important;
+  color: #ffffff !important;
+}
+
+/* Focus state for card fields */
+.paypal-button-container .card-field:focus-within,
+.paypal-button-container .paypal-card-field:focus-within {
+  border-color: #3ECF8E !important;
+  box-shadow: 0 0 0 2px rgba(62, 207, 142, 0.2) !important;
+}
+
+/* Card form labels */
+.paypal-button-container label,
+.paypal-button-container .paypal-card-field-label {
+  color: #8B8B8B !important;
+  font-size: 0.875rem !important;
+}
+
+/* Placeholder text in card fields */
+.paypal-button-container input::placeholder {
+  color: #6b6b6b !important;
+}
+
+/* Error messages */
+.paypal-button-container .paypal-card-field-error {
+  color: #ef4444 !important;
+}
+
+/* The "or pay with card" divider */
+.paypal-button-container .paypal-separator {
+  color: #8B8B8B !important;
+}
+
+.paypal-button-container .paypal-separator::before,
+.paypal-button-container .paypal-separator::after {
+  background-color: #2d2d2d !important;
+}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/mongodb/auth';
 import { connectToDatabase } from '@/lib/mongodb/connection';
 import { Advertisement } from '@/lib/mongodb/models';
+import { createPayPalOrder, PaymentType } from '@/lib/paypal';
 import mongoose from 'mongoose';
 
 // Pricing configuration
@@ -11,7 +12,14 @@ const PRICES = {
   popup: 99, // Legacy, kept for compatibility
 };
 
-// POST - Process payment for an approved advertisement
+// Map ad types to payment types
+const AD_TYPE_TO_PAYMENT_TYPE: Record<string, PaymentType> = {
+  banner: 'ad_banner',
+  card: 'ad_card',
+  popup: 'ad_popup',
+};
+
+// POST - Create PayPal order for an approved advertisement
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -64,43 +72,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get the price based on ad type
+    // Get the payment type based on ad type
     const adType = advertisement.ad_type as keyof typeof PRICES;
-    const price = PRICES[adType] || 99;
+    const paymentType = AD_TYPE_TO_PAYMENT_TYPE[adType] || 'ad_card';
 
-    // Generate a mock payment ID (in production, integrate with Stripe/PayPal)
-    // For now, we'll simulate a successful payment
-    const paymentId = `pay_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-    
-    // Calculate expiration date (7 days from now)
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    // Create PayPal order
+    const { orderId, approvalUrl } = await createPayPalOrder(paymentType, {
+      userId: user.id,
+      advertisementId: advertisement._id.toString(),
+      projectName: advertisement.name,
+    });
 
-    // Update the advertisement with payment info
+    // Store the PayPal order ID on the advertisement
     await Advertisement.findByIdAndUpdate(advertisement._id, {
-      payment_id: paymentId,
-      paid_at: now,
-      payment_amount: price,
-      expires_at: expiresAt,
-      is_active: true, // Activate the ad after payment
-      updated_at: now
+      paypal_order_id: orderId,
+      updated_at: new Date()
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Payment processed successfully! Your advertisement is now live for 7 days.',
+      message: 'PayPal order created. Please complete payment.',
+      order_id: orderId,
+      approval_url: approvalUrl,
       payment: {
-        payment_id: paymentId,
-        amount: price,
+        amount: PRICES[adType] || 99,
         currency: 'USD',
         advertisement_id: advertisement._id.toString(),
-        expires_at: expiresAt.toISOString()
       }
     });
   } catch (error) {
     console.error('Error in POST /api/advertisements/pay:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     );
   }
