@@ -6,11 +6,10 @@ import mongoose from 'mongoose';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   
-  // Get filter parameters
+  // Get filter parameters - ranking is strictly by upvote count only
   const timeFrame = searchParams.get('timeFrame') || 'all';
   const categorySlug = searchParams.get('category');
   const proprietarySlug = searchParams.get('alternativeTo');
-  const sortBy = searchParams.get('sortBy') || 'vote_score';
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('limit') || '20');
   const offset = (page - 1) * limit;
@@ -80,27 +79,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Build sort options
-    let sortOptions: any = {};
-    let useAggregation = false;
-    
-    switch (sortBy) {
-      case 'vote_score':
-        // Use aggregation to sort: positive scores desc, then 0/null, then negative scores
-        useAggregation = true;
-        break;
-      case 'stars':
-        sortOptions = { stars: -1 };
-        break;
-      case 'newest':
-        sortOptions = { created_at: -1 };
-        break;
-      case 'health_score':
-        sortOptions = { health_score: -1 };
-        break;
-      default:
-        useAggregation = true;
-    }
+    // Ranking is strictly by upvote count (vote_score) - no secondary metrics
+    const useAggregation = true;
 
     // Get total count
     const total = await Alternative.countDocuments(filter);
@@ -108,31 +88,18 @@ export async function GET(request: NextRequest) {
     let data: any[];
     
     if (useAggregation) {
-      // Use aggregation pipeline to sort properly: positive > 0/null > negative
+      // Use aggregation pipeline to sort strictly by upvote count (vote_score) descending
+      // No secondary metrics - only vote_score matters
       data = await Alternative.aggregate([
         { $match: filter },
         {
           $addFields: {
-            // Create a sort priority: 1 for positive, 2 for 0/null, 3 for negative
-            sortPriority: {
-              $cond: {
-                if: { $gt: [{ $ifNull: ['$vote_score', 0] }, 0] },
-                then: 1,
-                else: {
-                  $cond: {
-                    if: { $lt: [{ $ifNull: ['$vote_score', 0] }, 0] },
-                    then: 3,
-                    else: 2
-                  }
-                }
-              }
-            },
-            // Absolute value for secondary sort within each priority group
-            absVoteScore: { $abs: { $ifNull: ['$vote_score', 0] } }
+            // Treat null/undefined vote_score as 0
+            normalizedVoteScore: { $ifNull: ['$vote_score', 0] }
           }
         },
-        // Sort by priority first, then by absolute value desc (so higher positives come first, more negative comes last), then by date
-        { $sort: { sortPriority: 1, absVoteScore: -1, created_at: -1 } },
+        // Sort strictly by vote_score descending - highest upvoted first
+        { $sort: { normalizedVoteScore: -1 } },
         { $skip: offset },
         { $limit: limit },
         // Lookup categories
@@ -173,13 +140,13 @@ export async function GET(request: NextRequest) {
         }
       ]);
     } else {
-      // Use regular find with sort for non-vote sorting
+      // Fallback - sort strictly by vote_score descending
       data = await Alternative.find(filter)
         .populate('categories', 'id name slug')
         .populate('tags', 'id name slug')
         .populate('tech_stacks', 'id name slug type')
         .populate('alternative_to', 'id name slug')
-        .sort(sortOptions)
+        .sort({ vote_score: -1 })
         .skip(offset)
         .limit(limit)
         .lean();

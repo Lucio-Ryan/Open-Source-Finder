@@ -1,13 +1,16 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Send, CheckCircle, Terminal, Loader2, Upload, X, Crown, Sparkles, Eye, EyeOff } from 'lucide-react';
-import { RichTextEditor, TechStackSelector, PlanSelection, BacklinkVerification, CreatorProfileCard, PayPalButton, type SubmissionPlan } from '@/components/ui';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Send, CheckCircle, Terminal, Loader2, Upload, X, Crown, Sparkles, Eye, EyeOff, Save, Trash2, LogIn, User, Globe, Github, FileText, Camera, Twitter, Linkedin, Youtube, MessageCircle, Settings } from 'lucide-react';
+import { RichTextEditor, TechStackSelector, PlanSelection, BacklinkVerification, CreatorProfileCard, PayPalButton, BioEditor, type SubmissionPlan } from '@/components/ui';
 import { useAuth } from '@/lib/auth/AuthContext';
 import type { CreatorProfile } from '@/lib/mongodb/queries';
+
+const DRAFT_STORAGE_KEY = 'osf_submit_draft';
 
 interface Category {
   id: string;
@@ -60,6 +63,44 @@ export default function SubmitPage() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   
+  // Draft state
+  const [draftLoading, setDraftLoading] = useState(false);
+  const [draftSaving, setDraftSaving] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
+  const [draftLastSaved, setDraftLastSaved] = useState<Date | null>(null);
+  const [hasDraft, setHasDraft] = useState(false);
+  
+  // Auth modal state
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authName, setAuthName] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [showAuthPassword, setShowAuthPassword] = useState(false);
+  
+  const router = useRouter();
+  const { signIn, signUp, profile, updateProfile, refreshProfile } = useAuth();
+  
+  // Profile settings modal state
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileMessage, setProfileMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const profileFileInputRef = useRef<HTMLInputElement>(null);
+  const [profileFormData, setProfileFormData] = useState({
+    name: '',
+    bio: '',
+    website: '',
+    github_username: '',
+    twitter_username: '',
+    linkedin_url: '',
+    youtube_url: '',
+    discord_username: '',
+    avatar_url: '',
+  });
+  
   const [iconPreview, setIconPreview] = useState<string | null>(null);
   const [screenshotPreviews, setScreenshotPreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -95,7 +136,7 @@ export default function SubmitPage() {
 
   // Lock body scroll when modal is open
   useEffect(() => {
-    if (showPaymentModal) {
+    if (showPaymentModal || showAuthModal || showProfileModal) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -103,7 +144,191 @@ export default function SubmitPage() {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [showPaymentModal]);
+  }, [showPaymentModal, showAuthModal]);
+
+  // Save form data to localStorage for persistence across auth
+  const saveFormToStorage = useCallback(() => {
+    const dataToSave = {
+      formData,
+      selectedPlan,
+      backlinkVerified,
+      backlinkUrl,
+      sponsorPaymentId,
+      iconPreview,
+      screenshotPreviews,
+    };
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(dataToSave));
+  }, [formData, selectedPlan, backlinkVerified, backlinkUrl, sponsorPaymentId, iconPreview, screenshotPreviews]);
+
+  // Load form data from localStorage (for after auth)
+  useEffect(() => {
+    const savedData = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        if (parsed.formData) {
+          setFormData(prev => ({
+            ...prev,
+            ...parsed.formData,
+            // Preserve user email if logged in
+            submitter_email: user?.email || parsed.formData.submitter_email || '',
+            submitter_name: user?.name || parsed.formData.submitter_name || '',
+          }));
+        }
+        if (parsed.selectedPlan) setSelectedPlan(parsed.selectedPlan);
+        if (parsed.backlinkVerified) setBacklinkVerified(parsed.backlinkVerified);
+        if (parsed.backlinkUrl) setBacklinkUrl(parsed.backlinkUrl);
+        if (parsed.sponsorPaymentId) setSponsorPaymentId(parsed.sponsorPaymentId);
+        if (parsed.iconPreview) setIconPreview(parsed.iconPreview);
+        if (parsed.screenshotPreviews) setScreenshotPreviews(parsed.screenshotPreviews);
+        
+        // Clear localStorage after loading
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      } catch (err) {
+        console.error('Error loading saved form data:', err);
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      }
+    }
+  }, [user]);
+
+  // Handle auth modal sign in
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError(null);
+
+    try {
+      // Save form data before auth
+      saveFormToStorage();
+
+      if (authMode === 'login') {
+        const { error } = await signIn(authEmail, authPassword);
+        if (error) {
+          setAuthError(error.message);
+          setAuthLoading(false);
+          return;
+        }
+      } else {
+        const { error } = await signUp(authEmail, authPassword, authName);
+        if (error) {
+          setAuthError(error.message);
+          setAuthLoading(false);
+          return;
+        }
+      }
+
+      // Close modal and refresh - the useEffect will load saved data
+      setShowAuthModal(false);
+      router.refresh();
+    } catch (err) {
+      setAuthError('An unexpected error occurred');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  // Open auth modal and save form data
+  const openAuthModal = (mode: 'login' | 'signup' = 'login') => {
+    setAuthMode(mode);
+    setAuthError(null);
+    setAuthEmail('');
+    setAuthPassword('');
+    setAuthName('');
+    setShowAuthModal(true);
+  };
+
+  // Open profile settings modal
+  const openProfileModal = () => {
+    if (profile) {
+      setProfileFormData({
+        name: profile.name || '',
+        bio: profile.bio || '',
+        website: profile.website || '',
+        github_username: profile.github_username || '',
+        twitter_username: profile.twitter_username || '',
+        linkedin_url: profile.linkedin_url || '',
+        youtube_url: profile.youtube_url || '',
+        discord_username: profile.discord_username || '',
+        avatar_url: profile.avatar_url || '',
+      });
+    }
+    setProfileMessage(null);
+    setShowProfileModal(true);
+  };
+
+  // Handle profile avatar change
+  const handleProfileAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setProfileMessage({ type: 'error', text: 'Please select an image file' });
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setProfileMessage({ type: 'error', text: 'Image must be less than 2MB' });
+      return;
+    }
+
+    setUploadingAvatar(true);
+    setProfileMessage(null);
+
+    try {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        setProfileFormData({ ...profileFormData, avatar_url: base64 });
+        setUploadingAvatar(false);
+      };
+      reader.onerror = () => {
+        setProfileMessage({ type: 'error', text: 'Failed to read image file' });
+        setUploadingAvatar(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      setProfileMessage({ type: 'error', text: 'Failed to upload image' });
+      setUploadingAvatar(false);
+    }
+  };
+
+  const removeProfileAvatar = () => {
+    setProfileFormData({ ...profileFormData, avatar_url: '' });
+    if (profileFileInputRef.current) {
+      profileFileInputRef.current.value = '';
+    }
+  };
+
+  // Handle profile settings save
+  const handleProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileSaving(true);
+    setProfileMessage(null);
+
+    const { error } = await updateProfile(profileFormData);
+
+    if (error) {
+      setProfileMessage({ type: 'error', text: error.message });
+    } else {
+      setProfileMessage({ type: 'success', text: 'Profile updated successfully!' });
+      // Refresh creator profile for the preview
+      try {
+        const res = await fetch('/api/profile');
+        if (res.ok) {
+          const data = await res.json();
+          setCreatorProfile(data);
+        }
+      } catch (err) {
+        console.error('Failed to refresh creator profile:', err);
+      }
+      // Close modal after short delay
+      setTimeout(() => {
+        setShowProfileModal(false);
+      }, 1500);
+    }
+
+    setProfileSaving(false);
+  };
 
   // Auto-fill user email if logged in
   useEffect(() => {
@@ -130,6 +355,64 @@ export default function SubmitPage() {
       };
       
       fetchCreatorProfile();
+      
+      // Load existing draft if user is signed in
+      const loadDraft = async () => {
+        setDraftLoading(true);
+        try {
+          const res = await fetch('/api/submit/draft');
+          if (res.ok) {
+            const data = await res.json();
+            if (data.draft) {
+              setHasDraft(true);
+              // Populate form data from draft
+              setFormData({
+                name: data.draft.name || '',
+                website: data.draft.website || '',
+                github: data.draft.github || '',
+                short_description: data.draft.short_description || '',
+                description: data.draft.description || '',
+                long_description: data.draft.long_description || '',
+                icon_url: data.draft.icon_url || '',
+                license: data.draft.license || '',
+                is_self_hosted: data.draft.is_self_hosted || false,
+                category_ids: data.draft.category_ids || [],
+                alternative_to_ids: data.draft.alternative_to_ids || [],
+                tag_ids: data.draft.tag_ids || [],
+                tech_stack_ids: data.draft.tech_stack_ids || [],
+                submitter_name: data.draft.submitter_name || user.name || '',
+                submitter_email: data.draft.submitter_email || user.email || '',
+                screenshots: data.draft.screenshots || [],
+              });
+              // Set plan and payment state
+              setSelectedPlan(data.draft.submission_plan || 'free');
+              setBacklinkVerified(data.draft.backlink_verified || false);
+              setBacklinkUrl(data.draft.backlink_url || undefined);
+              if (data.draft.sponsor_payment_id) {
+                setSponsorPaymentId(data.draft.sponsor_payment_id);
+              }
+              // Set icon preview if exists
+              if (data.draft.icon_url) {
+                setIconPreview(data.draft.icon_url);
+              }
+              // Set screenshot previews if exists
+              if (data.draft.screenshots?.length > 0) {
+                setScreenshotPreviews(data.draft.screenshots);
+              }
+              // Set last saved time
+              if (data.draft.updated_at) {
+                setDraftLastSaved(new Date(data.draft.updated_at));
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Failed to load draft:', err);
+        } finally {
+          setDraftLoading(false);
+        }
+      };
+      
+      loadDraft();
     } else {
       setLoadingProfile(false);
     }
@@ -217,6 +500,87 @@ export default function SubmitPage() {
     setDuplicateError(null);
   }, [formData.name, formData.github]);
 
+  // Save draft function
+  const saveDraft = useCallback(async () => {
+    if (!user) return;
+    
+    setDraftSaving(true);
+    setDraftSaved(false);
+    
+    try {
+      const res = await fetch('/api/submit/draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          submission_plan: selectedPlan,
+          backlink_verified: backlinkVerified,
+          backlink_url: backlinkUrl,
+          sponsor_payment_id: sponsorPaymentId,
+          sponsor_paid: !!sponsorPaymentId,
+        }),
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setDraftSaved(true);
+        setHasDraft(true);
+        setDraftLastSaved(new Date(data.draft.updated_at));
+        // Reset saved indicator after 3 seconds
+        setTimeout(() => setDraftSaved(false), 3000);
+      } else {
+        console.error('Failed to save draft');
+      }
+    } catch (err) {
+      console.error('Error saving draft:', err);
+    } finally {
+      setDraftSaving(false);
+    }
+  }, [user, formData, selectedPlan, backlinkVerified, backlinkUrl, sponsorPaymentId]);
+
+  // Delete draft function
+  const deleteDraft = async () => {
+    if (!user) return;
+    
+    try {
+      const res = await fetch('/api/submit/draft', {
+        method: 'DELETE',
+      });
+      
+      if (res.ok) {
+        setHasDraft(false);
+        setDraftLastSaved(null);
+        // Reset form
+        setFormData({
+          name: '',
+          website: '',
+          github: '',
+          short_description: '',
+          description: '',
+          long_description: '',
+          icon_url: '',
+          license: '',
+          is_self_hosted: false,
+          category_ids: [],
+          alternative_to_ids: [],
+          tag_ids: [],
+          tech_stack_ids: [],
+          submitter_name: user.name || '',
+          submitter_email: user.email || '',
+          screenshots: [],
+        });
+        setSelectedPlan('free');
+        setBacklinkVerified(false);
+        setBacklinkUrl(undefined);
+        setSponsorPaymentId(null);
+        setIconPreview(null);
+        setScreenshotPreviews([]);
+      }
+    } catch (err) {
+      console.error('Error deleting draft:', err);
+    }
+  };
+
   // Check if all required fields for payment are filled
   const canShowPayment = formData.name && 
     formData.website && 
@@ -288,6 +652,15 @@ export default function SubmitPage() {
           errorMessage += ` - ${result.debug.message}`;
         }
         throw new Error(errorMessage);
+      }
+
+      // Delete draft after successful submission
+      if (user && hasDraft) {
+        try {
+          await fetch('/api/submit/draft', { method: 'DELETE' });
+        } catch (err) {
+          console.error('Failed to delete draft after submission:', err);
+        }
       }
 
       setIsSubmitted(true);
@@ -517,19 +890,21 @@ export default function SubmitPage() {
                 </span>
               </div>
               {user ? (
-                <Link
-                  href="/dashboard/settings"
+                <button
+                  type="button"
+                  onClick={openProfileModal}
                   className="text-xs text-brand hover:underline font-medium"
                 >
                   Customize
-                </Link>
+                </button>
               ) : (
-                <Link
-                  href="/login?redirect=/submit&message=signin_required_for_creator_card"
+                <button
+                  type="button"
+                  onClick={() => openAuthModal('login')}
                   className="text-xs text-brand hover:underline font-medium"
                 >
                   Sign in to customize
-                </Link>
+                </button>
               )}
             </div>
             
@@ -1033,10 +1408,34 @@ export default function SubmitPage() {
                         paymentType="sponsor_submission"
                         amount="19"
                         projectName={formData.name}
-                        onSuccess={(data) => {
+                        onSuccess={async (data) => {
                           setSponsorPaymentId(data.captureId);
                           setError(null);
                           setShowPaymentModal(false);
+                          
+                          // Auto-save draft with payment info
+                          if (user) {
+                            try {
+                              await fetch('/api/submit/draft', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  ...formData,
+                                  submission_plan: selectedPlan,
+                                  backlink_verified: backlinkVerified,
+                                  backlink_url: backlinkUrl,
+                                  sponsor_payment_id: data.captureId,
+                                  sponsor_paid: true,
+                                }),
+                              });
+                              setDraftSaved(true);
+                              setHasDraft(true);
+                              setDraftLastSaved(new Date());
+                              setTimeout(() => setDraftSaved(false), 3000);
+                            } catch (err) {
+                              console.error('Failed to auto-save draft after payment:', err);
+                            }
+                          }
                         }}
                         onError={(error) => setPaymentError(error)}
                         onCancel={() => setPaymentError('Payment was cancelled. Please try again.')}
@@ -1048,6 +1447,89 @@ export default function SubmitPage() {
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Save Draft Button - Only for signed-in users */}
+          {user && (
+            <div className="bg-surface rounded-xl border border-border p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Save className={`w-5 h-5 ${draftSaved ? 'text-emerald-500' : 'text-muted'}`} />
+                  <div>
+                    <span className="text-sm font-medium text-white font-mono">
+                      {draftLoading ? 'Loading draft...' : hasDraft ? 'Draft saved' : 'No draft saved'}
+                    </span>
+                    {draftLastSaved && (
+                      <p className="text-xs text-muted">
+                        Last saved: {draftLastSaved.toLocaleString()}
+                      </p>
+                    )}
+                    {draftSaved && (
+                      <p className="text-xs text-emerald-500">
+                        ✓ Draft saved successfully
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {hasDraft && (
+                    <button
+                      type="button"
+                      onClick={deleteDraft}
+                      className="inline-flex items-center px-3 py-1.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1.5" />
+                      Delete Draft
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={saveDraft}
+                    disabled={draftSaving}
+                    className="inline-flex items-center px-4 py-1.5 bg-brand/10 text-brand hover:bg-brand/20 rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
+                  >
+                    {draftSaving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-1.5" />
+                        Save Draft
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Sign-in prompt for draft feature - Only for non-signed-in users */}
+          {!user && (
+            <div className="bg-surface rounded-xl border border-brand/30 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Save className="w-5 h-5 text-brand" />
+                  <div>
+                    <span className="text-sm font-medium text-white font-mono">
+                      Save as Draft
+                    </span>
+                    <p className="text-xs text-muted">
+                      Sign in to save your progress and continue later
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => openAuthModal('login')}
+                  className="inline-flex items-center px-4 py-1.5 bg-brand text-dark hover:bg-brand-light rounded-lg transition-colors text-sm font-medium"
+                >
+                  <LogIn className="w-4 h-4 mr-1.5" />
+                  Sign In
+                </button>
               </div>
             </div>
           )}
@@ -1075,6 +1557,12 @@ export default function SubmitPage() {
                 
                 // If duplicate check failed, error is already set by checkDuplicate
                 if (!duplicateCheckResult) {
+                  return;
+                }
+                
+                // Require sign in for sponsor plan payment
+                if (!user) {
+                  openAuthModal('login');
                   return;
                 }
                 
@@ -1111,6 +1599,420 @@ export default function SubmitPage() {
           </button>
         </form>
       </div>
+
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface border border-border rounded-xl max-w-md w-full relative">
+            <button
+              onClick={() => setShowAuthModal(false)}
+              className="absolute top-4 right-4 text-muted hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <div className="w-12 h-12 bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <LogIn className="w-6 h-6 text-brand" />
+                </div>
+                <h3 className="text-xl font-bold text-white font-mono">
+                  {authMode === 'login' ? 'Sign In' : 'Create Account'}<span className="text-brand">_</span>
+                </h3>
+                <p className="text-sm text-muted mt-2">
+                  {authMode === 'login' 
+                    ? 'Sign in to save your submission as a draft' 
+                    : 'Create an account to save your progress'}
+                </p>
+              </div>
+
+              <form onSubmit={handleAuthSubmit} className="space-y-4">
+                {authError && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm font-mono">
+                    {authError}
+                  </div>
+                )}
+
+                {authMode === 'signup' && (
+                  <div>
+                    <label htmlFor="auth-name" className="block text-sm font-mono text-muted mb-2">
+                      Name
+                    </label>
+                    <input
+                      id="auth-name"
+                      type="text"
+                      value={authName}
+                      onChange={(e) => setAuthName(e.target.value)}
+                      className="w-full px-4 py-3 bg-dark border border-border rounded-lg text-white font-mono focus:outline-none focus:border-brand transition-colors"
+                      placeholder="Your name"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label htmlFor="auth-email" className="block text-sm font-mono text-muted mb-2">
+                    Email
+                  </label>
+                  <input
+                    id="auth-email"
+                    type="email"
+                    value={authEmail}
+                    onChange={(e) => setAuthEmail(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 bg-dark border border-border rounded-lg text-white font-mono focus:outline-none focus:border-brand transition-colors"
+                    placeholder="you@example.com"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="auth-password" className="block text-sm font-mono text-muted mb-2">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="auth-password"
+                      type={showAuthPassword ? 'text' : 'password'}
+                      value={authPassword}
+                      onChange={(e) => setAuthPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      className="w-full px-4 py-3 bg-dark border border-border rounded-lg text-white font-mono focus:outline-none focus:border-brand transition-colors pr-12"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAuthPassword(!showAuthPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-white transition-colors"
+                    >
+                      {showAuthPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="w-full py-3 bg-brand text-dark font-mono font-semibold rounded-lg hover:bg-brand-light transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {authLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {authMode === 'login' ? 'Sign In_' : 'Create Account_'}
+                </button>
+
+                <p className="text-center text-sm font-mono text-muted">
+                  {authMode === 'login' ? (
+                    <>
+                      Don&apos;t have an account?{' '}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthMode('signup');
+                          setAuthError(null);
+                        }}
+                        className="text-brand hover:text-brand-light transition-colors"
+                      >
+                        Sign up
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      Already have an account?{' '}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthMode('login');
+                          setAuthError(null);
+                        }}
+                        className="text-brand hover:text-brand-light transition-colors"
+                      >
+                        Sign in
+                      </button>
+                    </>
+                  )}
+                </p>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Settings Modal */}
+      {showProfileModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface border border-border rounded-xl max-w-2xl w-full relative max-h-[90vh] flex flex-col">
+            <button
+              onClick={() => setShowProfileModal(false)}
+              className="absolute top-4 right-4 text-muted hover:text-white transition-colors z-10"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="p-6 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-brand/10 rounded-full flex items-center justify-center">
+                  <Settings className="w-5 h-5 text-brand" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white font-mono">
+                    Profile Settings<span className="text-brand">_</span>
+                  </h3>
+                  <p className="text-sm text-muted">
+                    Customize your creator profile
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              <form onSubmit={handleProfileSubmit} className="space-y-6">
+                {profileMessage && (
+                  <div
+                    className={`p-3 rounded-lg border ${
+                      profileMessage.type === 'success'
+                        ? 'bg-green-500/10 border-green-500/20 text-green-400'
+                        : 'bg-red-500/10 border-red-500/20 text-red-400'
+                    }`}
+                  >
+                    {profileMessage.text}
+                  </div>
+                )}
+
+                {/* Profile Picture */}
+                <div>
+                  <label className="block text-gray-300 font-mono text-sm mb-2">
+                    <Camera className="w-4 h-4 inline mr-2" />
+                    Profile Picture
+                  </label>
+                  <div className="flex items-center gap-4">
+                    {profileFormData.avatar_url ? (
+                      <div className="relative">
+                        <Image
+                          src={profileFormData.avatar_url}
+                          alt="Profile picture"
+                          width={64}
+                          height={64}
+                          className="w-16 h-16 rounded-full object-cover border-2 border-brand/30"
+                        />
+                        <button
+                          type="button"
+                          onClick={removeProfileAvatar}
+                          className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 bg-dark border-2 border-dashed border-border rounded-full flex items-center justify-center text-gray-500">
+                        <User className="w-8 h-8" />
+                      </div>
+                    )}
+                    <div>
+                      <input
+                        ref={profileFileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfileAvatarChange}
+                        className="hidden"
+                        id="profile-avatar-upload"
+                      />
+                      <label
+                        htmlFor="profile-avatar-upload"
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 bg-dark border border-border rounded-lg cursor-pointer hover:border-brand transition-colors text-sm ${
+                          uploadingAvatar ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        {uploadingAvatar ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Camera className="w-4 h-4" />
+                            {profileFormData.avatar_url ? 'Change' : 'Upload'}
+                          </>
+                        )}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Name */}
+                <div>
+                  <label htmlFor="profile-name" className="block text-gray-300 font-mono text-sm mb-2">
+                    <User className="w-4 h-4 inline mr-2" />
+                    Display Name
+                  </label>
+                  <input
+                    type="text"
+                    id="profile-name"
+                    value={profileFormData.name}
+                    onChange={(e) => setProfileFormData({ ...profileFormData, name: e.target.value })}
+                    placeholder="Your name"
+                    className="w-full px-4 py-2.5 bg-dark border border-border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-brand transition-colors"
+                    maxLength={100}
+                  />
+                </div>
+
+                {/* Bio */}
+                <div>
+                  <label htmlFor="profile-bio" className="block text-gray-300 font-mono text-sm mb-2">
+                    <FileText className="w-4 h-4 inline mr-2" />
+                    Bio
+                  </label>
+                  <BioEditor
+                    content={profileFormData.bio}
+                    onChange={(html) => setProfileFormData({ ...profileFormData, bio: html })}
+                    placeholder="Tell us about yourself..."
+                    maxLength={500}
+                  />
+                </div>
+
+                {/* Website */}
+                <div>
+                  <label htmlFor="profile-website" className="block text-gray-300 font-mono text-sm mb-2">
+                    <Globe className="w-4 h-4 inline mr-2" />
+                    Website
+                  </label>
+                  <input
+                    type="url"
+                    id="profile-website"
+                    value={profileFormData.website}
+                    onChange={(e) => setProfileFormData({ ...profileFormData, website: e.target.value })}
+                    placeholder="https://yourwebsite.com"
+                    className="w-full px-4 py-2.5 bg-dark border border-border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-brand transition-colors"
+                  />
+                </div>
+
+                {/* GitHub Username */}
+                <div>
+                  <label htmlFor="profile-github" className="block text-gray-300 font-mono text-sm mb-2">
+                    <Github className="w-4 h-4 inline mr-2" />
+                    GitHub Username
+                  </label>
+                  <div className="flex items-center">
+                    <span className="px-3 py-2.5 bg-dark border border-border border-r-0 rounded-l-lg text-gray-500 text-sm">
+                      github.com/
+                    </span>
+                    <input
+                      type="text"
+                      id="profile-github"
+                      value={profileFormData.github_username}
+                      onChange={(e) => setProfileFormData({ ...profileFormData, github_username: e.target.value })}
+                      placeholder="username"
+                      className="flex-1 px-4 py-2.5 bg-dark border border-border rounded-r-lg text-white placeholder-gray-500 focus:outline-none focus:border-brand transition-colors"
+                      maxLength={39}
+                    />
+                  </div>
+                </div>
+
+                {/* Social Links */}
+                <div className="pt-4 border-t border-border">
+                  <h4 className="text-sm font-mono text-brand mb-4">// social_links</h4>
+                  
+                  {/* Twitter/X */}
+                  <div className="mb-4">
+                    <label htmlFor="profile-twitter" className="block text-gray-300 font-mono text-sm mb-2">
+                      <Twitter className="w-4 h-4 inline mr-2" />
+                      Twitter / X
+                    </label>
+                    <div className="flex items-center">
+                      <span className="px-3 py-2.5 bg-dark border border-border border-r-0 rounded-l-lg text-gray-500 text-sm">
+                        x.com/
+                      </span>
+                      <input
+                        type="text"
+                        id="profile-twitter"
+                        value={profileFormData.twitter_username}
+                        onChange={(e) => setProfileFormData({ ...profileFormData, twitter_username: e.target.value })}
+                        placeholder="username"
+                        className="flex-1 px-4 py-2.5 bg-dark border border-border rounded-r-lg text-white placeholder-gray-500 focus:outline-none focus:border-brand transition-colors"
+                        maxLength={15}
+                      />
+                    </div>
+                  </div>
+
+                  {/* LinkedIn */}
+                  <div className="mb-4">
+                    <label htmlFor="profile-linkedin" className="block text-gray-300 font-mono text-sm mb-2">
+                      <Linkedin className="w-4 h-4 inline mr-2" />
+                      LinkedIn
+                    </label>
+                    <input
+                      type="url"
+                      id="profile-linkedin"
+                      value={profileFormData.linkedin_url}
+                      onChange={(e) => setProfileFormData({ ...profileFormData, linkedin_url: e.target.value })}
+                      placeholder="https://linkedin.com/in/yourprofile"
+                      className="w-full px-4 py-2.5 bg-dark border border-border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-brand transition-colors"
+                    />
+                  </div>
+
+                  {/* YouTube */}
+                  <div className="mb-4">
+                    <label htmlFor="profile-youtube" className="block text-gray-300 font-mono text-sm mb-2">
+                      <Youtube className="w-4 h-4 inline mr-2" />
+                      YouTube Channel
+                    </label>
+                    <input
+                      type="url"
+                      id="profile-youtube"
+                      value={profileFormData.youtube_url}
+                      onChange={(e) => setProfileFormData({ ...profileFormData, youtube_url: e.target.value })}
+                      placeholder="https://youtube.com/@yourchannel"
+                      className="w-full px-4 py-2.5 bg-dark border border-border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-brand transition-colors"
+                    />
+                  </div>
+
+                  {/* Discord */}
+                  <div>
+                    <label htmlFor="profile-discord" className="block text-gray-300 font-mono text-sm mb-2">
+                      <MessageCircle className="w-4 h-4 inline mr-2" />
+                      Discord Username
+                    </label>
+                    <input
+                      type="text"
+                      id="profile-discord"
+                      value={profileFormData.discord_username}
+                      onChange={(e) => setProfileFormData({ ...profileFormData, discord_username: e.target.value })}
+                      placeholder="username"
+                      className="w-full px-4 py-2.5 bg-dark border border-border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-brand transition-colors"
+                      maxLength={32}
+                    />
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <div className="flex justify-end pt-4 border-t border-border">
+                  <button
+                    type="button"
+                    onClick={() => setShowProfileModal(false)}
+                    className="px-4 py-2 text-muted hover:text-white transition-colors mr-3"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={profileSaving}
+                    className="px-5 py-2 bg-brand text-dark font-mono font-semibold rounded-lg hover:bg-brand/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                  >
+                    {profileSaving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        Save Changes
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

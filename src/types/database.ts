@@ -742,3 +742,36 @@ export interface AdvertisementInsert {
   start_date?: string | null;
   end_date?: string | null;
 }
+
+// Submission Draft type
+export interface SubmissionDraft {
+  id: string;
+  user_id: string;
+  // Basic info
+  name: string;
+  short_description: string;
+  description: string;
+  long_description: string | null;
+  icon_url: string | null;
+  website: string;
+  github: string;
+  license: string;
+  is_self_hosted: boolean;
+  screenshots: string[];
+  // Relations
+  category_ids: string[];
+  tag_ids: string[];
+  tech_stack_ids: string[];
+  alternative_to_ids: string[];
+  // Submitter info
+  submitter_name: string | null;
+  submitter_email: string | null;
+  // Plan info
+  submission_plan: 'free' | 'sponsor';
+  backlink_verified: boolean;
+  backlink_url: string | null;
+  sponsor_payment_id: string | null;
+  sponsor_paid: boolean;
+  created_at: string;
+  updated_at: string;
+}

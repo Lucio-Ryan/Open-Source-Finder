@@ -5,6 +5,7 @@ import { SearchBar, AlternativeCard, SponsoredAlternativeCard, NewsletterForm, A
 import { 
   getFeaturedAlternatives, 
   getProprietarySoftware,
+  getStats,
   getAlternatives,
 } from '@/lib/mongodb/queries';
 
@@ -20,11 +21,13 @@ export const metadata: Metadata = {
 export default async function Home() {
   let featuredAlternatives: Awaited<ReturnType<typeof getFeaturedAlternatives>> = [];
   let proprietarySoftware: Awaited<ReturnType<typeof getProprietarySoftware>> = [];
+  let stats: Awaited<ReturnType<typeof getStats>> | null = null;
   
   try {
-    [featuredAlternatives, proprietarySoftware] = await Promise.all([
+    [featuredAlternatives, proprietarySoftware, stats] = await Promise.all([
       getFeaturedAlternatives(),
       getProprietarySoftware(),
+      getStats(),
     ]);
   } catch (error) {
     console.error('Error fetching home page data:', error);
@@ -46,7 +49,9 @@ export default async function Home() {
             {/* Terminal badge */}
             <div className="inline-flex items-center px-4 py-2 bg-surface border border-border rounded-full text-brand font-mono text-sm mb-8">
               <span className="w-2 h-2 bg-brand rounded-full mr-3 animate-pulse"></span>
-              <code>$ discover --alternatives</code>
+              <code>
+                $ discover <span className="text-green-400">{stats ? `--${stats.totalAlternatives}` : '--'}</span> alternatives
+              </code>
             </div>
             
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 leading-tight text-white">
@@ -91,7 +96,9 @@ export default async function Home() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-center sm:text-left">
               <p className="text-white font-mono text-sm">
-                <span className="text-brand">$</span> Get weekly updates on new alternatives
+                <code>
+                  $ discover <span className="text-brand">{stats ? `--${stats.totalAlternatives}` : '--'}</span> alternatives
+                </code>
               </p>
             </div>
             <div className="w-full sm:w-auto">

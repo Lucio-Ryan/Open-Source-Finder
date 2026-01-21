@@ -18,12 +18,10 @@ export async function GET() {
     await connectDB();
 
     // Fetch alternatives by user_id or submitter_email
-    // Exclude drafts - they are shown separately on the dashboard
     const filter: Record<string, unknown> = {
       $or: [
         { user_id: new mongoose.Types.ObjectId(user.id) }
-      ],
-      status: { $ne: 'draft' }
+      ]
     };
     
     if (user.email) {

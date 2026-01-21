@@ -772,12 +772,9 @@ export async function getStats(): Promise<{
 export async function getVoteScore(alternativeId: string): Promise<number> {
   await connectToDatabase();
 
-  const result = await Vote.aggregate([
-    { $match: { alternative_id: new mongoose.Types.ObjectId(alternativeId) } },
-    { $group: { _id: null, total: { $sum: '$vote_type' } } },
-  ]);
-
-  return result[0]?.total || 0;
+  // Get vote_score directly from the Alternative document
+  const alternative = await Alternative.findById(alternativeId).select('vote_score').lean();
+  return alternative?.vote_score || 0;
 }
 
 export async function getUserVote(userId: string, alternativeId: string): Promise<number | null> {
@@ -799,6 +796,16 @@ export async function upsertVote(
   await connectToDatabase();
 
   try {
+    // Get the user's existing vote (if any)
+    const existingVote = await Vote.findOne({
+      user_id: new mongoose.Types.ObjectId(userId),
+      alternative_id: new mongoose.Types.ObjectId(alternativeId),
+    }).lean();
+
+    const oldVoteValue = existingVote?.vote_type || 0;
+    const newVoteValue = voteType === 0 ? 0 : voteType;
+    const scoreDelta = newVoteValue - oldVoteValue;
+
     if (voteType === 0) {
       // Remove vote
       await Vote.deleteOne({
@@ -817,9 +824,10 @@ export async function upsertVote(
       );
     }
 
-    // Update vote_score on alternative
-    const newScore = await getVoteScore(alternativeId);
-    await Alternative.findByIdAndUpdate(alternativeId, { vote_score: newScore });
+    // Update vote_score on alternative by adding the delta
+    if (scoreDelta !== 0) {
+      await Alternative.findByIdAndUpdate(alternativeId, { $inc: { vote_score: scoreDelta } });
+    }
 
     return { success: true };
   } catch (error: any) {

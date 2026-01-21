@@ -161,7 +161,7 @@ export interface IAlternative extends Document {
   vote_score: number;
   featured: boolean;
   approved: boolean;
-  status: 'draft' | 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected';
   rejection_reason: string | null;
   rejected_at: Date | null;
   submitter_name: string | null;
@@ -205,7 +205,7 @@ const AlternativeSchema = new Schema<IAlternative>(
     vote_score: { type: Number, default: 0 },
     featured: { type: Boolean, default: false },
     approved: { type: Boolean, default: false },
-    status: { type: String, enum: ['draft', 'pending', 'approved', 'rejected'], default: 'pending' },
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
     rejection_reason: { type: String, default: null },
     rejected_at: { type: Date, default: null },
     submitter_name: { type: String, default: null },
@@ -476,68 +476,88 @@ const PolicySchema = new Schema<IPolicy>(
 
 // Note: type index is already created by unique: true
 
-// ============ DRAFT SCHEMA ============
-export interface IDraft extends Document {
+// ============ SUBMISSION DRAFT SCHEMA ============
+export interface ISubmissionDraft extends Document {
   _id: mongoose.Types.ObjectId;
   user_id: mongoose.Types.ObjectId;
-  // Form data fields
+  // Basic info
   name: string;
-  website: string;
-  github: string;
   short_description: string;
   description: string;
-  long_description: string;
-  icon_url: string;
+  long_description: string | null;
+  icon_url: string | null;
+  website: string;
+  github: string;
   license: string;
   is_self_hosted: boolean;
+  screenshots: string[];
+  // Relations
   category_ids: string[];
-  alternative_to_ids: string[];
   tag_ids: string[];
   tech_stack_ids: string[];
-  submitter_name: string;
-  submitter_email: string;
-  screenshots: string[];
-  // Plan and payment fields
-  selected_plan: 'free' | 'sponsor';
+  alternative_to_ids: string[];
+  // Submitter info
+  submitter_name: string | null;
+  submitter_email: string | null;
+  // Plan info
+  submission_plan: 'free' | 'sponsor';
   backlink_verified: boolean;
   backlink_url: string | null;
   sponsor_payment_id: string | null;
+  sponsor_paid: boolean;
   created_at: Date;
   updated_at: Date;
 }
 
-const DraftSchema = new Schema<IDraft>(
+const SubmissionDraftSchema = new Schema<ISubmissionDraft>(
   {
-    user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
-    // Form data fields
+    user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    // Basic info
     name: { type: String, default: '' },
-    website: { type: String, default: '' },
-    github: { type: String, default: '' },
     short_description: { type: String, default: '' },
     description: { type: String, default: '' },
-    long_description: { type: String, default: '' },
-    icon_url: { type: String, default: '' },
+    long_description: { type: String, default: null },
+    icon_url: { type: String, default: null },
+    website: { type: String, default: '' },
+    github: { type: String, default: '' },
     license: { type: String, default: '' },
     is_self_hosted: { type: Boolean, default: false },
+    screenshots: [{ type: String }],
+    // Relations (stored as string IDs for flexibility)
     category_ids: [{ type: String }],
-    alternative_to_ids: [{ type: String }],
     tag_ids: [{ type: String }],
     tech_stack_ids: [{ type: String }],
-    submitter_name: { type: String, default: '' },
-    submitter_email: { type: String, default: '' },
-    screenshots: [{ type: String }],
-    // Plan and payment fields
-    selected_plan: { type: String, enum: ['free', 'sponsor'], default: 'free' },
+    alternative_to_ids: [{ type: String }],
+    // Submitter info
+    submitter_name: { type: String, default: null },
+    submitter_email: { type: String, default: null },
+    // Plan info
+    submission_plan: { type: String, enum: ['free', 'sponsor'], default: 'free' },
     backlink_verified: { type: Boolean, default: false },
     backlink_url: { type: String, default: null },
     sponsor_payment_id: { type: String, default: null },
+    sponsor_paid: { type: Boolean, default: false },
   },
   {
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
   }
 );
 
-// Note: user_id index is already created by unique: true
+// One draft per user (they can only have one active draft)
+SubmissionDraftSchema.index({ user_id: 1 }, { unique: true });
+
+// ============ NEWSLETTER SUBSCRIPTION SCHEMA ============
+export interface INewsletterSubscription extends Document {
+  email: string;
+  subscribedAt: Date;
+}
+
+const NewsletterSubscriptionSchema = new Schema<INewsletterSubscription>({
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  subscribedAt: { type: Date, default: Date.now },
+});
+
+export const NewsletterSubscription: Model<INewsletterSubscription> = mongoose.models.NewsletterSubscription || mongoose.model<INewsletterSubscription>('NewsletterSubscription', NewsletterSubscriptionSchema);
 
 // ============ MODEL EXPORTS ============
 // Use this pattern to prevent model recompilation in development
@@ -554,4 +574,4 @@ export const CreatorNotification: Model<ICreatorNotification> = mongoose.models.
 export const Advertisement: Model<IAdvertisement> = mongoose.models.Advertisement || mongoose.model<IAdvertisement>('Advertisement', AdvertisementSchema);
 export const Session: Model<ISession> = mongoose.models.Session || mongoose.model<ISession>('Session', SessionSchema);
 export const Policy: Model<IPolicy> = mongoose.models.Policy || mongoose.model<IPolicy>('Policy', PolicySchema);
-export const Draft: Model<IDraft> = mongoose.models.Draft || mongoose.model<IDraft>('Draft', DraftSchema);
+export const SubmissionDraft: Model<ISubmissionDraft> = mongoose.models.SubmissionDraft || mongoose.model<ISubmissionDraft>('SubmissionDraft', SubmissionDraftSchema);

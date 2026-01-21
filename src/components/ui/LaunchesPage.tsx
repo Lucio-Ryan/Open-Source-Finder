@@ -58,7 +58,6 @@ interface LaunchPageProps {
 }
 
 type TimeFrame = 'today' | 'week' | 'month' | 'year' | 'all';
-type SortOption = 'vote_score' | 'stars' | 'newest' | 'health_score';
 
 const TIME_FRAMES: { value: TimeFrame; label: string; icon: React.ReactNode }[] = [
   { value: 'today', label: 'Today', icon: <Flame className="w-4 h-4" /> },
@@ -68,18 +67,10 @@ const TIME_FRAMES: { value: TimeFrame; label: string; icon: React.ReactNode }[] 
   { value: 'all', label: 'All Time', icon: <Clock className="w-4 h-4" /> },
 ];
 
-const SORT_OPTIONS: { value: SortOption; label: string }[] = [
-  { value: 'vote_score', label: 'Most Upvoted' },
-  { value: 'stars', label: 'Most Stars' },
-  { value: 'newest', label: 'Newest First' },
-  { value: 'health_score', label: 'Health Score' },
-];
-
 export function LaunchesPage({ categories, proprietarySoftware }: LaunchPageProps) {
   const [alternatives, setAlternatives] = useState<LaunchAlternative[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeFrame, setTimeFrame] = useState<TimeFrame>('today');
-  const [sortBy, setSortBy] = useState<SortOption>('vote_score');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedAlternativeTo, setSelectedAlternativeTo] = useState<string>('');
   const [page, setPage] = useState(1);
@@ -92,7 +83,6 @@ export function LaunchesPage({ categories, proprietarySoftware }: LaunchPageProp
     try {
       const params = new URLSearchParams({
         timeFrame,
-        sortBy,
         page: reset ? '1' : page.toString(),
         limit: '20',
       });
@@ -120,12 +110,12 @@ export function LaunchesPage({ categories, proprietarySoftware }: LaunchPageProp
     } finally {
       setLoading(false);
     }
-  }, [timeFrame, sortBy, selectedCategory, selectedAlternativeTo, page]);
+  }, [timeFrame, selectedCategory, selectedAlternativeTo, page]);
 
   useEffect(() => {
     fetchLaunches(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeFrame, sortBy, selectedCategory, selectedAlternativeTo]);
+  }, [timeFrame, selectedCategory, selectedAlternativeTo]);
 
   const loadMore = () => {
     if (!loading && hasMore) {
@@ -137,7 +127,6 @@ export function LaunchesPage({ categories, proprietarySoftware }: LaunchPageProp
         try {
           const params = new URLSearchParams({
             timeFrame,
-            sortBy,
             page: nextPage.toString(),
             limit: '20',
           });

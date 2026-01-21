@@ -66,7 +66,7 @@ export function RichTextEditor({ content, onChange, placeholder = 'Start typing.
     },
   });
 
-  // Sync editor content when the content prop changes (e.g., when loading a draft)
+  // Sync editor content when the content prop changes
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
       editor.commands.setContent(content);

@@ -1,27 +1,22 @@
 import { Metadata } from 'next';
-import { LaunchesPage } from '@/components/ui/LaunchesPage';
 import { getCategories, getProprietarySoftware } from '@/lib/mongodb/queries';
+import { LaunchesPage } from '@/components/ui';
 
 export const metadata: Metadata = {
-  title: 'Launches - Discover New Open Source Alternatives',
-  description: 'Discover the newest open source alternatives launched today, this week, or this month. Browse by category and find replacements for proprietary software. Product Hunt style launch feed for open source projects.',
+  title: 'New Launches - Recently Added Open Source Alternatives',
+  description: 'Discover the latest open source alternatives added to our directory. Browse new launches by time frame and vote for your favorites.',
   alternates: {
     canonical: '/launches',
-  },
-  openGraph: {
-    title: 'Launches - Discover New Open Source Alternatives',
-    description: 'Discover the newest open source alternatives launched today, this week, or this month. Browse by category and find replacements for proprietary software.',
-    type: 'website',
   },
 };
 
 // Force dynamic rendering to access MongoDB at runtime
 export const dynamic = 'force-dynamic';
 
-export default async function LaunchesPageRoute() {
+export default async function LaunchesRoutePage() {
   let categories: Awaited<ReturnType<typeof getCategories>> = [];
   let proprietarySoftware: Awaited<ReturnType<typeof getProprietarySoftware>> = [];
-  
+
   try {
     [categories, proprietarySoftware] = await Promise.all([
       getCategories(),

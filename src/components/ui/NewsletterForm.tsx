@@ -17,10 +17,23 @@ export function NewsletterForm({ compact = false }: NewsletterFormProps) {
     if (!email) return;
 
     setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSubmitted(true);
-    setIsLoading(false);
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) {
+        setIsSubmitted(true);
+      } else {
+        // Optionally handle error
+        alert('Failed to subscribe.');
+      }
+    } catch (err) {
+      alert('Failed to subscribe.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (isSubmitted) {
