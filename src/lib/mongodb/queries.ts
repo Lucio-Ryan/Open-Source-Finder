@@ -47,8 +47,6 @@ export interface AlternativeWithRelations {
   user_id: string | null;
   screenshots: string[];
   submission_plan: 'free' | 'sponsor';
-  backlink_verified: boolean;
-  backlink_url: string | null;
   sponsor_featured_until: string | null;
   sponsor_priority_until: string | null;
   sponsor_payment_id: string | null;
@@ -143,8 +141,6 @@ function transformAlternative(alt: any): AlternativeWithRelations {
     user_id: alt.user_id ? alt.user_id.toString() : null,
     screenshots: alt.screenshots || [],
     submission_plan: alt.submission_plan || 'free',
-    backlink_verified: alt.backlink_verified || false,
-    backlink_url: alt.backlink_url,
     sponsor_featured_until: alt.sponsor_featured_until ? alt.sponsor_featured_until.toISOString() : null,
     sponsor_priority_until: alt.sponsor_priority_until ? alt.sponsor_priority_until.toISOString() : null,
     sponsor_payment_id: alt.sponsor_payment_id,
@@ -179,7 +175,7 @@ function transformAlternative(alt: any): AlternativeWithRelations {
       slug: p.slug,
       description: p.description,
       website: p.website,
-      created_at: p.created_at.toISOString(),
+      created_at: p.created_at ? p.created_at.toISOString() : new Date().toISOString(),
     })),
   };
 }
@@ -465,7 +461,7 @@ export async function getTechStacks(): Promise<TechStackWithCount[]> {
         name: ts.name,
         slug: ts.slug,
         type: ts.type,
-        created_at: ts.created_at.toISOString(),
+        created_at: ts.created_at ? ts.created_at.toISOString() : new Date().toISOString(),
         count,
       };
     })
@@ -490,7 +486,7 @@ export async function getTechStackBySlug(slug: string): Promise<TechStackWithCou
     name: techStack.name,
     slug: techStack.slug,
     type: techStack.type,
-    created_at: techStack.created_at.toISOString(),
+    created_at: techStack.created_at ? techStack.created_at.toISOString() : new Date().toISOString(),
     count,
   };
 }
@@ -512,7 +508,7 @@ export async function getTags(): Promise<TagWithCount[]> {
         id: tag._id.toString(),
         name: tag.name,
         slug: tag.slug,
-        created_at: tag.created_at.toISOString(),
+        created_at: tag.created_at ? tag.created_at.toISOString() : new Date().toISOString(),
         count,
       };
     })
@@ -536,7 +532,7 @@ export async function getTagBySlug(slug: string): Promise<TagWithCount | null> {
     id: (tag as any)._id.toString(),
     name: tag.name,
     slug: tag.slug,
-    created_at: tag.created_at.toISOString(),
+    created_at: tag.created_at ? tag.created_at.toISOString() : new Date().toISOString(),
     count,
   };
 }
@@ -564,14 +560,14 @@ export async function getProprietarySoftware(): Promise<ProprietaryWithCount[]> 
         description: sw.description,
         website: sw.website,
         icon_url: sw.icon_url || null,
-        created_at: sw.created_at.toISOString(),
+        created_at: sw.created_at ? sw.created_at.toISOString() : new Date().toISOString(),
         categories: (sw.categories || []).map((c: any) => ({
           id: c._id.toString(),
           name: c.name,
           slug: c.slug,
           description: c.description,
           icon: c.icon,
-          created_at: c.created_at.toISOString(),
+          created_at: c.created_at ? c.created_at.toISOString() : new Date().toISOString(),
         })),
         alternative_count: count,
       };
@@ -602,14 +598,14 @@ export async function getProprietaryBySlug(slug: string): Promise<ProprietaryWit
     description: software.description,
     website: software.website,
     icon_url: (software as any).icon_url || null,
-    created_at: software.created_at.toISOString(),
+    created_at: software.created_at ? software.created_at.toISOString() : new Date().toISOString(),
     categories: ((software as any).categories || []).map((c: any) => ({
       id: c._id.toString(),
       name: c.name,
       slug: c.slug,
       description: c.description,
       icon: c.icon,
-      created_at: c.created_at.toISOString(),
+      created_at: c.created_at ? c.created_at.toISOString() : new Date().toISOString(),
     })),
     alternative_count: count,
   };

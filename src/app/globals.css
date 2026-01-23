@@ -113,13 +113,27 @@ body {
   background: #181818;
   border: 1px solid #2D2D2D;
   border-radius: 0.75rem;
-  padding: 1.5rem;
+  padding: 1rem;
   transition: all 0.3s ease;
+}
+
+@media (min-width: 640px) {
+  .card-dark {
+    padding: 1.5rem;
+  }
 }
 
 .card-dark:hover {
   border-color: #3ECF8E;
   box-shadow: 0 0 30px rgba(62, 207, 142, 0.1);
+}
+
+/* Touch-friendly active state for mobile */
+@media (hover: none) {
+  .card-dark:active {
+    border-color: #3ECF8E;
+    transform: scale(0.98);
+  }
 }
 
 /* Gradient text */
@@ -240,10 +254,54 @@ body {
   outline-offset: 2px;
 }
 
-/* Smooth transitions for theme */
+/* Improved touch handling */
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Safe area padding for notched devices */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+  /* Prevent text size adjustment on orientation change */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  
+  /* Better form inputs on iOS */
+  input, textarea, select {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+  
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  
+  /* Better scrolling on mobile */
+  .scrollbar-thin {
+    -webkit-overflow-scrolling: touch;
   }
 }
 /* Prose/Rich Text Styles for Discussions */

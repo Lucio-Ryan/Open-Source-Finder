@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Send, CheckCircle, Terminal, Loader2, Upload, X, Crown, Sparkles, Eye, EyeOff, Save, Trash2, LogIn, User, Globe, Github, FileText, Camera, Twitter, Linkedin, Youtube, MessageCircle, Settings } from 'lucide-react';
-import { RichTextEditor, TechStackSelector, PlanSelection, BacklinkVerification, CreatorProfileCard, PayPalButton, BioEditor, type SubmissionPlan } from '@/components/ui';
+import { RichTextEditor, TechStackSelector, PlanSelection, CreatorProfileCard, PayPalButton, BioEditor, type SubmissionPlan } from '@/components/ui';
 import { useAuth } from '@/lib/auth/AuthContext';
 import type { CreatorProfile } from '@/lib/mongodb/queries';
 
@@ -50,8 +50,6 @@ export default function SubmitPage() {
   
   // Plan selection state
   const [selectedPlan, setSelectedPlan] = useState<SubmissionPlan>('free');
-  const [backlinkVerified, setBacklinkVerified] = useState(false);
-  const [backlinkUrl, setBacklinkUrl] = useState<string | undefined>();
   const [sponsorPaymentId, setSponsorPaymentId] = useState<string | null>(null);
   
   // Duplicate check state
@@ -151,14 +149,12 @@ export default function SubmitPage() {
     const dataToSave = {
       formData,
       selectedPlan,
-      backlinkVerified,
-      backlinkUrl,
       sponsorPaymentId,
       iconPreview,
       screenshotPreviews,
     };
     localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(dataToSave));
-  }, [formData, selectedPlan, backlinkVerified, backlinkUrl, sponsorPaymentId, iconPreview, screenshotPreviews]);
+  }, [formData, selectedPlan, sponsorPaymentId, iconPreview, screenshotPreviews]);
 
   // Load form data from localStorage (for after auth)
   useEffect(() => {
@@ -176,8 +172,6 @@ export default function SubmitPage() {
           }));
         }
         if (parsed.selectedPlan) setSelectedPlan(parsed.selectedPlan);
-        if (parsed.backlinkVerified) setBacklinkVerified(parsed.backlinkVerified);
-        if (parsed.backlinkUrl) setBacklinkUrl(parsed.backlinkUrl);
         if (parsed.sponsorPaymentId) setSponsorPaymentId(parsed.sponsorPaymentId);
         if (parsed.iconPreview) setIconPreview(parsed.iconPreview);
         if (parsed.screenshotPreviews) setScreenshotPreviews(parsed.screenshotPreviews);
@@ -386,8 +380,6 @@ export default function SubmitPage() {
               });
               // Set plan and payment state
               setSelectedPlan(data.draft.submission_plan || 'free');
-              setBacklinkVerified(data.draft.backlink_verified || false);
-              setBacklinkUrl(data.draft.backlink_url || undefined);
               if (data.draft.sponsor_payment_id) {
                 setSponsorPaymentId(data.draft.sponsor_payment_id);
               }
@@ -514,8 +506,6 @@ export default function SubmitPage() {
         body: JSON.stringify({
           ...formData,
           submission_plan: selectedPlan,
-          backlink_verified: backlinkVerified,
-          backlink_url: backlinkUrl,
           sponsor_payment_id: sponsorPaymentId,
           sponsor_paid: !!sponsorPaymentId,
         }),
@@ -536,7 +526,7 @@ export default function SubmitPage() {
     } finally {
       setDraftSaving(false);
     }
-  }, [user, formData, selectedPlan, backlinkVerified, backlinkUrl, sponsorPaymentId]);
+  }, [user, formData, selectedPlan, sponsorPaymentId]);
 
   // Delete draft function
   const deleteDraft = async () => {
@@ -570,8 +560,6 @@ export default function SubmitPage() {
           screenshots: [],
         });
         setSelectedPlan('free');
-        setBacklinkVerified(false);
-        setBacklinkUrl(undefined);
         setSponsorPaymentId(null);
         setIconPreview(null);
         setScreenshotPreviews([]);
@@ -610,13 +598,6 @@ export default function SubmitPage() {
       return;
     }
 
-    // Plan-specific validation
-    if (selectedPlan === 'free' && !backlinkVerified) {
-      setError('Please verify your backlink before submitting. Add the Open Source Finder badge to your README and click "Verify Backlink".');
-      setIsSubmitting(false);
-      return;
-    }
-
     // For sponsor plan, payment must be completed first via PayPal button
     if (selectedPlan === 'sponsor' && !sponsorPaymentId) {
       setError('Please complete PayPal payment before submitting.');
@@ -634,8 +615,6 @@ export default function SubmitPage() {
         body: JSON.stringify({
           ...formData,
           submission_plan: selectedPlan,
-          backlink_verified: backlinkVerified,
-          backlink_url: backlinkUrl,
           sponsor_payment_id: sponsorPaymentId,
         }),
       });
@@ -693,7 +672,10 @@ export default function SubmitPage() {
       }
       // Only allow 1 alternative to selection
       if (prev.alternative_to_ids.length >= 1) {
-        return prev;
+        // Only allow up to 3 alternatives
+        if (prev.alternative_to_ids.length >= 3) {
+          return prev;
+        }
       }
       return { ...prev, alternative_to_ids: [...prev.alternative_to_ids, softwareId] };
     });
@@ -778,7 +760,7 @@ export default function SubmitPage() {
           {selectedPlan === 'sponsor' ? (
             <div className="space-y-4 mb-6">
               <p className="text-muted">
-                Your project is now live and featured on Open Source Finder!
+                Your project is now live and featured on OS Finder!
               </p>
               <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4 text-left">
                 <h3 className="text-emerald-500 font-semibold mb-2 text-sm">Your Sponsor Benefits:</h3>
@@ -1137,7 +1119,7 @@ export default function SubmitPage() {
             </h2>
             <p className="text-sm text-muted mb-4">
               Select up to 3 categories that best describe this project.
-              <span className={`ml-2 font-mono ${formData.category_ids.length >= 3 ? 'text-orange-400' : 'text-brand'}`}>
+              <span className={`ml-2 font-mono ${formData.category_ids.length >= 3 ? 'text-emerald-400' : 'text-brand'}`}>
                 ({formData.category_ids.length}/3)
               </span>
             </p>
@@ -1187,9 +1169,9 @@ export default function SubmitPage() {
               // ALTERNATIVE_TO *
             </h2>
             <p className="text-sm text-muted mb-4">
-              Select which proprietary software this is an alternative to. <span className="text-emerald-400">(Required)</span>
-              <span className="ml-2 font-mono text-emerald-400">
-                ({formData.alternative_to_ids.length}/1)
+              Select which proprietary software this is an alternative to. <span className="text-muted">(Required)</span>
+              <span className="ml-2 font-mono text-brand">
+                ({formData.alternative_to_ids.length}/3)
               </span>
             </p>
             
@@ -1220,7 +1202,7 @@ export default function SubmitPage() {
                   />
                   <span className={`text-sm font-medium ${
                     formData.alternative_to_ids.includes(software.id)
-                      ? 'text-emerald-400'
+                      ? 'text-brand'
                       : 'text-muted'
                   }`}>
                     {software.name}
@@ -1239,7 +1221,7 @@ export default function SubmitPage() {
             </h2>
             <p className="text-sm text-muted mb-4">
               What technologies is this project built with? Select up to 10.
-              <span className={`ml-2 font-mono ${formData.tech_stack_ids.length >= 10 ? 'text-orange-400' : 'text-brand'}`}>
+              <span className={`ml-2 font-mono ${formData.tech_stack_ids.length >= 10 ? 'text-emerald-400' : 'text-brand'}`}>
                 ({formData.tech_stack_ids.length}/10)
               </span>
             </p>
@@ -1301,28 +1283,6 @@ export default function SubmitPage() {
               onPlanSelect={setSelectedPlan}
             />
           </div>
-
-          {/* Backlink Verification (Free Plan Only) */}
-          {selectedPlan === 'free' && (
-            <div className="bg-surface rounded-xl border border-brand/30 p-6">
-              <h2 className="text-xl font-semibold text-white mb-2 font-mono">
-                <Terminal className="w-5 h-5 inline mr-2 text-brand" />
-                // BACKLINK_VERIFICATION
-              </h2>
-              <p className="text-sm text-muted mb-6">
-                Free submissions require a backlink. Add our badge to your README to verify your submission.
-              </p>
-              
-              <BacklinkVerification
-                projectName={formData.name}
-                githubUrl={formData.github}
-                onVerificationComplete={(verified, url) => {
-                  setBacklinkVerified(verified);
-                  if (url) setBacklinkUrl(url);
-                }}
-              />
-            </div>
-          )}
 
           {/* Error Message */}
           {error && (
@@ -1422,8 +1382,6 @@ export default function SubmitPage() {
                                 body: JSON.stringify({
                                   ...formData,
                                   submission_plan: selectedPlan,
-                                  backlink_verified: backlinkVerified,
-                                  backlink_url: backlinkUrl,
                                   sponsor_payment_id: data.captureId,
                                   sponsor_paid: true,
                                 }),
@@ -1537,7 +1495,7 @@ export default function SubmitPage() {
           {/* Submit Button */}
           <button
             type={selectedPlan === 'sponsor' && !sponsorPaymentId ? 'button' : 'submit'}
-            disabled={isSubmitting || (selectedPlan === 'free' && !backlinkVerified) || checkingDuplicate}
+            disabled={isSubmitting || checkingDuplicate}
             onClick={async (e) => {
               if (selectedPlan === 'sponsor' && !sponsorPaymentId) {
                 e.preventDefault();

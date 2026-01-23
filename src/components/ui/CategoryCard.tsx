@@ -204,24 +204,24 @@ export function CategoryCard({ category }: CategoryCardProps) {
 
   return (
     <Link href={`/categories/${category.slug}`}>
-      <div className="card-dark group">
+      <div className="card-dark group touch-manipulation active:scale-[0.98] transition-transform">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-brand/10 border border-brand/20 rounded-lg flex items-center justify-center text-brand group-hover:border-brand/40 transition-colors">
-              <Icon className="w-6 h-6" />
+          <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand/10 border border-brand/20 rounded-lg flex items-center justify-center text-brand group-hover:border-brand/40 transition-colors flex-shrink-0">
+              <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <h3 className="font-semibold text-white group-hover:text-brand transition-colors">
+            <div className="min-w-0">
+              <h3 className="font-semibold text-sm sm:text-base text-white group-hover:text-brand transition-colors truncate">
                 {category.name}
               </h3>
-              <p className="text-xs font-mono text-muted">
+              <p className="text-[10px] sm:text-xs font-mono text-muted">
                 {category.count ?? 0} alternatives
               </p>
             </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-muted group-hover:text-brand group-hover:translate-x-1 transition-all" />
+          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-muted group-hover:text-brand group-hover:translate-x-1 transition-all flex-shrink-0 ml-2" />
         </div>
-        <p className="mt-4 text-sm font-mono text-muted line-clamp-2">
+        <p className="mt-3 sm:mt-4 text-xs sm:text-sm font-mono text-muted line-clamp-2">
           {category.description}
         </p>
       </div>

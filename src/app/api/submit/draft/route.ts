@@ -43,8 +43,6 @@ export async function GET(request: NextRequest) {
         submitter_name: draft.submitter_name,
         submitter_email: draft.submitter_email,
         submission_plan: draft.submission_plan,
-        backlink_verified: draft.backlink_verified,
-        backlink_url: draft.backlink_url,
         sponsor_payment_id: draft.sponsor_payment_id,
         sponsor_paid: draft.sponsor_paid,
         updated_at: draft.updated_at,
@@ -92,8 +90,6 @@ export async function POST(request: NextRequest) {
       submitter_name,
       submitter_email,
       submission_plan,
-      backlink_verified,
-      backlink_url,
       sponsor_payment_id,
       sponsor_paid,
     } = body;
@@ -117,8 +113,6 @@ export async function POST(request: NextRequest) {
       submitter_name: submitter_name || null,
       submitter_email: submitter_email || null,
       submission_plan: submission_plan || 'free',
-      backlink_verified: backlink_verified || false,
-      backlink_url: backlink_url || null,
       sponsor_payment_id: sponsor_payment_id || null,
       sponsor_paid: sponsor_paid || false,
     };

@@ -169,8 +169,6 @@ export interface IAlternative extends Document {
   user_id: mongoose.Types.ObjectId | null;
   screenshots: string[];
   submission_plan: 'free' | 'sponsor';
-  backlink_verified: boolean;
-  backlink_url: string | null;
   sponsor_featured_until: Date | null;
   sponsor_priority_until: Date | null;
   sponsor_payment_id: string | null;
@@ -213,8 +211,6 @@ const AlternativeSchema = new Schema<IAlternative>(
     user_id: { type: Schema.Types.ObjectId, ref: 'User', default: null },
     screenshots: [{ type: String }],
     submission_plan: { type: String, enum: ['free', 'sponsor'], default: 'free' },
-    backlink_verified: { type: Boolean, default: false },
-    backlink_url: { type: String, default: null },
     sponsor_featured_until: { type: Date, default: null },
     sponsor_priority_until: { type: Date, default: null },
     sponsor_payment_id: { type: String, default: null },
@@ -501,8 +497,6 @@ export interface ISubmissionDraft extends Document {
   submitter_email: string | null;
   // Plan info
   submission_plan: 'free' | 'sponsor';
-  backlink_verified: boolean;
-  backlink_url: string | null;
   sponsor_payment_id: string | null;
   sponsor_paid: boolean;
   created_at: Date;
@@ -533,8 +527,6 @@ const SubmissionDraftSchema = new Schema<ISubmissionDraft>(
     submitter_email: { type: String, default: null },
     // Plan info
     submission_plan: { type: String, enum: ['free', 'sponsor'], default: 'free' },
-    backlink_verified: { type: Boolean, default: false },
-    backlink_url: { type: String, default: null },
     sponsor_payment_id: { type: String, default: null },
     sponsor_paid: { type: Boolean, default: false },
   },

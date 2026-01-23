@@ -41,8 +41,6 @@ export async function POST(request: NextRequest) {
       screenshots,
       // New plan-related fields
       submission_plan = 'free' as SubmissionPlan,
-      backlink_verified = false,
-      backlink_url,
       sponsor_payment_id,
     } = body;
 
@@ -50,14 +48,6 @@ export async function POST(request: NextRequest) {
     if (!name || !short_description || !description || !website || !github) {
       return NextResponse.json(
         { error: 'Name, short description, description, website, and GitHub repository are required' },
-        { status: 400 }
-      );
-    }
-
-    // Validate plan-specific requirements
-    if (submission_plan === 'free' && !backlink_verified) {
-      return NextResponse.json(
-        { error: 'Backlink verification is required for free submissions. Please add the Open Source Finder badge to your README.' },
         { status: 400 }
       );
     }
@@ -119,8 +109,6 @@ export async function POST(request: NextRequest) {
       user_id: userId ? new mongoose.Types.ObjectId(userId) : null,
       // Plan-specific fields
       submission_plan,
-      backlink_verified: submission_plan === 'free' ? backlink_verified : false,
-      backlink_url: submission_plan === 'free' ? backlink_url : null,
       sponsor_featured_until: submission_plan === 'sponsor' ? sevenDaysLater : null,
       sponsor_priority_until: submission_plan === 'sponsor' ? sevenDaysLater : null,
       sponsor_payment_id: submission_plan === 'sponsor' ? sponsor_payment_id : null,

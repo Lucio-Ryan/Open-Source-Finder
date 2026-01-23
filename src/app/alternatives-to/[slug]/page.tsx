@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { AlternativeCard, SearchBar } from '@/components/ui';
+import { PaginatedAlternativesGrid, SearchBar } from '@/components/ui';
 import { getProprietarySoftware, getProprietaryBySlug, getAlternativesFor } from '@/lib/mongodb/queries';
 
 // Force dynamic rendering to access MongoDB at runtime
@@ -25,12 +25,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (!software) return { title: 'Not Found' };
 
     return {
-      title: `Open Source Alternatives to ${software.name} | OS_Finder`,
+      title: `Open Source Alternatives to ${software.name} | OS Finder`,
       description: `Discover the best open source alternatives to ${software.name}. ${software.description}`,
     };
   } catch (error) {
     console.error('Error generating metadata:', error);
-    return { title: 'Alternatives | OS_Finder' };
+    return { title: 'Alternatives | OS Finder' };
   }
 }
 
@@ -77,18 +77,8 @@ export default async function AlternativesToPage({ params }: Props) {
 
       {/* Alternatives Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-muted font-mono">
-            <span className="text-brand">found:</span> <span className="text-white">{alternatives.length}</span> open source alternatives
-          </p>
-        </div>
-
         {alternatives.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {alternatives.map((alternative) => (
-              <AlternativeCard key={alternative.id} alternative={alternative} />
-            ))}
-          </div>
+          <PaginatedAlternativesGrid alternatives={alternatives} />
         ) : (
           <div className="text-center py-16 bg-surface rounded-xl border border-border">
             <p className="text-muted mb-4 font-mono">// no alternatives found for {software.name} yet</p>

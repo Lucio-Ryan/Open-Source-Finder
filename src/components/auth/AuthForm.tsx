@@ -58,22 +58,22 @@ export function AuthForm({ mode }: AuthFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm font-mono">
+        <div className="p-3 sm:p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-xs sm:text-sm font-mono">
           {error}
         </div>
       )}
       
       {success && (
-        <div className="p-4 bg-brand/10 border border-brand/30 rounded-lg text-brand text-sm font-mono">
+        <div className="p-3 sm:p-4 bg-brand/10 border border-brand/30 rounded-lg text-brand text-xs sm:text-sm font-mono">
           {success}
         </div>
       )}
 
       {mode === 'signup' && (
         <div>
-          <label htmlFor="name" className="block text-sm font-mono text-muted mb-2">
+          <label htmlFor="name" className="block text-xs sm:text-sm font-mono text-muted mb-1.5 sm:mb-2">
             Name
           </label>
           <input
@@ -81,14 +81,14 @@ export function AuthForm({ mode }: AuthFormProps) {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-3 bg-surface border border-border rounded-lg text-white font-mono focus:outline-none focus:border-brand transition-colors"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-surface border border-border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-brand transition-colors touch-manipulation"
             placeholder="Your name"
           />
         </div>
       )}
 
       <div>
-        <label htmlFor="email" className="block text-sm font-mono text-muted mb-2">
+        <label htmlFor="email" className="block text-xs sm:text-sm font-mono text-muted mb-1.5 sm:mb-2">
           Email
         </label>
         <input
@@ -97,13 +97,13 @@ export function AuthForm({ mode }: AuthFormProps) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full px-4 py-3 bg-surface border border-border rounded-lg text-white font-mono focus:outline-none focus:border-brand transition-colors"
+          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-surface border border-border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-brand transition-colors touch-manipulation"
           placeholder="you@example.com"
         />
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-mono text-muted mb-2">
+        <label htmlFor="password" className="block text-xs sm:text-sm font-mono text-muted mb-1.5 sm:mb-2">
           Password
         </label>
         <div className="relative">
@@ -114,15 +114,15 @@ export function AuthForm({ mode }: AuthFormProps) {
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={6}
-            className="w-full px-4 py-3 bg-surface border border-border rounded-lg text-white font-mono focus:outline-none focus:border-brand transition-colors pr-12"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-surface border border-border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-brand transition-colors pr-12 touch-manipulation"
             placeholder="••••••••"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-white transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-white transition-colors p-1 touch-manipulation"
           >
-            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            {showPassword ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
           </button>
         </div>
       </div>
@@ -130,13 +130,13 @@ export function AuthForm({ mode }: AuthFormProps) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3 bg-brand text-dark font-mono font-semibold rounded-lg hover:bg-brand-light transition-all hover:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full py-2.5 sm:py-3 bg-brand text-dark font-mono font-semibold text-sm rounded-lg hover:bg-brand-light transition-all hover:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation active:scale-[0.98]"
       >
         {loading && <Loader2 className="w-4 h-4 animate-spin" />}
         {mode === 'login' ? 'Sign In_' : 'Create Account_'}
       </button>
 
-      <p className="text-center text-sm font-mono text-muted">
+      <p className="text-center text-xs sm:text-sm font-mono text-muted">
         {mode === 'login' ? (
           <>
             Don&apos;t have an account?{' '}

@@ -240,11 +240,11 @@ export default function DebugPage() {
             <h2 className="text-lg font-mono text-brand mb-4">// getting_started</h2>
             <div className="space-y-4 text-muted text-sm">
               <p>Click &quot;Run Diagnostics&quot; to test your database connection.</p>
-              <p>If you haven&apos;t set up Supabase yet:</p>
+              <p>If you haven&apos;t set up MongoDB yet:</p>
               <ol className="list-decimal list-inside space-y-2">
-                <li>Create a project at <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-brand hover:underline">supabase.com</a></li>
-                <li>Run the SQL from <code className="text-brand">supabase/schema.sql</code> in the SQL Editor</li>
-                <li>Copy your credentials to <code className="text-brand">.env.local</code></li>
+                <li>Create a MongoDB database (local or cloud)</li>
+                <li>Add your <code className="text-brand">MONGODB_URI</code> to <code className="text-brand">.env.local</code></li>
+                <li>Run seed scripts to populate the database</li>
                 <li>Restart your dev server</li>
               </ol>
             </div>

@@ -62,8 +62,6 @@ export type Database = {
           user_id: string | null;
           screenshots: string[] | null;
           submission_plan: 'free' | 'sponsor';
-          backlink_verified: boolean;
-          backlink_url: string | null;
           sponsor_featured_until: string | null;
           sponsor_priority_until: string | null;
           sponsor_payment_id: string | null;
@@ -97,8 +95,6 @@ export type Database = {
           user_id?: string | null;
           screenshots?: string[] | null;
           submission_plan?: 'free' | 'sponsor';
-          backlink_verified?: boolean;
-          backlink_url?: string | null;
           sponsor_featured_until?: string | null;
           sponsor_priority_until?: string | null;
           sponsor_payment_id?: string | null;
@@ -132,8 +128,6 @@ export type Database = {
           user_id?: string | null;
           screenshots?: string[] | null;
           submission_plan?: 'free' | 'sponsor';
-          backlink_verified?: boolean;
-          backlink_url?: string | null;
           sponsor_featured_until?: string | null;
           sponsor_priority_until?: string | null;
           sponsor_payment_id?: string | null;
@@ -768,8 +762,6 @@ export interface SubmissionDraft {
   submitter_email: string | null;
   // Plan info
   submission_plan: 'free' | 'sponsor';
-  backlink_verified: boolean;
-  backlink_url: string | null;
   sponsor_payment_id: string | null;
   sponsor_paid: boolean;
   created_at: string;

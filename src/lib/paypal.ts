@@ -148,7 +148,7 @@ export async function createPayPalOrder(
       },
     ],
     application_context: {
-      brand_name: 'Open Source Finder',
+      brand_name: 'OS Finder',
       landing_page: 'NO_PREFERENCE',
       shipping_preference: 'NO_SHIPPING', // Removes billing/shipping address requirement
       user_action: 'PAY_NOW',

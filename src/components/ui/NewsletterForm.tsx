@@ -38,28 +38,28 @@ export function NewsletterForm({ compact = false }: NewsletterFormProps) {
 
   if (isSubmitted) {
     return (
-      <div className={`flex items-center justify-center space-x-3 ${compact ? 'py-2' : 'py-4'} text-brand font-mono`}>
-        <CheckCircle className="w-5 h-5" />
-        <span>subscription_confirmed</span>
+      <div className={`flex items-center justify-center space-x-2 sm:space-x-3 ${compact ? 'py-2' : 'py-4'} text-brand font-mono`}>
+        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+        <span className="text-xs sm:text-sm">subscription_confirmed</span>
       </div>
     );
   }
 
   if (compact) {
     return (
-      <form onSubmit={handleSubmit} className="flex gap-2">
+      <form onSubmit={handleSubmit} className="flex flex-col xs:flex-row gap-2">
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="your@email.com"
           required
-          className="w-48 sm:w-56 px-3 py-2 bg-surface border border-border rounded-lg text-white placeholder-muted font-mono text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50 transition-all"
+          className="w-full xs:w-40 sm:w-56 px-3 py-2 bg-surface border border-border rounded-lg text-white placeholder-muted font-mono text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50 transition-all touch-manipulation"
         />
         <button
           type="submit"
           disabled={isLoading}
-          className="px-4 py-2 bg-brand text-dark font-mono text-sm font-semibold rounded-lg hover:bg-brand-light transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 bg-brand text-dark font-mono text-xs sm:text-sm font-semibold rounded-lg hover:bg-brand-light transition-all disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation active:scale-[0.98]"
         >
           {isLoading ? '...' : 'Subscribe'}
         </button>
@@ -68,30 +68,30 @@ export function NewsletterForm({ compact = false }: NewsletterFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 sm:gap-3">
       <div className="relative flex-1">
-        <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted w-5 h-5" />
+        <Mail className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-muted w-4 h-4 sm:w-5 sm:h-5" />
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="your@email.com"
           required
-          className="w-full pl-12 pr-4 py-3.5 bg-surface border border-border rounded-lg text-white placeholder-muted font-mono focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50 transition-all"
+          className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 bg-surface border border-border rounded-lg text-white placeholder-muted font-mono text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50 transition-all touch-manipulation"
         />
       </div>
       <button
         type="submit"
         disabled={isLoading}
-        className="px-6 py-3.5 bg-brand text-dark font-mono font-semibold rounded-lg hover:bg-brand-light transition-all hover:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+        className="px-5 sm:px-6 py-3 sm:py-3.5 bg-brand text-dark font-mono font-semibold rounded-lg hover:bg-brand-light transition-all hover:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 touch-manipulation active:scale-[0.98]"
       >
         {isLoading ? (
           <>
             <Terminal className="w-4 h-4 animate-pulse" />
-            <span>loading...</span>
+            <span className="text-sm">loading...</span>
           </>
         ) : (
-          <span>Subscribe_</span>
+          <span className="text-sm">Subscribe_</span>
         )}
       </button>
     </form>

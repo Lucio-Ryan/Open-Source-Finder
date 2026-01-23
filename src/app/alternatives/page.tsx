@@ -47,21 +47,21 @@ export default async function AlternativesPage() {
     <div className="min-h-screen bg-dark">
       {/* Header */}
       <div className="bg-surface/50 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <Link
             href="/"
-            className="inline-flex items-center text-muted hover:text-brand font-mono text-sm mb-4 transition-colors"
+            className="inline-flex items-center text-muted hover:text-brand font-mono text-xs sm:text-sm mb-3 sm:mb-4 transition-colors touch-manipulation py-1"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             cd ../home
           </Link>
-          <div className="flex items-center space-x-3 mb-2">
-            <Terminal className="w-8 h-8 text-brand" />
-            <h1 className="text-3xl font-bold text-white">
+          <div className="flex items-center space-x-2 sm:space-x-3 mb-2">
+            <Terminal className="w-6 h-6 sm:w-8 sm:h-8 text-brand" />
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
               All Alternatives<span className="text-brand">_</span>
             </h1>
           </div>
-          <p className="text-muted font-mono text-sm mb-6">
+          <p className="text-muted font-mono text-xs sm:text-sm mb-4 sm:mb-6">
             <span className="text-brand">$</span> Browse {alternatives.length}+ curated open source alternatives
           </p>
           <div className="max-w-xl">
@@ -70,7 +70,7 @@ export default async function AlternativesPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <AlternativesList 
           alternatives={alternatives} 
           categories={simplifiedCategories}

@@ -95,9 +95,9 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
 
         <ul className="space-y-3 mb-6">
           <li className="flex items-start gap-2 text-sm">
-            <Link className="w-4 h-4 text-muted mt-0.5 flex-shrink-0" />
+            <Clock className="w-4 h-4 text-muted mt-0.5 flex-shrink-0" />
             <span className="text-muted">
-              <span className="text-white font-medium">Backlink required</span> - Add our embed code to your README
+              <span className="text-white font-medium">Review process</span> - Reviewed within ~1 week
             </span>
           </li>
           <li className="flex items-start gap-2 text-sm">
@@ -133,7 +133,7 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
         </ul>
 
         <div className="text-xs text-muted bg-dark/50 rounded-lg p-3 font-mono">
-          💡 Perfect for open source projects looking to gain visibility
+          Perfect for open source projects looking to gain visibility
         </div>
       </div>
 
@@ -175,9 +175,9 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
 
         <ul className="space-y-3 mb-6">
           <li className="flex items-start gap-2 text-sm">
-            <Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+            <Zap className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
             <span className="text-muted">
-              <span className="text-white font-medium">No backlink required</span> - Get listed without adding our badge
+              <span className="text-white font-medium">Instant approval</span> - Goes live immediately
             </span>
           </li>
           <li className="flex items-start gap-2 text-sm">
@@ -201,7 +201,7 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
         </ul>
 
         <div className="text-xs text-emerald-500/80 bg-emerald-500/10 rounded-lg p-3 font-mono border border-emerald-500/20">
-          🚀 Maximum visibility & instant launch for your project
+          Maximum visibility & instant launch for your project
         </div>
       </div>
     </div>

@@ -25,8 +25,8 @@ async function getPolicy() {
 }
 
 export const metadata: Metadata = {
-  title: 'Refund Policy | Open-Source Finder',
-  description: 'Refund Policy for Open-Source Finder - Learn about our refund terms and conditions.',
+  title: 'Refund Policy | OS Finder',
+  description: 'Refund Policy for OS Finder - Learn about our refund terms and conditions.',
 };
 
 export default async function RefundPage() {

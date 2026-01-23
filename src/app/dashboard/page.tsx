@@ -185,18 +185,18 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-dark">
       {/* Header */}
       <div className="bg-surface border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <p className="text-brand font-mono text-sm mb-2">// DASHBOARD</p>
-              <h1 className="text-3xl font-bold text-white font-mono">
+              <p className="text-brand font-mono text-xs sm:text-sm mb-1 sm:mb-2">// DASHBOARD</p>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white font-mono truncate">
                 Welcome, {displayName}<span className="text-brand">_</span>
               </h1>
-              <p className="text-muted font-mono text-sm mt-2">
+              <p className="text-muted font-mono text-xs sm:text-sm mt-1 sm:mt-2 truncate">
                 {user.email}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
               {/* <Link
                 href="/dashboard/advertisements"
                 className="flex items-center gap-2 px-4 py-2 text-muted hover:text-white border border-border hover:border-brand/50 rounded-lg font-mono text-sm transition-colors"
@@ -206,37 +206,37 @@ export default function DashboardPage() {
               </Link> */}
               <Link
                 href="/dashboard/settings"
-                className="flex items-center gap-2 px-4 py-2 text-muted hover:text-white border border-border hover:border-brand/50 rounded-lg font-mono text-sm transition-colors"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-muted hover:text-white border border-border hover:border-brand/50 rounded-lg font-mono text-xs sm:text-sm transition-colors touch-manipulation"
               >
                 <Settings className="w-4 h-4" />
-                Settings
+                <span className="hidden xs:inline">Settings</span>
               </Link>
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-2 px-4 py-2 text-muted hover:text-white border border-border hover:border-red-500/50 rounded-lg font-mono text-sm transition-colors"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-muted hover:text-white border border-border hover:border-red-500/50 rounded-lg font-mono text-xs sm:text-sm transition-colors touch-manipulation"
               >
                 <LogOut className="w-4 h-4" />
-                Sign Out
+                <span className="hidden xs:inline">Sign Out</span>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Notifications Panel for Creators */}
         {alternatives.filter(a => a.approved).length > 0 && (
-          <NotificationsPanel className="mb-8" />
+          <NotificationsPanel className="mb-6 sm:mb-8" />
         )}
 
         {/* Actions */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white font-mono">
+        <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-3 mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl font-bold text-white font-mono">
             Your Alternatives<span className="text-brand">_</span>
           </h2>
           <Link
             href="/submit"
-            className="flex items-center gap-2 px-4 py-2 bg-brand text-dark font-mono font-medium rounded-lg hover:bg-brand-light transition-all hover:shadow-glow"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-brand text-dark font-mono text-sm font-medium rounded-lg hover:bg-brand-light transition-all hover:shadow-glow touch-manipulation"
           >
             <Plus className="w-4 h-4" />
             Submit New
@@ -245,28 +245,28 @@ export default function DashboardPage() {
 
         {/* Alternatives List */}
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 text-brand animate-spin" />
+          <div className="flex items-center justify-center py-12 sm:py-16">
+            <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 text-brand animate-spin" />
           </div>
         ) : alternatives.length === 0 ? (
-          <div className="bg-surface border border-border rounded-xl p-12 text-center">
-            <div className="w-16 h-16 bg-brand/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Plus className="w-8 h-8 text-brand" />
+          <div className="bg-surface border border-border rounded-xl p-8 sm:p-12 text-center">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-brand/10 rounded-xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <Plus className="w-6 h-6 sm:w-8 sm:h-8 text-brand" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">No alternatives yet</h3>
-            <p className="text-muted font-mono text-sm mb-6">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-2">No alternatives yet</h3>
+            <p className="text-muted font-mono text-xs sm:text-sm mb-4 sm:mb-6">
               Submit your first open source alternative to get started.
             </p>
             <Link
               href="/submit"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-brand text-dark font-mono font-medium rounded-lg hover:bg-brand-light transition-all hover:shadow-glow"
+              className="inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-brand text-dark font-mono font-medium rounded-lg hover:bg-brand-light transition-all hover:shadow-glow touch-manipulation"
             >
               <Plus className="w-4 h-4" />
               Submit Alternative
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {alternatives.map((alt) => {
               const isActiveSponsor = hasActiveSponsor(alt);
               const sponsorTimeRemaining = formatSponsorTimeRemaining(alt.sponsor_featured_until || alt.sponsor_priority_until);
@@ -274,14 +274,14 @@ export default function DashboardPage() {
               return (
               <div
                 key={alt.id}
-                className={`bg-surface border rounded-xl p-5 hover:border-brand/30 transition-colors relative ${
+                className={`bg-surface border rounded-xl p-4 sm:p-5 hover:border-brand/30 transition-colors relative ${
                   alt.rejected_at ? 'border-red-500/30' : isActiveSponsor ? 'border-emerald-500/30' : 'border-border'
                 }`}
               >
                 {/* Sponsor Badge */}
                 {isActiveSponsor && (
-                  <div className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-0.5 bg-emerald-500 text-dark text-xs font-bold rounded font-mono z-10">
-                    <Sparkles className="w-3 h-3" />
+                  <div className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-0.5 bg-emerald-500 text-dark text-[10px] sm:text-xs font-bold rounded font-mono z-10">
+                    <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                     Sponsored
                   </div>
                 )}
@@ -296,38 +296,38 @@ export default function DashboardPage() {
                   </div>
                 )}
                 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                     {alt.icon_url ? (
                       <Image
                         src={alt.icon_url}
                         alt={alt.name}
                         width={48}
                         height={48}
-                        className="w-12 h-12 rounded-lg object-cover border border-border"
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover border border-border flex-shrink-0"
                       />
                     ) : (
-                      <div className="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center text-brand font-bold">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand/10 rounded-lg flex items-center justify-center text-brand font-bold flex-shrink-0 text-sm sm:text-base">
                         {alt.name.charAt(0)}
                       </div>
                     )}
-                    <div>
-                      <h3 className="font-semibold text-white">{alt.name}</h3>
-                      <p className="text-muted font-mono text-sm line-clamp-1 max-w-md">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-sm sm:text-base text-white truncate">{alt.name}</h3>
+                      <p className="text-muted font-mono text-xs sm:text-sm line-clamp-1 max-w-full sm:max-w-md">
                         {alt.description.replace(/<[^>]*>/g, '').slice(0, 100)}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4 flex-wrap">
                     {/* Sponsor Time Remaining */}
                     {isActiveSponsor && sponsorTimeRemaining && (
-                      <span className="text-xs font-mono text-emerald-500">
+                      <span className="text-[10px] sm:text-xs font-mono text-emerald-500">
                         {sponsorTimeRemaining}
                       </span>
                     )}
                     
                     <span
-                      className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono ${
+                      className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-mono ${
                         alt.approved
                           ? 'bg-brand/10 text-brand'
                           : alt.rejected_at
@@ -337,55 +337,59 @@ export default function DashboardPage() {
                     >
                       {alt.approved ? (
                         <>
-                          <CheckCircle className="w-3.5 h-3.5" />
-                          Approved
+                          <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          <span className="hidden xs:inline">Approved</span>
+                          <span className="xs:hidden">✓</span>
                         </>
                       ) : alt.rejected_at ? (
                         <>
-                          <XCircle className="w-3.5 h-3.5" />
-                          Rejected
+                          <XCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          <span className="hidden xs:inline">Rejected</span>
+                          <span className="xs:hidden">✗</span>
                         </>
                       ) : (
                         <>
-                          <Clock className="w-3.5 h-3.5" />
-                          Pending
+                          <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          <span className="hidden xs:inline">Pending</span>
+                          <span className="xs:hidden">...</span>
                         </>
                       )}
                     </span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
                       {/* Upgrade to Sponsor Button */}
                       {!isActiveSponsor && !alt.rejected_at && (
                         <button
                           onClick={() => handleUpgradeToSponsor(alt.id, alt.name)}
                           disabled={upgradingId === alt.id}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-dark border border-emerald-500/30 hover:border-emerald-500 rounded-lg font-mono text-xs font-medium transition-all disabled:opacity-50"
+                          className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-dark border border-emerald-500/30 hover:border-emerald-500 rounded-lg font-mono text-[10px] sm:text-xs font-medium transition-all disabled:opacity-50 touch-manipulation"
                           title="Upgrade to Sponsor Plan"
                         >
                           {upgradingId === alt.id ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
                           ) : (
-                            <Zap className="w-3.5 h-3.5" />
+                            <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                           )}
-                          {upgradingId === alt.id ? 'Upgrading...' : 'Boost $19'}
+                          <span className="hidden xs:inline">{upgradingId === alt.id ? 'Upgrading...' : 'Boost $19'}</span>
+                          <span className="xs:hidden">$19</span>
                         </button>
                       )}
                       {alt.approved && (
                         <Link
                           href={`/alternatives/${alt.slug}`}
-                          className="p-2 text-muted hover:text-white border border-border hover:border-brand/50 rounded-lg transition-colors"
+                          className="p-1.5 sm:p-2 text-muted hover:text-white border border-border hover:border-brand/50 rounded-lg transition-colors touch-manipulation"
                           title="View"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </Link>
                       )}
                       {/* Only sponsors can edit their listings (unlimited times) */}
                       {(alt.submission_plan === 'sponsor' || alt.rejected_at) && (
                         <Link
                           href={`/dashboard/edit/${alt.id}`}
-                          className="p-2 text-muted hover:text-brand border border-border hover:border-brand/50 rounded-lg transition-colors"
+                          className="p-1.5 sm:p-2 text-muted hover:text-brand border border-border hover:border-brand/50 rounded-lg transition-colors touch-manipulation"
                           title={alt.rejected_at ? "Edit & Resubmit" : "Edit"}
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </Link>
                       )}
                     </div>
@@ -394,11 +398,11 @@ export default function DashboardPage() {
 
                 {/* Rejection Reason Banner */}
                 {alt.rejection_reason && (
-                  <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                    <p className="text-sm text-red-400">
+                  <div className="mt-3 sm:mt-4 p-2.5 sm:p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                    <p className="text-xs sm:text-sm text-red-400">
                       <strong className="font-mono">Rejection Reason:</strong> {alt.rejection_reason}
                     </p>
-                    <p className="text-xs text-red-400/70 mt-1">
+                    <p className="text-[10px] sm:text-xs text-red-400/70 mt-1">
                       You can edit your submission and resubmit for review.
                     </p>
                   </div>
@@ -406,15 +410,15 @@ export default function DashboardPage() {
                 
                 {/* Sponsor Benefits Info */}
                 {isActiveSponsor && (
-                  <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
-                    <div className="flex items-center gap-2 text-emerald-500 text-sm font-mono mb-1">
-                      <Sparkles className="w-4 h-4" />
+                  <div className="mt-3 sm:mt-4 p-2.5 sm:p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                    <div className="flex items-center gap-2 text-emerald-500 text-xs sm:text-sm font-mono mb-1">
+                      <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       Active Sponsor Benefits
                     </div>
-                    <ul className="text-xs text-emerald-500/80 space-y-1">
-                      <li>• Featured on home page &quot;Top Alternatives&quot; section</li>
-                      <li>• Priority placement in search results</li>
-                      <li>• Included in weekly newsletter</li>
+                    <ul className="text-[10px] sm:text-xs text-emerald-500/80 space-y-0.5 sm:space-y-1">
+                      <li>• Featured on home page</li>
+                      <li>• Priority in search results</li>
+                      <li>• Included in newsletter</li>
                     </ul>
                   </div>
                 )}
@@ -427,11 +431,11 @@ export default function DashboardPage() {
 
       {/* Boost Modal */}
       {boostModal.isOpen && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-40 pt-8">
-          <div className="bg-surface border border-border rounded-xl max-w-lg w-full relative max-h-[80vh] flex flex-col mx-4">
+        <div className="fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-40 p-0 sm:p-4">
+          <div className="bg-surface border border-border rounded-t-xl sm:rounded-xl w-full sm:max-w-lg relative max-h-[90vh] sm:max-h-[80vh] flex flex-col">
             <button
               onClick={closeBoostModal}
-              className="absolute top-4 right-4 text-muted hover:text-white transition-colors z-10"
+              className="absolute top-3 sm:top-4 right-3 sm:right-4 text-muted hover:text-white transition-colors z-10 p-1"
             >
               <X className="w-5 h-5" />
             </button>
@@ -439,16 +443,16 @@ export default function DashboardPage() {
             {/* Scrollable Content */}
             <div className="overflow-y-auto flex-1">
               {/* Header Section */}
-              <div className="p-6 border-b border-border">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center">
-                    <Zap className="w-6 h-6 text-emerald-500" />
+              <div className="p-4 sm:p-6 border-b border-border">
+                <div className="flex items-center gap-3 sm:gap-4 pr-8">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-500/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500" />
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-white font-mono">
+                  <div className="min-w-0">
+                    <h3 className="text-lg sm:text-xl font-bold text-white font-mono truncate">
                       Boost {boostModal.alternativeName}
                     </h3>
-                    <p className="text-muted text-sm">
+                    <p className="text-muted text-xs sm:text-sm">
                       Get more visibility for your project
                     </p>
                   </div>
@@ -456,45 +460,45 @@ export default function DashboardPage() {
               </div>
 
               {/* Benefits Section */}
-              <div className="p-6 border-b border-border">
-                <h4 className="text-sm font-mono text-muted mb-3">// SPONSOR_BENEFITS</h4>
-                <ul className="text-sm text-white space-y-2">
+              <div className="p-4 sm:p-6 border-b border-border">
+                <h4 className="text-xs sm:text-sm font-mono text-muted mb-2 sm:mb-3">// SPONSOR_BENEFITS</h4>
+                <ul className="text-xs sm:text-sm text-white space-y-1.5 sm:space-y-2">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-500" />
-                    Featured on home page &quot;Top Alternatives&quot;
+                    <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 flex-shrink-0" />
+                    <span>Featured on home page</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-500" />
-                    Top of search results for 7 days
+                    <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 flex-shrink-0" />
+                    <span>Top of search results for 7 days</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-500" />
-                    Included in weekly newsletter
+                    <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 flex-shrink-0" />
+                    <span>Included in weekly newsletter</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-500" />
-                    Auto-approve if pending review
+                    <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 flex-shrink-0" />
+                    <span>Auto-approve if pending review</span>
                   </li>
                 </ul>
               </div>
 
               {/* Payment Section - Separate Card */}
-              <div className="p-6">
-                <div className="bg-white rounded-lg p-6 border border-emerald-500/30">
-                  <div className="flex items-center justify-between mb-6">
+              <div className="p-4 sm:p-6">
+                <div className="bg-white rounded-lg p-4 sm:p-6 border border-emerald-500/30">
+                  <div className="flex items-center justify-between mb-4 sm:mb-6">
                   <div>
-                    <h5 className="text-gray-900 font-semibold">Sponsor Boost</h5>
-                    <p className="text-sm text-gray-600">7 days of premium features</p>
+                    <h5 className="text-gray-900 font-semibold text-sm sm:text-base">Sponsor Boost</h5>
+                    <p className="text-xs sm:text-sm text-gray-600">7 days of premium features</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-emerald-600">$19</p>
-                    <p className="text-xs text-gray-500">one-time</p>
+                    <p className="text-xl sm:text-2xl font-bold text-emerald-600">$19</p>
+                    <p className="text-[10px] sm:text-xs text-gray-500">one-time</p>
                   </div>
                 </div>
 
                 {boostError && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg mb-4">
-                    <p className="text-red-600 text-sm">{boostError}</p>
+                  <div className="p-2.5 sm:p-3 bg-red-50 border border-red-200 rounded-lg mb-4">
+                    <p className="text-red-600 text-xs sm:text-sm">{boostError}</p>
                   </div>
                 )}
 
@@ -509,7 +513,7 @@ export default function DashboardPage() {
                 />
                 </div>
               
-                <p className="text-xs text-muted text-center mt-4">
+                <p className="text-[10px] sm:text-xs text-muted text-center mt-3 sm:mt-4">
                   Secure payment powered by PayPal
                 </p>
               </div>

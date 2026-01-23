@@ -25,8 +25,8 @@ async function getPolicy() {
 }
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | Open-Source Finder',
-  description: 'Terms of Service for Open-Source Finder - Review our terms and conditions for using the platform.',
+  title: 'Terms of Service | OS Finder',
+  description: 'Terms of Service for OS Finder - Review our terms and conditions for using the platform.',
 };
 
 export default async function TermsPage() {

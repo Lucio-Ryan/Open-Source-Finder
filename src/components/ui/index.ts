@@ -2,6 +2,8 @@ export { SearchBar } from './SearchBar';
 export { AlternativeCard } from './AlternativeCard';
 export { AlternativesList } from './AlternativesList';
 export { AlternativeVoteSection } from './AlternativeVoteSection';
+export { Pagination } from './Pagination';
+export { PaginatedAlternativesGrid } from './PaginatedAlternativesGrid';
 export { BioEditor } from './BioEditor';
 export { CategoryCard } from './CategoryCard';
 export { TagBadge } from './TagBadge';
@@ -26,7 +28,6 @@ export { AdSubmitForm } from './AdSubmitForm';
 
 // Submission plan components
 export { PlanSelection, type SubmissionPlan } from './PlanSelection';
-export { BacklinkVerification } from './BacklinkVerification';
 export { SponsoredAlternativeCard } from './SponsoredAlternativeCard';
 
 // Payment components

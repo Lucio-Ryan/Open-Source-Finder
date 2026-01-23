@@ -124,9 +124,9 @@ export function AlternativeCard({ alternative }: AlternativeCardProps) {
 
   return (
     <div className="card-dark group">
-      <div className="flex items-start justify-between mb-5">
+      <div className="flex items-start justify-between mb-4 sm:mb-5 gap-2">
         {/* Vote buttons on the left */}
-        <div className="flex items-start space-x-3">
+        <div className="flex items-start space-x-2 sm:space-x-3 min-w-0">
           <VoteButtons 
             alternativeId={alternative.id} 
             initialScore={voteScore}
@@ -134,35 +134,36 @@ export function AlternativeCard({ alternative }: AlternativeCardProps) {
             layout="vertical"
             className="flex-shrink-0"
           />
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
             {iconUrl ? (
               <Image
                 src={iconUrl}
                 alt={`${alternative.name} icon`}
                 width={56}
                 height={56}
-                className="w-14 h-14 rounded-xl object-cover border border-brand/20 group-hover:border-brand/40 transition-colors"
+                className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl object-cover border border-brand/20 group-hover:border-brand/40 transition-colors flex-shrink-0"
               />
             ) : (
-              <div className="w-14 h-14 bg-brand/10 border border-brand/20 rounded-xl flex items-center justify-center text-brand font-pixel text-xl group-hover:border-brand/40 transition-colors">
+              <div className="w-10 h-10 sm:w-14 sm:h-14 bg-brand/10 border border-brand/20 rounded-lg sm:rounded-xl flex items-center justify-center text-brand font-pixel text-base sm:text-xl group-hover:border-brand/40 transition-colors flex-shrink-0">
                 {alternative.name.charAt(0)}
               </div>
             )}
-            <div>
+            <div className="min-w-0">
               <Link href={`/alternatives/${alternative.slug}`}>
-                <h3 className="font-semibold text-white group-hover:text-brand transition-colors">
+                <h3 className="font-semibold text-sm sm:text-base text-white group-hover:text-brand transition-colors truncate">
                   {alternative.name}
                 </h3>
               </Link>
-              <div className="flex items-center space-x-2 text-xs font-mono text-muted">
+              <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5 text-xs font-mono text-muted">
                 {isSelfHosted && (
                   <span className="flex items-center text-brand">
                     <Server className="w-3 h-3 mr-1" />
-                    self-hosted
+                    <span className="hidden xs:inline">self-hosted</span>
+                    <span className="xs:hidden">SH</span>
                   </span>
                 )}
                 {alternative.license && (
-                  <span className="text-muted/60">• {alternative.license}</span>
+                  <span className="text-muted/60 truncate max-w-[80px] sm:max-w-none">• {alternative.license}</span>
                 )}
               </div>
             </div>
@@ -170,57 +171,57 @@ export function AlternativeCard({ alternative }: AlternativeCardProps) {
         </div>
         
         {/* Health Score */}
-        <div className={`flex items-center space-x-2 px-2 py-1 bg-surface rounded-md border border-border ${statsLoading ? 'animate-pulse' : ''}`}>
-          <div className={`w-2 h-2 rounded-full ${getHealthScoreColor(displayHealthScore)}`} />
-          <span className="text-xs font-mono text-muted">{displayHealthScore}</span>
+        <div className={`flex items-center space-x-1.5 sm:space-x-2 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-surface rounded-md border border-border flex-shrink-0 ${statsLoading ? 'animate-pulse' : ''}`}>
+          <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${getHealthScoreColor(displayHealthScore)}`} />
+          <span className="text-[10px] sm:text-xs font-mono text-muted">{displayHealthScore}</span>
         </div>
       </div>
 
-      <p className="text-muted text-sm mb-5 line-clamp-2 font-mono leading-relaxed">
+      <p className="text-muted text-xs sm:text-sm mb-4 sm:mb-5 line-clamp-2 font-mono leading-relaxed">
         {alternative.short_description || alternative.description}
       </p>
 
       {/* Alternative To */}
       {alternativeTo.length > 0 && (
-        <div className="flex items-center flex-wrap gap-1.5 mb-5 text-xs font-mono">
-          <span className="text-muted">alternative to:</span>
-          {alternativeTo.slice(0, 3).map((software, index) => (
+        <div className="flex items-center flex-wrap gap-1 sm:gap-1.5 mb-4 sm:mb-5 text-xs font-mono">
+          <span className="text-muted">alt to:</span>
+          {alternativeTo.slice(0, 2).map((software, index) => (
             <span key={software.id}>
               <Link
                 href={`/alternatives-to/${software.slug}`}
-                className="text-orange-400 hover:text-orange-300 transition-colors"
+                className="text-orange-400 hover:text-orange-300 transition-colors touch-manipulation"
               >
                 {software.name}
               </Link>
-              {index < Math.min(alternativeTo.length, 3) - 1 && (
+              {index < Math.min(alternativeTo.length, 2) - 1 && (
                 <span className="text-muted">,</span>
               )}
             </span>
           ))}
-          {alternativeTo.length > 3 && (
-            <span className="text-muted">+{alternativeTo.length - 3} more</span>
+          {alternativeTo.length > 2 && (
+            <span className="text-muted">+{alternativeTo.length - 2}</span>
           )}
         </div>
       )}
 
       {/* GitHub Stats */}
       {alternative.github && (
-        <div className={`flex items-center space-x-5 text-xs font-mono text-muted mb-5 ${statsLoading ? 'animate-pulse' : ''}`}>
+        <div className={`flex items-center flex-wrap gap-x-3 sm:gap-x-5 gap-y-1 text-xs font-mono text-muted mb-4 sm:mb-5 ${statsLoading ? 'animate-pulse' : ''}`}>
           {displayStars > 0 && (
             <div className="flex items-center space-x-1">
-              <Star className="w-3.5 h-3.5 text-yellow-500" />
+              <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-yellow-500" />
               <span>{formatNumber(displayStars)}</span>
             </div>
           )}
           {displayForks > 0 && (
             <div className="flex items-center space-x-1">
-              <GitFork className="w-3.5 h-3.5" />
+              <GitFork className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span>{formatNumber(displayForks)}</span>
             </div>
           )}
           {displayLastCommit && (
             <div className="flex items-center space-x-1">
-              <Clock className="w-3.5 h-3.5" />
+              <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span>{formatDate(displayLastCommit)}</span>
             </div>
           )}
@@ -228,24 +229,24 @@ export function AlternativeCard({ alternative }: AlternativeCardProps) {
       )}
 
       {/* Actions */}
-      <div className="flex items-center space-x-4 pt-5 border-t border-border">
+      <div className="flex items-center space-x-3 sm:space-x-4 pt-4 sm:pt-5 border-t border-border">
         <a
           href={alternative.website}
           target="_blank"
           rel={isSponsor ? "noopener noreferrer" : "noopener noreferrer nofollow"}
-          className="flex items-center space-x-1 text-xs font-mono text-brand hover:text-brand-light transition-colors"
+          className="flex items-center space-x-1 text-xs font-mono text-brand hover:text-brand-light transition-colors touch-manipulation py-1"
         >
           <span>website</span>
-          <ExternalLink className="w-3.5 h-3.5" />
+          <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
         </a>
         {alternative.github && (
           <a
             href={alternative.github}
             target="_blank"
             rel={isSponsor ? "noopener noreferrer" : "noopener noreferrer nofollow"}
-            className="flex items-center space-x-1 text-xs font-mono text-muted hover:text-white transition-colors"
+            className="flex items-center space-x-1 text-xs font-mono text-muted hover:text-white transition-colors touch-manipulation py-1"
           >
-            <Github className="w-3.5 h-3.5" />
+            <Github className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             <span>source</span>
           </a>
         )}
