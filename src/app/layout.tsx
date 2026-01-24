@@ -69,6 +69,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        <script defer src="https://cloud.umami.is/script.js" data-website-id="67610b2b-567d-460f-898a-9161a00540ce"></script>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="canonical" href={process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'} />
         <StructuredData />
