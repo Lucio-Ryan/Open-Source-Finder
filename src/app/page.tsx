@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, Code2, ChevronRight } from 'lucide-react';
-import { SearchBar, AlternativeCard, SponsoredAlternativeCard, NewsletterForm, AlternativesGridWithAds, isActiveSponsor } from '@/components/ui';
+import { SearchBar, AlternativeCard, SponsoredAlternativeCard, NewsletterSection, AlternativesGridWithAds, isActiveSponsor } from '@/components/ui';
 import { 
   getFeaturedAlternatives, 
   getProprietarySoftware,
@@ -90,22 +90,7 @@ export default async function Home() {
       </section>
 
       {/* Simple Newsletter Section - Below Hero */}
-      <section className="py-4 sm:py-6 lg:py-8 bg-surface/30 border-b border-border">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-            <div className="text-center sm:text-left">
-              <p className="text-white font-mono text-xs sm:text-sm">
-                <code>
-                  $ discover <span className="text-brand">{stats ? `--${stats.totalAlternatives}` : '--'}</span> alternatives
-                </code>
-              </p>
-            </div>
-            <div className="w-full sm:w-auto">
-              <NewsletterForm compact />
-            </div>
-          </div>
-        </div>
-      </section>
+      <NewsletterSection totalAlternatives={stats?.totalAlternatives} />
 
       {/* Discover Alternatives To Section */}
       <section className="py-10 sm:py-12 lg:py-16 xl:py-20 bg-surface/30 border-b border-border">

@@ -551,6 +551,34 @@ const NewsletterSubscriptionSchema = new Schema<INewsletterSubscription>({
 
 export const NewsletterSubscription: Model<INewsletterSubscription> = mongoose.models.NewsletterSubscription || mongoose.model<INewsletterSubscription>('NewsletterSubscription', NewsletterSubscriptionSchema);
 
+// ============ SITE SETTINGS SCHEMA ============
+export interface ISiteSettings extends Document {
+  _id: mongoose.Types.ObjectId;
+  key: string;
+  showSubmitButton: boolean;
+  showDashboardButton: boolean;
+  showNewsletterSection: boolean;
+  showLegalSection: boolean;
+  showSubmitResourcesFooter: boolean;
+  updated_at: Date;
+}
+
+const SiteSettingsSchema = new Schema<ISiteSettings>(
+  {
+    key: { type: String, required: true, unique: true, default: 'global' },
+    showSubmitButton: { type: Boolean, default: true },
+    showDashboardButton: { type: Boolean, default: true },
+    showNewsletterSection: { type: Boolean, default: true },
+    showLegalSection: { type: Boolean, default: true },
+    showSubmitResourcesFooter: { type: Boolean, default: true },
+  },
+  {
+    timestamps: { createdAt: false, updatedAt: 'updated_at' },
+  }
+);
+
+export const SiteSettings: Model<ISiteSettings> = mongoose.models.SiteSettings || mongoose.model<ISiteSettings>('SiteSettings', SiteSettingsSchema);
+
 // ============ MODEL EXPORTS ============
 // Use this pattern to prevent model recompilation in development
 export const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);

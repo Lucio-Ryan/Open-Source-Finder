@@ -1,14 +1,42 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Menu, X, Search, Terminal, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
+
+interface SiteSettings {
+  showSubmitButton: boolean;
+  showDashboardButton: boolean;
+}
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, loading, signOut } = useAuth();
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>({
+    showSubmitButton: true,
+    showDashboardButton: true,
+  });
+
+  // Fetch site settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/site-settings');
+        if (response.ok) {
+          const data = await response.json();
+          setSiteSettings({
+            showSubmitButton: data.showSubmitButton ?? true,
+            showDashboardButton: data.showDashboardButton ?? true,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch site settings:', error);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const navigation = [
     { name: 'Launches', href: '/launches' },
@@ -61,11 +89,19 @@ export function Header() {
             >
               <Search className="w-5 h-5" />
             </Link>
+            {siteSettings.showSubmitButton && (
+              <Link
+                href="/submit"
+                className="hidden sm:inline-flex items-center px-3 md:px-4 py-2 bg-brand text-dark font-mono text-xs md:text-sm font-medium rounded-lg hover:bg-brand-light transition-all hover:shadow-glow"
+              >
+                Submit_
+              </Link>
+            )}
             <Link
-              href="/submit"
+              href="/donate"
               className="hidden sm:inline-flex items-center px-3 md:px-4 py-2 bg-brand text-dark font-mono text-xs md:text-sm font-medium rounded-lg hover:bg-brand-light transition-all hover:shadow-glow"
             >
-              Submit_
+              Support the Project
             </Link>
             
             {/* Auth Section */}
@@ -93,14 +129,16 @@ export function Header() {
                           onClick={() => setIsUserMenuOpen(false)}
                         />
                         <div className="absolute right-0 mt-2 w-48 bg-surface border border-border rounded-lg shadow-xl z-50 overflow-hidden">
-                          <Link
-                            href="/dashboard"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center gap-2 px-4 py-3 text-muted hover:text-white hover:bg-brand/10 font-mono text-sm transition-colors"
-                          >
-                            <LayoutDashboard className="w-4 h-4" />
-                            Dashboard
-                          </Link>
+                          {siteSettings.showDashboardButton && (
+                            <Link
+                              href="/dashboard"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="flex items-center gap-2 px-4 py-3 text-muted hover:text-white hover:bg-brand/10 font-mono text-sm transition-colors"
+                            >
+                              <LayoutDashboard className="w-4 h-4" />
+                              Dashboard
+                            </Link>
+                          )}
                           <button
                             onClick={handleSignOut}
                             className="w-full flex items-center gap-2 px-4 py-3 text-muted hover:text-red-400 hover:bg-red-500/10 font-mono text-sm transition-colors"
@@ -153,13 +191,15 @@ export function Header() {
                 </div>
               ) : user ? (
                 <>
-                  <Link
-                    href="/dashboard"
-                    className="px-4 py-3.5 text-muted hover:text-brand active:bg-brand/10 font-mono text-sm transition-colors touch-manipulation"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <span className="text-brand/50">{'>'}</span> Dashboard
-                  </Link>
+                  {siteSettings.showDashboardButton && (
+                    <Link
+                      href="/dashboard"
+                      className="px-4 py-3.5 text-muted hover:text-brand active:bg-brand/10 font-mono text-sm transition-colors touch-manipulation"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <span className="text-brand/50">{'>'}</span> Dashboard
+                    </Link>
+                  )}
                   <button
                     onClick={() => {
                       handleSignOut();
@@ -179,14 +219,25 @@ export function Header() {
                   <span className="text-brand/50">{'>'}</span> Sign In
                 </Link>
               )}
-              <div className="p-4 pt-2">
-                <Link
-                  href="/submit"
-                  className="flex items-center justify-center w-full px-4 py-3 bg-brand text-dark font-mono text-sm font-medium rounded-lg active:bg-brand-light transition-colors touch-manipulation"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Submit Project
-                </Link>
+              {siteSettings.showSubmitButton && (
+                <div className="p-4 pt-2">
+                  <Link
+                    href="/submit"
+                    className="flex items-center justify-center w-full px-4 py-3 bg-brand text-dark font-mono text-sm font-medium rounded-lg active:bg-brand-light transition-colors touch-manipulation"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Submit Project
+                  </Link>
+                </div>
+              )}
+              <div className="p-4 pt-0">
+                  <Link
+                    href="/donate"
+                    className="flex items-center justify-center w-full px-4 py-3 bg-brand text-dark font-mono text-sm font-medium rounded-lg active:bg-brand-light transition-colors touch-manipulation"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Support the Project
+                  </Link>
               </div>
             </nav>
           </div>

@@ -1,7 +1,39 @@
+'use client';
+
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { Terminal, Mail } from 'lucide-react';
 
+interface SiteSettings {
+  showLegalSection: boolean;
+  showSubmitResourcesFooter: boolean;
+}
+
 export function Footer() {
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>({
+    showLegalSection: true,
+    showSubmitResourcesFooter: true,
+  });
+
+  // Fetch site settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/site-settings');
+        if (response.ok) {
+          const data = await response.json();
+          setSiteSettings({
+            showLegalSection: data.showLegalSection ?? true,
+            showSubmitResourcesFooter: data.showSubmitResourcesFooter ?? true,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch site settings:', error);
+      }
+    };
+    fetchSettings();
+  }, []);
+
   const footerLinks = {
     product: [
       { name: 'All Alternatives', href: '/alternatives' },
@@ -11,7 +43,7 @@ export function Footer() {
     ],
     resources: [
       { name: 'About Us', href: '/about' },
-      { name: 'Submit Project', href: '/submit' },
+      ...(siteSettings.showSubmitResourcesFooter ? [{ name: 'Submit Project', href: '/submit' }] : []),
     ],
     legal: [
       { name: 'Privacy Policy', href: '/privacy' },
@@ -87,21 +119,23 @@ export function Footer() {
             </div>
 
             {/* Legal Links */}
-            <div>
-              <h3 className="font-mono text-brand text-xs sm:text-sm mb-3 sm:mb-4">// Legal</h3>
-              <ul className="space-y-2 sm:space-y-3">
-                {footerLinks.legal.map((link) => (
-                  <li key={link.name}>
-                    <Link
-                      href={link.href}
-                      className="text-muted hover:text-white transition-colors text-xs sm:text-sm font-mono group touch-manipulation inline-block py-0.5"
-                    >
-                      <span className="text-brand/50 group-hover:text-brand">{'>'}</span> {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {siteSettings.showLegalSection && (
+              <div>
+                <h3 className="font-mono text-brand text-xs sm:text-sm mb-3 sm:mb-4">// Legal</h3>
+                <ul className="space-y-2 sm:space-y-3">
+                  {footerLinks.legal.map((link) => (
+                    <li key={link.name}>
+                      <Link
+                        href={link.href}
+                        className="text-muted hover:text-white transition-colors text-xs sm:text-sm font-mono group touch-manipulation inline-block py-0.5"
+                      >
+                        <span className="text-brand/50 group-hover:text-brand">{'>'}</span> {link.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Bottom Bar */}

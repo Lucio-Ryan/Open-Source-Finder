@@ -8,6 +8,7 @@ export { BioEditor } from './BioEditor';
 export { CategoryCard } from './CategoryCard';
 export { TagBadge } from './TagBadge';
 export { NewsletterForm } from './NewsletterForm';
+export { NewsletterSection } from './NewsletterSection';
 export { RichTextEditor } from './RichTextEditor';
 export { RichTextContent } from './RichTextContent';
 export { GitHubStatsCard } from './GitHubStatsCard';

@@ -85,7 +85,7 @@ interface PayPalCaptureResponse {
 /**
  * Get PayPal access token using client credentials
  */
-async function getAccessToken(): Promise<string> {
+export async function getAccessToken(): Promise<string> {
   if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
     throw new Error('PayPal credentials not configured');
   }

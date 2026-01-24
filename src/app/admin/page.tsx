@@ -16,7 +16,10 @@ import {
   AlertCircle,
   Megaphone,
   Mail,
-  FileText
+  FileText,
+  Settings,
+  ToggleLeft,
+  ToggleRight
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
 
@@ -28,11 +31,28 @@ interface DashboardStats {
   totalUsers: number;
 }
 
+interface SiteSettings {
+  showSubmitButton: boolean;
+  showDashboardButton: boolean;
+  showNewsletterSection: boolean;
+  showLegalSection: boolean;
+  showSubmitResourcesFooter: boolean;
+}
+
 export default function AdminDashboardPage() {
   const { user, profile, loading: authLoading, signOut } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>({
+    showSubmitButton: true,
+    showDashboardButton: true,
+    showNewsletterSection: true,
+    showLegalSection: true,
+    showSubmitResourcesFooter: true,
+  });
+  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [settingsSaving, setSettingsSaving] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -65,6 +85,61 @@ export default function AdminDashboardPage() {
       fetchStats();
     }
   }, [profile]);
+
+  // Fetch site settings
+  useEffect(() => {
+    const fetchSiteSettings = async () => {
+      try {
+        const response = await fetch('/api/admin/site-settings');
+        if (response.ok) {
+          const data = await response.json();
+          setSiteSettings({
+            showSubmitButton: data.showSubmitButton ?? true,
+            showDashboardButton: data.showDashboardButton ?? true,
+            showNewsletterSection: data.showNewsletterSection ?? true,
+            showLegalSection: data.showLegalSection ?? true,
+            showSubmitResourcesFooter: data.showSubmitResourcesFooter ?? true,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch site settings:', error);
+      } finally {
+        setSettingsLoading(false);
+      }
+    };
+
+    if (profile?.role === 'admin') {
+      fetchSiteSettings();
+    }
+  }, [profile]);
+
+  // Toggle a site setting
+  const handleToggleSetting = async (key: keyof SiteSettings) => {
+    const newValue = !siteSettings[key];
+    const updatedSettings = { ...siteSettings, [key]: newValue };
+    setSiteSettings(updatedSettings);
+    setSettingsSaving(true);
+
+    try {
+      const response = await fetch('/api/admin/site-settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedSettings),
+      });
+
+      if (!response.ok) {
+        // Revert on failure
+        setSiteSettings(siteSettings);
+        console.error('Failed to update site settings');
+      }
+    } catch (error) {
+      // Revert on error
+      setSiteSettings(siteSettings);
+      console.error('Failed to update site settings:', error);
+    } finally {
+      setSettingsSaving(false);
+    }
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -259,6 +334,133 @@ export default function AdminDashboardPage() {
               </div>
             </Link>
           ))}
+        </div>
+
+        {/* UI Visibility Toggles */}
+        <div className="mt-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-brand/10 rounded-xl flex items-center justify-center">
+              <Settings className="w-5 h-5 text-brand" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white">UI Visibility Toggles</h2>
+              <p className="text-muted text-sm">Control which UI elements are visible on the site</p>
+            </div>
+            {settingsSaving && (
+              <span className="ml-auto text-brand text-sm font-mono flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Saving...
+              </span>
+            )}
+          </div>
+
+          {settingsLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 text-brand animate-spin" />
+            </div>
+          ) : (
+            <div className="bg-surface border border-border rounded-xl divide-y divide-border">
+              {/* Submit Button Toggle */}
+              <div className="flex items-center justify-between p-5">
+                <div>
+                  <h3 className="font-semibold text-white">Submit Button (Header)</h3>
+                  <p className="text-muted text-sm">Show/hide the &quot;Submit_&quot; button in the navigation header</p>
+                </div>
+                <button
+                  onClick={() => handleToggleSetting('showSubmitButton')}
+                  disabled={settingsSaving}
+                  className="text-brand hover:text-brand-light transition-colors disabled:opacity-50"
+                  aria-label={siteSettings.showSubmitButton ? 'Disable submit button' : 'Enable submit button'}
+                >
+                  {siteSettings.showSubmitButton ? (
+                    <ToggleRight className="w-10 h-10" />
+                  ) : (
+                    <ToggleLeft className="w-10 h-10 text-muted" />
+                  )}
+                </button>
+              </div>
+
+              {/* Dashboard Button Toggle */}
+              <div className="flex items-center justify-between p-5">
+                <div>
+                  <h3 className="font-semibold text-white">Dashboard Button (Header Dropdown)</h3>
+                  <p className="text-muted text-sm">Show/hide the &quot;Dashboard&quot; link in the user dropdown menu</p>
+                </div>
+                <button
+                  onClick={() => handleToggleSetting('showDashboardButton')}
+                  disabled={settingsSaving}
+                  className="text-brand hover:text-brand-light transition-colors disabled:opacity-50"
+                  aria-label={siteSettings.showDashboardButton ? 'Disable dashboard button' : 'Enable dashboard button'}
+                >
+                  {siteSettings.showDashboardButton ? (
+                    <ToggleRight className="w-10 h-10" />
+                  ) : (
+                    <ToggleLeft className="w-10 h-10 text-muted" />
+                  )}
+                </button>
+              </div>
+
+              {/* Newsletter Section Toggle */}
+              <div className="flex items-center justify-between p-5">
+                <div>
+                  <h3 className="font-semibold text-white">Newsletter Section (Home Page)</h3>
+                  <p className="text-muted text-sm">Show/hide the email subscription section on the home page</p>
+                </div>
+                <button
+                  onClick={() => handleToggleSetting('showNewsletterSection')}
+                  disabled={settingsSaving}
+                  className="text-brand hover:text-brand-light transition-colors disabled:opacity-50"
+                  aria-label={siteSettings.showNewsletterSection ? 'Disable newsletter section' : 'Enable newsletter section'}
+                >
+                  {siteSettings.showNewsletterSection ? (
+                    <ToggleRight className="w-10 h-10" />
+                  ) : (
+                    <ToggleLeft className="w-10 h-10 text-muted" />
+                  )}
+                </button>
+              </div>
+
+              {/* Legal Section Toggle */}
+              <div className="flex items-center justify-between p-5">
+                <div>
+                  <h3 className="font-semibold text-white">Legal Section (Footer)</h3>
+                  <p className="text-muted text-sm">Show/hide the &quot;// Legal&quot; column in the footer</p>
+                </div>
+                <button
+                  onClick={() => handleToggleSetting('showLegalSection')}
+                  disabled={settingsSaving}
+                  className="text-brand hover:text-brand-light transition-colors disabled:opacity-50"
+                  aria-label={siteSettings.showLegalSection ? 'Disable legal section' : 'Enable legal section'}
+                >
+                  {siteSettings.showLegalSection ? (
+                    <ToggleRight className="w-10 h-10" />
+                  ) : (
+                    <ToggleLeft className="w-10 h-10 text-muted" />
+                  )}
+                </button>
+              </div>
+
+              {/* Submit Resources Footer Toggle */}
+              <div className="flex items-center justify-between p-5">
+                <div>
+                  <h3 className="font-semibold text-white">Submit Project Link (Footer Resources)</h3>
+                  <p className="text-muted text-sm">Show/hide the &quot;Submit Project&quot; link in the footer Resources section</p>
+                </div>
+                <button
+                  onClick={() => handleToggleSetting('showSubmitResourcesFooter')}
+                  disabled={settingsSaving}
+                  className="text-brand hover:text-brand-light transition-colors disabled:opacity-50"
+                  aria-label={siteSettings.showSubmitResourcesFooter ? 'Disable submit project footer link' : 'Enable submit project footer link'}
+                >
+                  {siteSettings.showSubmitResourcesFooter ? (
+                    <ToggleRight className="w-10 h-10" />
+                  ) : (
+                    <ToggleLeft className="w-10 h-10 text-muted" />
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
