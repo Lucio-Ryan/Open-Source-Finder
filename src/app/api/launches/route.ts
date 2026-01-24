@@ -1,18 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb/connection';
 import { Alternative, Category, ProprietarySoftware } from '@/lib/mongodb/models';
+import { queryCache, CacheKeys } from '@/lib/mongodb/cache';
 import mongoose from 'mongoose';
+
+// Reduced field projection for better performance
+const FIELD_PROJECTION = {
+  _id: 1,
+  name: 1,
+  slug: 1,
+  description: 1,
+  short_description: 1,
+  icon_url: 1,
+  website: 1,
+  github: 1,
+  stars: 1,
+  forks: 1,
+  last_commit: 1,
+  contributors: 1,
+  license: 1,
+  is_self_hosted: 1,
+  health_score: 1,
+  vote_score: 1,
+  featured: 1,
+  approved: 1,
+  created_at: 1,
+  categories: 1,
+  tags: 1,
+  tech_stacks: 1,
+  alternative_to: 1,
+};
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   
-  // Get filter parameters - ranking is strictly by upvote count only
+  // Get filter parameters
   const timeFrame = searchParams.get('timeFrame') || 'all';
   const categorySlug = searchParams.get('category');
   const proprietarySlug = searchParams.get('alternativeTo');
   const page = parseInt(searchParams.get('page') || '1');
-  const limit = parseInt(searchParams.get('limit') || '20');
+  const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50); // Cap at 50
   const offset = (page - 1) * limit;
+
+  // Generate cache key
+  const cacheParams = { timeFrame, categorySlug, proprietarySlug, page, limit };
+  const cacheKey = CacheKeys.launches(cacheParams);
+  
+  // Check cache first
+  const cached = queryCache.get(cacheKey);
+  if (cached) {
+    return NextResponse.json(cached);
+  }
 
   // Calculate date range based on time frame
   const now = new Date();
@@ -47,119 +85,106 @@ export async function GET(request: NextRequest) {
       filter.created_at = { $gte: startDate };
     }
 
-    // Apply category filter
-    if (categorySlug) {
-      const category = await Category.findOne({ slug: categorySlug }).lean();
-      if (category) {
-        filter.categories = category._id;
-      } else {
-        return NextResponse.json({
-          alternatives: [],
-          total: 0,
-          page,
-          limit,
-          hasMore: false
-        });
-      }
-    }
-
-    // Apply alternative-to filter
-    if (proprietarySlug) {
-      const proprietary = await ProprietarySoftware.findOne({ slug: proprietarySlug }).lean();
-      if (proprietary) {
-        filter.alternative_to = proprietary._id;
-      } else {
-        return NextResponse.json({
-          alternatives: [],
-          total: 0,
-          page,
-          limit,
-          hasMore: false
-        });
-      }
-    }
-
-    // Ranking is strictly by upvote count (vote_score) - no secondary metrics
-    const useAggregation = true;
-
-    // Get total count
-    const total = await Alternative.countDocuments(filter);
-
-    let data: any[];
+    // Apply category and proprietary filters in parallel if needed
+    const filterPromises: Promise<any>[] = [];
     
-    if (useAggregation) {
-      // Use aggregation pipeline to sort strictly by upvote count (vote_score) descending
-      // No secondary metrics - only vote_score matters
-      data = await Alternative.aggregate([
+    if (categorySlug) {
+      filterPromises.push(
+        Category.findOne({ slug: categorySlug }).select('_id').lean()
+          .then(category => ({ type: 'category', data: category }))
+      );
+    }
+    
+    if (proprietarySlug) {
+      filterPromises.push(
+        ProprietarySoftware.findOne({ slug: proprietarySlug }).select('_id').lean()
+          .then(proprietary => ({ type: 'proprietary', data: proprietary }))
+      );
+    }
+
+    if (filterPromises.length > 0) {
+      const results = await Promise.all(filterPromises);
+      for (const result of results) {
+        if (!result.data) {
+          return NextResponse.json({
+            alternatives: [],
+            total: 0,
+            page,
+            limit,
+            hasMore: false
+          });
+        }
+        if (result.type === 'category') {
+          filter.categories = result.data._id;
+        } else if (result.type === 'proprietary') {
+          filter.alternative_to = result.data._id;
+        }
+      }
+    }
+
+    // Use optimized aggregation pipeline with limited fields
+    const [countResult, data] = await Promise.all([
+      Alternative.countDocuments(filter),
+      Alternative.aggregate([
         { $match: filter },
         {
           $addFields: {
-            // Treat null/undefined vote_score as 0
             normalizedVoteScore: { $ifNull: ['$vote_score', 0] }
           }
         },
-        // Sort strictly by vote_score descending - highest upvoted first
-        { $sort: { normalizedVoteScore: -1 } },
+        { $sort: { normalizedVoteScore: -1 as const } },
         { $skip: offset },
         { $limit: limit },
-        // Lookup categories
+        { $project: FIELD_PROJECTION },
+        // Optimized lookups with field selection
         {
           $lookup: {
             from: 'categories',
             localField: 'categories',
             foreignField: '_id',
+            pipeline: [{ $project: { _id: 1, name: 1, slug: 1 } }],
             as: 'categories'
           }
         },
-        // Lookup tags
         {
           $lookup: {
             from: 'tags',
             localField: 'tags',
             foreignField: '_id',
+            pipeline: [{ $project: { _id: 1, name: 1, slug: 1 } }],
             as: 'tags'
           }
         },
-        // Lookup tech_stacks
         {
           $lookup: {
             from: 'techstacks',
             localField: 'tech_stacks',
             foreignField: '_id',
+            pipeline: [{ $project: { _id: 1, name: 1, slug: 1, type: 1 } }],
             as: 'tech_stacks'
           }
         },
-        // Lookup alternative_to
         {
           $lookup: {
             from: 'proprietarysoftwares',
             localField: 'alternative_to',
             foreignField: '_id',
+            pipeline: [{ $project: { _id: 1, name: 1, slug: 1 } }],
             as: 'alternative_to'
           }
         }
-      ]);
-    } else {
-      // Fallback - sort strictly by vote_score descending
-      data = await Alternative.find(filter)
-        .populate('categories', 'id name slug')
-        .populate('tags', 'id name slug')
-        .populate('tech_stacks', 'id name slug type')
-        .populate('alternative_to', 'id name slug')
-        .sort({ vote_score: -1 })
-        .skip(offset)
-        .limit(limit)
-        .lean();
-    }
+      ])
+    ]);
 
-    // Transform the data
+    const total = countResult;
+
+    // Transform the data (minimal processing)
     const alternatives = data.map((item: any) => ({
       id: item._id,
       name: item.name,
       slug: item.slug,
       description: item.description,
       short_description: item.short_description,
-      long_description: item.long_description,
       icon_url: item.icon_url,
       website: item.website,
       github: item.github,
@@ -174,20 +199,24 @@ export async function GET(request: NextRequest) {
       featured: item.featured,
       approved: item.approved,
       created_at: item.created_at,
-      updated_at: item.updated_at,
       categories: item.categories || [],
       tags: item.tags || [],
       tech_stacks: item.tech_stacks || [],
       alternative_to: item.alternative_to || [],
     }));
 
-    return NextResponse.json({
+    const response = {
       alternatives,
       total,
       page,
       limit,
       hasMore: total > offset + limit
-    });
+    };
+
+    // Cache for 30 seconds (short TTL due to vote changes)
+    queryCache.set(cacheKey, response, 30 * 1000);
+
+    return NextResponse.json(response);
 
   } catch (err) {
     console.error('Unexpected error:', err);

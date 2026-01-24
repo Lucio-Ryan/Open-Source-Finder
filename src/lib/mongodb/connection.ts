@@ -1,65 +1,251 @@
 import mongoose from 'mongoose';
 
+/**
+ * MongoDB Connection Manager - Optimized for Vercel Serverless
+ * 
+ * Key optimizations for serverless without static IP:
+ * 1. Single connection per function instance (maxPoolSize: 1)
+ * 2. Aggressive connection reuse via global cache
+ * 3. Short timeouts to fail fast on network issues
+ * 4. No keepAlive since functions are ephemeral
+ * 5. Disabled auto-indexing in production
+ * 6. Promise deduplication to prevent connection storms
+ */
+
 declare global {
   // eslint-disable-next-line no-var
   var mongooseCache: {
     conn: typeof mongoose | null;
     promise: Promise<typeof mongoose> | null;
+    lastConnected: number;
+    connectionId: number;
   };
 }
 
-// Global cache for connection
-// This prevents multiple connections in serverless environments (Vercel)
-// - Cold starts: creates new connection
-// - Warm invocations: reuses existing connection
+// Global cache for connection - survives across warm invocations
 let cached = global.mongooseCache;
 
 if (!cached) {
-  cached = global.mongooseCache = { conn: null, promise: null };
+  cached = global.mongooseCache = { 
+    conn: null, 
+    promise: null, 
+    lastConnected: 0,
+    connectionId: 0 
+  };
 }
 
+// Connection health check interval - shorter for serverless (2 minutes)
+const CONNECTION_HEALTH_INTERVAL = 2 * 60 * 1000;
+
+// Connection timeout for serverless - fail fast
+const SERVERLESS_TIMEOUT = 5000;
+
+/**
+ * Get or create a MongoDB connection optimized for Vercel serverless.
+ * Uses aggressive caching and connection reuse to minimize connections.
+ */
 export async function connectToDatabase(): Promise<typeof mongoose> {
-  // Return existing connection if available and still connected
+  const now = Date.now();
+  
+  // Fast path: return existing healthy connection
   if (cached.conn) {
-    // Verify the connection is still alive
-    if (mongoose.connection.readyState === 1) {
+    const readyState = mongoose.connection.readyState;
+    
+    // Connection states: 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+    if (readyState === 1) {
+      // Skip health check if recently connected (saves a round trip)
+      if (now - cached.lastConnected < CONNECTION_HEALTH_INTERVAL) {
+        return cached.conn;
+      }
+      
+      // Quick health check - use cached connection if ping succeeds
+      try {
+        // Use Promise.race to enforce timeout on ping
+        const pingPromise = mongoose.connection.db?.admin().ping();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Ping timeout')), 2000)
+        );
+        await Promise.race([pingPromise, timeoutPromise]);
+        cached.lastConnected = now;
+        return cached.conn;
+      } catch {
+        // Connection stale, will reconnect below
+        console.warn('⚠️ MongoDB connection stale, reconnecting...');
+        resetCache();
+      }
+    } else if (readyState === 2 && cached.promise) {
+      // Currently connecting, wait for existing promise (deduplication)
+      return cached.promise;
+    } else {
+      // Connection lost or in bad state
+      resetCache();
+    }
+  }
+
+  // If there's already a connection promise in flight, wait for it
+  // This prevents connection storms during concurrent requests
+  if (cached.promise) {
+    try {
+      cached.conn = await cached.promise;
       return cached.conn;
+    } catch {
+      // Promise failed, reset and try again
+      resetCache();
     }
-    // Connection was lost, reset cache
-    cached.conn = null;
-    cached.promise = null;
   }
 
-  if (!cached.promise) {
-    const MONGODB_URI = process.env.MONGODB_URI;
+  const MONGODB_URI = process.env.MONGODB_URI;
 
-    if (!MONGODB_URI) {
-      throw new Error('Please define the MONGODB_URI environment variable');
-    }
+  if (!MONGODB_URI) {
+    throw new Error('Please define the MONGODB_URI environment variable');
+  }
 
-    const opts: mongoose.ConnectOptions = {
-      bufferCommands: false,
-      // Vercel serverless optimization settings
-      maxPoolSize: 10, // Limit connections per function instance
-      serverSelectionTimeoutMS: 5000, // Fail fast on connection issues
-      socketTimeoutMS: 45000, // Close sockets after inactivity
-    };
+  // Optimized MongoDB connection options for Vercel serverless
+  // These settings minimize connections while maintaining reliability
+  const opts: mongoose.ConnectOptions = {
+    // Disable command buffering - fail fast if not connected
+    bufferCommands: false,
+    
+    // === CRITICAL: Connection pool for serverless ===
+    // Use minimal pool size since each serverless function instance
+    // gets its own pool. This dramatically reduces total connections.
+    maxPoolSize: 1,               // Single connection per instance
+    minPoolSize: 0,               // Don't maintain idle connections
+    
+    // === Timeout Configuration ===
+    // Aggressive timeouts to fail fast and not waste function execution time
+    serverSelectionTimeoutMS: SERVERLESS_TIMEOUT,  // Fast fail on server selection
+    socketTimeoutMS: 30000,       // Socket timeout for operations
+    connectTimeoutMS: SERVERLESS_TIMEOUT,  // Connection establishment timeout
+    
+    // === Connection Lifecycle ===
+    maxIdleTimeMS: 10000,         // Close idle connections quickly (10s)
+    waitQueueTimeoutMS: SERVERLESS_TIMEOUT, // Don't wait long for pool slot
+    
+    // === Reliability ===
+    writeConcern: { w: 1 },       // Acknowledge writes
+    readPreference: 'primaryPreferred', // Prefer primary, fallback to secondary
+    retryWrites: true,            // Auto-retry transient write failures
+    retryReads: true,             // Auto-retry transient read failures
+    
+    // === Monitoring (reduced for serverless) ===
+    heartbeatFrequencyMS: 30000,  // Less frequent heartbeats
+    
+    // === Indexing ===
+    autoIndex: false,             // Never auto-index in serverless (use migration)
+    
+    // === Compression ===
+    compressors: ['zstd', 'zlib'], // Compress data transfer
+  };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((connection) => {
-      console.log('✅ Connected to MongoDB');
+  // Create connection promise with timeout wrapper
+  const connectionId = ++cached.connectionId;
+  
+  cached.promise = (async () => {
+    try {
+      const connection = await mongoose.connect(MONGODB_URI, opts);
+      
+      // Only log on actual new connections, not cached
+      if (connectionId === cached.connectionId) {
+        console.log(`✅ MongoDB connected (id: ${connectionId})`);
+      }
+      
+      cached.lastConnected = Date.now();
+      
+      // Set up error handlers only once
+      if (!mongoose.connection.listeners('error').length) {
+        mongoose.connection.on('error', (err) => {
+          console.error('❌ MongoDB connection error:', err.message);
+          resetCache();
+        });
+
+        mongoose.connection.on('disconnected', () => {
+          console.warn('⚠️ MongoDB disconnected');
+          resetCache();
+        });
+      }
+
       return connection;
-    });
-  }
+    } catch (error) {
+      // Reset on connection failure
+      resetCache();
+      throw error;
+    }
+  })();
 
   try {
     cached.conn = await cached.promise;
   } catch (e) {
-    // Reset promise on error so next call can retry
-    cached.promise = null;
+    resetCache();
     throw e;
   }
 
   return cached.conn;
+}
+
+/**
+ * Reset the connection cache - used on errors and disconnects
+ */
+function resetCache(): void {
+  cached.conn = null;
+  cached.promise = null;
+}
+
+/**
+ * Lightweight connection check without creating new connection
+ * Use this to check if we have an active connection before expensive operations
+ */
+export function hasActiveConnection(): boolean {
+  return cached.conn !== null && mongoose.connection.readyState === 1;
+}
+
+/**
+ * Get the current connection status for debugging/monitoring
+ */
+export function getConnectionStatus(): {
+  isConnected: boolean;
+  readyState: number;
+  lastConnected: number;
+  connectionId: number;
+} {
+  return {
+    isConnected: mongoose.connection.readyState === 1,
+    readyState: mongoose.connection.readyState,
+    lastConnected: cached.lastConnected,
+    connectionId: cached.connectionId,
+  };
+}
+
+/**
+ * Close the database connection gracefully
+ * Call this before function termination if doing cleanup
+ */
+export async function closeConnection(): Promise<void> {
+  if (cached.conn) {
+    try {
+      await mongoose.connection.close();
+    } catch (e) {
+      console.warn('Error closing MongoDB connection:', e);
+    }
+    resetCache();
+  }
+}
+
+/**
+ * Execute a database operation with automatic connection management.
+ * This is the recommended way to run database operations in serverless.
+ * 
+ * @param operation - Async function that performs database operations
+ * @returns Result of the operation
+ * 
+ * @example
+ * const users = await withDatabase(async () => {
+ *   return User.find({ active: true }).lean();
+ * });
+ */
+export async function withDatabase<T>(operation: () => Promise<T>): Promise<T> {
+  await connectToDatabase();
+  return operation();
 }
 
 export default connectToDatabase;

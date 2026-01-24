@@ -227,16 +227,35 @@ const AlternativeSchema = new Schema<IAlternative>(
   }
 );
 
-// Indexes
+// Indexes for optimal query performance
 // Note: slug index is already created by unique: true
 AlternativeSchema.index({ approved: 1 });
 AlternativeSchema.index({ status: 1 });
 AlternativeSchema.index({ featured: 1 });
 AlternativeSchema.index({ health_score: -1 });
+AlternativeSchema.index({ vote_score: -1 });
 AlternativeSchema.index({ is_self_hosted: 1 });
 AlternativeSchema.index({ user_id: 1 });
 AlternativeSchema.index({ submission_plan: 1 });
-AlternativeSchema.index({ name: 'text', description: 'text', short_description: 'text' });
+AlternativeSchema.index({ created_at: -1 });
+AlternativeSchema.index({ categories: 1 });
+AlternativeSchema.index({ tags: 1 });
+AlternativeSchema.index({ tech_stacks: 1 });
+AlternativeSchema.index({ alternative_to: 1 });
+
+// Compound indexes for common query patterns
+AlternativeSchema.index({ approved: 1, health_score: -1 });
+AlternativeSchema.index({ approved: 1, vote_score: -1 });
+AlternativeSchema.index({ approved: 1, created_at: -1 });
+AlternativeSchema.index({ approved: 1, featured: 1 });
+AlternativeSchema.index({ approved: 1, is_self_hosted: 1 });
+AlternativeSchema.index({ approved: 1, categories: 1 });
+
+// Text index for search (with weights for relevance)
+AlternativeSchema.index(
+  { name: 'text', description: 'text', short_description: 'text' },
+  { weights: { name: 10, short_description: 5, description: 1 } }
+);
 
 // ============ VOTE SCHEMA ============
 export interface IVote extends Document {

@@ -49,32 +49,41 @@ export default async function AlternativeDetailPage({ params }: Props) {
     notFound();
   }
 
-  // Fetch creator profile - first try by user_id, then by submitter_email
-  let creatorProfile = null;
-  try {
-    if (alternative.user_id) {
-      creatorProfile = await getCreatorProfileByUserId(alternative.user_id);
-    } else if (alternative.submitter_email) {
-      creatorProfile = await getCreatorProfileByEmail(alternative.submitter_email);
-    }
-  } catch (error) {
-    console.error('Error fetching creator profile:', error);
-  }
+  // Fetch creator profile and similar alternatives in parallel for better performance
+  const [creatorProfile, allAlternatives] = await Promise.all([
+    // Creator profile
+    (async () => {
+      try {
+        if (alternative!.user_id) {
+          return await getCreatorProfileByUserId(alternative!.user_id);
+        } else if (alternative!.submitter_email) {
+          return await getCreatorProfileByEmail(alternative!.submitter_email);
+        }
+        return null;
+      } catch (error) {
+        console.error('Error fetching creator profile:', error);
+        return null;
+      }
+    })(),
+    // Similar alternatives
+    (async () => {
+      try {
+        return await getAlternatives({ approved: true, limit: 50 }); // Limit for performance
+      } catch (error) {
+        console.error('Error fetching similar alternatives:', error);
+        return [];
+      }
+    })()
+  ]);
   
-  // Get similar alternatives based on categories
-  let similarAlternatives: AlternativeWithRelations[] = [];
-  try {
-    const allAlternatives = await getAlternatives({ approved: true });
-    const alternativeCategories = alternative.categories?.map((c: { slug: string }) => c.slug) || [];
-    similarAlternatives = allAlternatives
-      .filter((a) => 
-        a.id !== alternative!.id && 
-        a.categories?.some((c: { slug: string }) => alternativeCategories.includes(c.slug))
-      )
-      .slice(0, 3);
-  } catch (error) {
-    console.error('Error fetching similar alternatives:', error);
-  }
+  // Filter similar alternatives based on categories
+  const alternativeCategories = alternative.categories?.map((c: { slug: string }) => c.slug) || [];
+  const similarAlternatives = allAlternatives
+    .filter((a) => 
+      a.id !== alternative!.id && 
+      a.categories?.some((c: { slug: string }) => alternativeCategories.includes(c.slug))
+    )
+    .slice(0, 3);
 
   return (
     <div className="min-h-screen bg-dark">

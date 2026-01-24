@@ -6,16 +6,9 @@ import {
   Tag,
   ProprietarySoftware,
   Vote,
-  Discussion,
-  CreatorNotification,
-  Advertisement,
   User,
-  IAlternative,
-  ICategory,
-  ITechStack,
-  ITag,
-  IProprietarySoftware,
 } from './models';
+import { queryCache, CacheKeys, withCache, invalidateOnWrite, CacheTTL } from './cache';
 import mongoose from 'mongoose';
 
 // ============ TYPE DEFINITIONS ============
@@ -126,7 +119,7 @@ function transformAlternative(alt: any): AlternativeWithRelations {
     github: alt.github,
     stars: alt.stars || 0,
     forks: alt.forks || 0,
-    last_commit: alt.last_commit ? alt.last_commit.toISOString().split('T')[0] : null,
+    last_commit: alt.last_commit ? new Date(alt.last_commit).toISOString().split('T')[0] : null,
     contributors: alt.contributors || 0,
     license: alt.license,
     is_self_hosted: alt.is_self_hosted,
@@ -135,39 +128,39 @@ function transformAlternative(alt: any): AlternativeWithRelations {
     featured: alt.featured,
     approved: alt.approved,
     rejection_reason: alt.rejection_reason,
-    rejected_at: alt.rejected_at ? alt.rejected_at.toISOString() : null,
+    rejected_at: alt.rejected_at ? new Date(alt.rejected_at).toISOString() : null,
     submitter_name: alt.submitter_name,
     submitter_email: alt.submitter_email,
     user_id: alt.user_id ? alt.user_id.toString() : null,
     screenshots: alt.screenshots || [],
     submission_plan: alt.submission_plan || 'free',
-    sponsor_featured_until: alt.sponsor_featured_until ? alt.sponsor_featured_until.toISOString() : null,
-    sponsor_priority_until: alt.sponsor_priority_until ? alt.sponsor_priority_until.toISOString() : null,
+    sponsor_featured_until: alt.sponsor_featured_until ? new Date(alt.sponsor_featured_until).toISOString() : null,
+    sponsor_priority_until: alt.sponsor_priority_until ? new Date(alt.sponsor_priority_until).toISOString() : null,
     sponsor_payment_id: alt.sponsor_payment_id,
-    sponsor_paid_at: alt.sponsor_paid_at ? alt.sponsor_paid_at.toISOString() : null,
+    sponsor_paid_at: alt.sponsor_paid_at ? new Date(alt.sponsor_paid_at).toISOString() : null,
     newsletter_included: alt.newsletter_included || false,
-    created_at: alt.created_at ? alt.created_at.toISOString() : new Date().toISOString(),
-    updated_at: alt.updated_at ? alt.updated_at.toISOString() : new Date().toISOString(),
+    created_at: alt.created_at ? new Date(alt.created_at).toISOString() : new Date().toISOString(),
+    updated_at: alt.updated_at ? new Date(alt.updated_at).toISOString() : new Date().toISOString(),
     categories: (alt.categories || []).map((c: any) => ({
       id: c._id.toString(),
       name: c.name,
       slug: c.slug,
       description: c.description,
       icon: c.icon,
-      created_at: c.created_at ? c.created_at.toISOString() : new Date().toISOString(),
+      created_at: c.created_at ? new Date(c.created_at).toISOString() : new Date().toISOString(),
     })),
     tags: (alt.tags || []).map((t: any) => ({
       id: t._id.toString(),
       name: t.name,
       slug: t.slug,
-      created_at: t.created_at ? t.created_at.toISOString() : new Date().toISOString(),
+      created_at: t.created_at ? new Date(t.created_at).toISOString() : new Date().toISOString(),
     })),
     tech_stacks: (alt.tech_stacks || []).map((ts: any) => ({
       id: ts._id.toString(),
       name: ts.name,
       slug: ts.slug,
       type: ts.type,
-      created_at: ts.created_at ? ts.created_at.toISOString() : new Date().toISOString(),
+      created_at: ts.created_at ? new Date(ts.created_at).toISOString() : new Date().toISOString(),
     })),
     alternative_to: (alt.alternative_to || []).map((p: any) => ({
       id: p._id.toString(),
@@ -175,12 +168,24 @@ function transformAlternative(alt: any): AlternativeWithRelations {
       slug: p.slug,
       description: p.description,
       website: p.website,
-      created_at: p.created_at ? p.created_at.toISOString() : new Date().toISOString(),
+      icon_url: p.icon_url || null,
+      created_at: p.created_at ? new Date(p.created_at).toISOString() : new Date().toISOString(),
     })),
   };
 }
 
-// ============ ALTERNATIVES ============
+// Common population fields to reduce duplication
+const ALTERNATIVE_POPULATE_FIELDS = [
+  { path: 'categories', select: '_id name slug description icon created_at' },
+  { path: 'tags', select: '_id name slug created_at' },
+  { path: 'tech_stacks', select: '_id name slug type created_at' },
+  { path: 'alternative_to', select: '_id name slug description website icon_url created_at' },
+];
+
+// Lean transform options for better performance
+const LEAN_OPTIONS = { virtuals: false, getters: false };
+
+// ============ OPTIMIZED ALTERNATIVES QUERIES ============
 
 export async function getAlternatives(options?: {
   approved?: boolean;
@@ -189,426 +194,739 @@ export async function getAlternatives(options?: {
   sortBy?: 'health_score' | 'stars' | 'name' | 'created_at';
   sortOrder?: 'asc' | 'desc';
 }): Promise<AlternativeWithRelations[]> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.alternatives(options);
+  
+  return withCache(cacheKey, CacheTTL.MEDIUM, async () => {
+    await connectToDatabase();
 
-  const query: any = {};
-  if (options?.approved !== undefined) {
-    query.approved = options.approved;
-  }
-  if (options?.featured !== undefined) {
-    query.featured = options.featured;
-  }
+    const query: any = {};
+    if (options?.approved !== undefined) {
+      query.approved = options.approved;
+    }
+    if (options?.featured !== undefined) {
+      query.featured = options.featured;
+    }
 
-  const sortBy = options?.sortBy || 'health_score';
-  const sortOrder = options?.sortOrder === 'asc' ? 1 : -1;
+    const sortBy = options?.sortBy || 'health_score';
+    const sortOrder = options?.sortOrder === 'asc' ? 1 : -1;
 
-  let queryBuilder = Alternative.find(query)
-    .populate('categories')
-    .populate('tags')
-    .populate('tech_stacks')
-    .populate('alternative_to')
-    .sort({ [sortBy]: sortOrder });
+    let queryBuilder = Alternative.find(query)
+      .populate(ALTERNATIVE_POPULATE_FIELDS)
+      .sort({ [sortBy]: sortOrder })
+      .lean(LEAN_OPTIONS);
 
-  if (options?.limit) {
-    queryBuilder = queryBuilder.limit(options.limit);
-  }
+    if (options?.limit) {
+      queryBuilder = queryBuilder.limit(options.limit);
+    }
 
-  const alternatives = await queryBuilder.lean();
-  return alternatives.map(transformAlternative);
+    const alternatives = await queryBuilder;
+    return alternatives.map(transformAlternative);
+  });
 }
 
 export async function getAlternativeBySlug(slug: string): Promise<AlternativeWithRelations | null> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.alternativeBySlug(slug);
+  
+  return withCache(cacheKey, CacheTTL.MEDIUM, async () => {
+    await connectToDatabase();
 
-  const alternative = await Alternative.findOne({ slug, approved: true })
-    .populate('categories')
-    .populate('tags')
-    .populate('tech_stacks')
-    .populate('alternative_to')
-    .lean();
+    const alternative = await Alternative.findOne({ slug, approved: true })
+      .populate(ALTERNATIVE_POPULATE_FIELDS)
+      .lean(LEAN_OPTIONS);
 
-  if (!alternative) return null;
-  return transformAlternative(alternative);
+    if (!alternative) return null;
+    return transformAlternative(alternative);
+  });
 }
 
 export async function getAlternativesByCategory(categorySlug: string): Promise<AlternativeWithRelations[]> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.alternativesByCategory(categorySlug);
+  
+  return withCache(cacheKey, CacheTTL.MEDIUM, async () => {
+    await connectToDatabase();
 
-  const category = await Category.findOne({ slug: categorySlug }).lean();
-  if (!category) return [];
+    // Use aggregation to avoid N+1 query
+    const category = await Category.findOne({ slug: categorySlug }).select('_id').lean();
+    if (!category) return [];
 
-  const alternatives = await Alternative.find({
-    categories: category._id,
-    approved: true,
-  })
-    .populate('categories')
-    .populate('tags')
-    .populate('tech_stacks')
-    .populate('alternative_to')
-    .sort({ health_score: -1 })
-    .lean();
+    const alternatives = await Alternative.find({
+      categories: category._id,
+      approved: true,
+    })
+      .populate(ALTERNATIVE_POPULATE_FIELDS)
+      .sort({ health_score: -1 })
+      .lean(LEAN_OPTIONS);
 
-  return alternatives.map(transformAlternative);
+    return alternatives.map(transformAlternative);
+  });
 }
 
 export async function getAlternativesByTag(tagSlug: string): Promise<AlternativeWithRelations[]> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.alternativesByTag(tagSlug);
+  
+  return withCache(cacheKey, CacheTTL.MEDIUM, async () => {
+    await connectToDatabase();
 
-  const tag = await Tag.findOne({ slug: tagSlug }).lean();
-  if (!tag) return [];
+    const tag = await Tag.findOne({ slug: tagSlug }).select('_id').lean();
+    if (!tag) return [];
 
-  const alternatives = await Alternative.find({
-    tags: tag._id,
-    approved: true,
-  })
-    .populate('categories')
-    .populate('tags')
-    .populate('tech_stacks')
-    .populate('alternative_to')
-    .sort({ health_score: -1 })
-    .lean();
+    const alternatives = await Alternative.find({
+      tags: tag._id,
+      approved: true,
+    })
+      .populate(ALTERNATIVE_POPULATE_FIELDS)
+      .sort({ health_score: -1 })
+      .lean(LEAN_OPTIONS);
 
-  return alternatives.map(transformAlternative);
+    return alternatives.map(transformAlternative);
+  });
 }
 
 export async function getAlternativesByTechStack(techSlug: string): Promise<AlternativeWithRelations[]> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.alternativesByTechStack(techSlug);
+  
+  return withCache(cacheKey, CacheTTL.MEDIUM, async () => {
+    await connectToDatabase();
 
-  const techStack = await TechStack.findOne({ slug: techSlug }).lean();
-  if (!techStack) return [];
+    const techStack = await TechStack.findOne({ slug: techSlug }).select('_id').lean();
+    if (!techStack) return [];
 
-  const alternatives = await Alternative.find({
-    tech_stacks: techStack._id,
-    approved: true,
-  })
-    .populate('categories')
-    .populate('tags')
-    .populate('tech_stacks')
-    .populate('alternative_to')
-    .sort({ health_score: -1 })
-    .lean();
+    const alternatives = await Alternative.find({
+      tech_stacks: techStack._id,
+      approved: true,
+    })
+      .populate(ALTERNATIVE_POPULATE_FIELDS)
+      .sort({ health_score: -1 })
+      .lean(LEAN_OPTIONS);
 
-  return alternatives.map(transformAlternative);
+    return alternatives.map(transformAlternative);
+  });
 }
 
 export async function getAlternativesFor(proprietarySlug: string): Promise<AlternativeWithRelations[]> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.alternativesFor(proprietarySlug);
+  
+  return withCache(cacheKey, CacheTTL.MEDIUM, async () => {
+    await connectToDatabase();
 
-  const proprietary = await ProprietarySoftware.findOne({ slug: proprietarySlug }).lean();
-  if (!proprietary) return [];
+    const proprietary = await ProprietarySoftware.findOne({ slug: proprietarySlug }).select('_id').lean();
+    if (!proprietary) return [];
 
-  const alternatives = await Alternative.find({
-    alternative_to: proprietary._id,
-    approved: true,
-  })
-    .populate('categories')
-    .populate('tags')
-    .populate('tech_stacks')
-    .populate('alternative_to')
-    .sort({ health_score: -1 })
-    .lean();
+    const alternatives = await Alternative.find({
+      alternative_to: proprietary._id,
+      approved: true,
+    })
+      .populate(ALTERNATIVE_POPULATE_FIELDS)
+      .sort({ health_score: -1 })
+      .lean(LEAN_OPTIONS);
 
-  return alternatives.map(transformAlternative);
+    return alternatives.map(transformAlternative);
+  });
 }
 
 export async function getSelfHostedAlternatives(): Promise<AlternativeWithRelations[]> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.selfHostedAlternatives();
+  
+  return withCache(cacheKey, CacheTTL.MEDIUM, async () => {
+    await connectToDatabase();
 
-  const alternatives = await Alternative.find({
-    is_self_hosted: true,
-    approved: true,
-  })
-    .populate('categories')
-    .populate('tags')
-    .populate('tech_stacks')
-    .populate('alternative_to')
-    .sort({ health_score: -1 })
-    .lean();
+    const alternatives = await Alternative.find({
+      is_self_hosted: true,
+      approved: true,
+    })
+      .populate(ALTERNATIVE_POPULATE_FIELDS)
+      .sort({ health_score: -1 })
+      .lean(LEAN_OPTIONS);
 
-  return alternatives.map(transformAlternative);
+    return alternatives.map(transformAlternative);
+  });
 }
 
 export async function getFeaturedAlternatives(): Promise<AlternativeWithRelations[]> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.featuredAlternatives();
+  
+  return withCache(cacheKey, CacheTTL.SHORT, async () => {
+    await connectToDatabase();
 
-  const now = new Date();
+    const now = new Date();
 
-  // Get sponsored alternatives first
-  const sponsors = await Alternative.find({
-    approved: true,
-    submission_plan: 'sponsor',
-    sponsor_priority_until: { $gt: now },
-  })
-    .populate('categories')
-    .populate('tags')
-    .populate('tech_stacks')
-    .populate('alternative_to')
-    .sort({ sponsor_paid_at: -1 })
-    .lean();
+    // Use a single aggregation pipeline to get both sponsored and featured
+    const pipeline = [
+      {
+        $match: { approved: true }
+      },
+      {
+        $addFields: {
+          isSponsor: {
+            $and: [
+              { $eq: ['$submission_plan', 'sponsor'] },
+              { $gt: ['$sponsor_priority_until', now] }
+            ]
+          }
+        }
+      },
+      {
+        $sort: { isSponsor: -1 as const, sponsor_paid_at: -1 as const, health_score: -1 as const }
+      },
+      {
+        $match: {
+          $or: [
+            { isSponsor: true },
+            { featured: true }
+          ]
+        }
+      },
+      { $limit: 9 },
+      // Lookup categories
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'categories',
+          foreignField: '_id',
+          as: 'categories'
+        }
+      },
+      // Lookup tags
+      {
+        $lookup: {
+          from: 'tags',
+          localField: 'tags',
+          foreignField: '_id',
+          as: 'tags'
+        }
+      },
+      // Lookup tech_stacks
+      {
+        $lookup: {
+          from: 'techstacks',
+          localField: 'tech_stacks',
+          foreignField: '_id',
+          as: 'tech_stacks'
+        }
+      },
+      // Lookup alternative_to
+      {
+        $lookup: {
+          from: 'proprietarysoftwares',
+          localField: 'alternative_to',
+          foreignField: '_id',
+          as: 'alternative_to'
+        }
+      }
+    ];
 
-  const sponsorCount = sponsors.length;
-  const remainingSlots = Math.max(0, 9 - sponsorCount);
-
-  // Get regular featured alternatives
-  let featured: any[] = [];
-  if (remainingSlots > 0) {
-    const sponsorIds = sponsors.map((s: any) => s._id);
-    featured = await Alternative.find({
-      approved: true,
-      featured: true,
-      _id: { $nin: sponsorIds },
-    })
-      .populate('categories')
-      .populate('tags')
-      .populate('tech_stacks')
-      .populate('alternative_to')
-      .sort({ health_score: -1 })
-      .limit(remainingSlots)
-      .lean();
-  }
-
-  const combined = [...sponsors, ...featured];
-  return combined.map(transformAlternative);
+    const results = await Alternative.aggregate(pipeline);
+    return results.map(transformAlternative);
+  });
 }
 
 export async function searchAlternatives(query: string): Promise<AlternativeWithRelations[]> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.search(query);
+  
+  return withCache(cacheKey, CacheTTL.SHORT, async () => {
+    await connectToDatabase();
 
-  const alternatives = await Alternative.find({
-    approved: true,
-    $or: [
-      { name: { $regex: query, $options: 'i' } },
-      { description: { $regex: query, $options: 'i' } },
-      { short_description: { $regex: query, $options: 'i' } },
-    ],
-  })
-    .populate('categories')
-    .populate('tags')
-    .populate('tech_stacks')
-    .populate('alternative_to')
-    .sort({ health_score: -1 })
-    .limit(20)
-    .lean();
+    // Use regex search for compatibility
+    const alternatives = await Alternative.find({
+      approved: true,
+      $or: [
+        { name: { $regex: query, $options: 'i' } },
+        { description: { $regex: query, $options: 'i' } },
+        { short_description: { $regex: query, $options: 'i' } },
+      ],
+    })
+      .populate(ALTERNATIVE_POPULATE_FIELDS)
+      .sort({ health_score: -1 })
+      .limit(20)
+      .lean(LEAN_OPTIONS);
 
-  return alternatives.map(transformAlternative);
+    return alternatives.map(transformAlternative);
+  });
 }
 
-// ============ CATEGORIES ============
+// ============ OPTIMIZED CATEGORIES QUERIES ============
 
 export async function getCategories(): Promise<CategoryWithCount[]> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.categoriesWithCount();
+  
+  return withCache(cacheKey, CacheTTL.LONG, async () => {
+    await connectToDatabase();
 
-  const categories = await Category.find().sort({ name: 1 }).lean();
+    // Use aggregation pipeline to get counts in a single query
+    const pipeline = [
+      {
+        $lookup: {
+          from: 'alternatives',
+          let: { categoryId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $in: ['$$categoryId', '$categories'] },
+                    { $eq: ['$approved', true] }
+                  ]
+                }
+              }
+            },
+            { $count: 'count' }
+          ],
+          as: 'alternativeCount'
+        }
+      },
+      {
+        $addFields: {
+          count: {
+            $ifNull: [{ $arrayElemAt: ['$alternativeCount.count', 0] }, 0]
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          slug: 1,
+          description: 1,
+          icon: 1,
+          created_at: 1,
+          count: 1
+        }
+      },
+      { $sort: { name: 1 as const } }
+    ];
 
-  const categoriesWithCounts = await Promise.all(
-    categories.map(async (category: any) => {
-      const count = await Alternative.countDocuments({
-        categories: category._id,
-        approved: true,
-      });
-      return {
-        id: category._id.toString(),
-        name: category.name,
-        slug: category.slug,
-        description: category.description,
-        icon: category.icon,
-        created_at: category.created_at ? category.created_at.toISOString() : new Date().toISOString(),
-        count,
-      };
-    })
-  );
-
-  return categoriesWithCounts;
+    const categories = await Category.aggregate(pipeline);
+    
+    return categories.map((category: any) => ({
+      id: category._id.toString(),
+      name: category.name,
+      slug: category.slug,
+      description: category.description,
+      icon: category.icon,
+      created_at: category.created_at ? new Date(category.created_at).toISOString() : new Date().toISOString(),
+      count: category.count,
+    }));
+  });
 }
 
 export async function getCategoryBySlug(slug: string): Promise<CategoryWithCount | null> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.categoryBySlug(slug);
+  
+  return withCache(cacheKey, CacheTTL.LONG, async () => {
+    await connectToDatabase();
 
-  const category = await Category.findOne({ slug }).lean();
-  if (!category) return null;
+    const pipeline = [
+      { $match: { slug } },
+      {
+        $lookup: {
+          from: 'alternatives',
+          let: { categoryId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $in: ['$$categoryId', '$categories'] },
+                    { $eq: ['$approved', true] }
+                  ]
+                }
+              }
+            },
+            { $count: 'count' }
+          ],
+          as: 'alternativeCount'
+        }
+      },
+      {
+        $addFields: {
+          count: {
+            $ifNull: [{ $arrayElemAt: ['$alternativeCount.count', 0] }, 0]
+          }
+        }
+      }
+    ];
 
-  const count = await Alternative.countDocuments({
-    categories: (category as any)._id,
-    approved: true,
+    const results = await Category.aggregate(pipeline);
+    if (results.length === 0) return null;
+
+    const category = results[0];
+    return {
+      id: category._id.toString(),
+      name: category.name,
+      slug: category.slug,
+      description: category.description,
+      icon: category.icon,
+      created_at: category.created_at ? new Date(category.created_at).toISOString() : new Date().toISOString(),
+      count: category.count,
+    };
   });
-
-  return {
-    id: (category as any)._id.toString(),
-    name: category.name,
-    slug: category.slug,
-    description: category.description,
-    icon: category.icon,
-    created_at: category.created_at ? category.created_at.toISOString() : new Date().toISOString(),
-    count,
-  };
 }
 
-// ============ TECH STACKS ============
+// ============ OPTIMIZED TECH STACKS QUERIES ============
 
 export async function getTechStacks(): Promise<TechStackWithCount[]> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.techStacksWithCount();
+  
+  return withCache(cacheKey, CacheTTL.LONG, async () => {
+    await connectToDatabase();
 
-  const techStacks = await TechStack.find().sort({ name: 1 }).lean();
+    const pipeline = [
+      {
+        $lookup: {
+          from: 'alternatives',
+          let: { techId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $in: ['$$techId', '$tech_stacks'] },
+                    { $eq: ['$approved', true] }
+                  ]
+                }
+              }
+            },
+            { $count: 'count' }
+          ],
+          as: 'alternativeCount'
+        }
+      },
+      {
+        $addFields: {
+          count: {
+            $ifNull: [{ $arrayElemAt: ['$alternativeCount.count', 0] }, 0]
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          slug: 1,
+          type: 1,
+          created_at: 1,
+          count: 1
+        }
+      },
+      { $sort: { name: 1 as const } }
+    ];
 
-  const techStacksWithCounts = await Promise.all(
-    techStacks.map(async (ts: any) => {
-      const count = await Alternative.countDocuments({
-        tech_stacks: ts._id,
-        approved: true,
-      });
-      return {
-        id: ts._id.toString(),
-        name: ts.name,
-        slug: ts.slug,
-        type: ts.type,
-        created_at: ts.created_at ? ts.created_at.toISOString() : new Date().toISOString(),
-        count,
-      };
-    })
-  );
-
-  return techStacksWithCounts;
+    const techStacks = await TechStack.aggregate(pipeline);
+    
+    return techStacks.map((ts: any) => ({
+      id: ts._id.toString(),
+      name: ts.name,
+      slug: ts.slug,
+      type: ts.type,
+      created_at: ts.created_at ? new Date(ts.created_at).toISOString() : new Date().toISOString(),
+      count: ts.count,
+    }));
+  });
 }
 
 export async function getTechStackBySlug(slug: string): Promise<TechStackWithCount | null> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.techStackBySlug(slug);
+  
+  return withCache(cacheKey, CacheTTL.LONG, async () => {
+    await connectToDatabase();
 
-  const techStack = await TechStack.findOne({ slug }).lean();
-  if (!techStack) return null;
+    const pipeline = [
+      { $match: { slug } },
+      {
+        $lookup: {
+          from: 'alternatives',
+          let: { techId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $in: ['$$techId', '$tech_stacks'] },
+                    { $eq: ['$approved', true] }
+                  ]
+                }
+              }
+            },
+            { $count: 'count' }
+          ],
+          as: 'alternativeCount'
+        }
+      },
+      {
+        $addFields: {
+          count: {
+            $ifNull: [{ $arrayElemAt: ['$alternativeCount.count', 0] }, 0]
+          }
+        }
+      }
+    ];
 
-  const count = await Alternative.countDocuments({
-    tech_stacks: (techStack as any)._id,
-    approved: true,
+    const results = await TechStack.aggregate(pipeline);
+    if (results.length === 0) return null;
+
+    const techStack = results[0];
+    return {
+      id: techStack._id.toString(),
+      name: techStack.name,
+      slug: techStack.slug,
+      type: techStack.type,
+      created_at: techStack.created_at ? new Date(techStack.created_at).toISOString() : new Date().toISOString(),
+      count: techStack.count,
+    };
   });
-
-  return {
-    id: (techStack as any)._id.toString(),
-    name: techStack.name,
-    slug: techStack.slug,
-    type: techStack.type,
-    created_at: techStack.created_at ? techStack.created_at.toISOString() : new Date().toISOString(),
-    count,
-  };
 }
 
-// ============ TAGS ============
+// ============ OPTIMIZED TAGS QUERIES ============
 
 export async function getTags(): Promise<TagWithCount[]> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.tagsWithCount();
+  
+  return withCache(cacheKey, CacheTTL.LONG, async () => {
+    await connectToDatabase();
 
-  const tags = await Tag.find().sort({ name: 1 }).lean();
+    const pipeline = [
+      {
+        $lookup: {
+          from: 'alternatives',
+          let: { tagId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $in: ['$$tagId', '$tags'] },
+                    { $eq: ['$approved', true] }
+                  ]
+                }
+              }
+            },
+            { $count: 'count' }
+          ],
+          as: 'alternativeCount'
+        }
+      },
+      {
+        $addFields: {
+          count: {
+            $ifNull: [{ $arrayElemAt: ['$alternativeCount.count', 0] }, 0]
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          slug: 1,
+          created_at: 1,
+          count: 1
+        }
+      },
+      { $sort: { name: 1 as const } }
+    ];
 
-  const tagsWithCounts = await Promise.all(
-    tags.map(async (tag: any) => {
-      const count = await Alternative.countDocuments({
-        tags: tag._id,
-        approved: true,
-      });
-      return {
-        id: tag._id.toString(),
-        name: tag.name,
-        slug: tag.slug,
-        created_at: tag.created_at ? tag.created_at.toISOString() : new Date().toISOString(),
-        count,
-      };
-    })
-  );
-
-  return tagsWithCounts;
+    const tags = await Tag.aggregate(pipeline);
+    
+    return tags.map((tag: any) => ({
+      id: tag._id.toString(),
+      name: tag.name,
+      slug: tag.slug,
+      created_at: tag.created_at ? new Date(tag.created_at).toISOString() : new Date().toISOString(),
+      count: tag.count,
+    }));
+  });
 }
 
 export async function getTagBySlug(slug: string): Promise<TagWithCount | null> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.tagBySlug(slug);
+  
+  return withCache(cacheKey, CacheTTL.LONG, async () => {
+    await connectToDatabase();
 
-  const tag = await Tag.findOne({ slug }).lean();
-  if (!tag) return null;
+    const pipeline = [
+      { $match: { slug } },
+      {
+        $lookup: {
+          from: 'alternatives',
+          let: { tagId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $in: ['$$tagId', '$tags'] },
+                    { $eq: ['$approved', true] }
+                  ]
+                }
+              }
+            },
+            { $count: 'count' }
+          ],
+          as: 'alternativeCount'
+        }
+      },
+      {
+        $addFields: {
+          count: {
+            $ifNull: [{ $arrayElemAt: ['$alternativeCount.count', 0] }, 0]
+          }
+        }
+      }
+    ];
 
-  const count = await Alternative.countDocuments({
-    tags: (tag as any)._id,
-    approved: true,
+    const results = await Tag.aggregate(pipeline);
+    if (results.length === 0) return null;
+
+    const tag = results[0];
+    return {
+      id: tag._id.toString(),
+      name: tag.name,
+      slug: tag.slug,
+      created_at: tag.created_at ? new Date(tag.created_at).toISOString() : new Date().toISOString(),
+      count: tag.count,
+    };
   });
-
-  return {
-    id: (tag as any)._id.toString(),
-    name: tag.name,
-    slug: tag.slug,
-    created_at: tag.created_at ? tag.created_at.toISOString() : new Date().toISOString(),
-    count,
-  };
 }
 
-// ============ PROPRIETARY SOFTWARE ============
+// ============ OPTIMIZED PROPRIETARY SOFTWARE QUERIES ============
 
 export async function getProprietarySoftware(): Promise<ProprietaryWithCount[]> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.proprietarySoftware();
+  
+  return withCache(cacheKey, CacheTTL.LONG, async () => {
+    await connectToDatabase();
 
-  const software = await ProprietarySoftware.find()
-    .populate('categories')
-    .sort({ name: 1 })
-    .lean();
+    const pipeline = [
+      // Lookup categories
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'categories',
+          foreignField: '_id',
+          as: 'categories'
+        }
+      },
+      // Lookup alternative count
+      {
+        $lookup: {
+          from: 'alternatives',
+          let: { propId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $in: ['$$propId', '$alternative_to'] },
+                    { $eq: ['$approved', true] }
+                  ]
+                }
+              }
+            },
+            { $count: 'count' }
+          ],
+          as: 'alternativeCount'
+        }
+      },
+      {
+        $addFields: {
+          alternative_count: {
+            $ifNull: [{ $arrayElemAt: ['$alternativeCount.count', 0] }, 0]
+          }
+        }
+      },
+      { $sort: { name: 1 as const } }
+    ];
 
-  const softwareWithCounts = await Promise.all(
-    software.map(async (sw: any) => {
-      const count = await Alternative.countDocuments({
-        alternative_to: sw._id,
-        approved: true,
-      });
-      return {
-        id: sw._id.toString(),
-        name: sw.name,
-        slug: sw.slug,
-        description: sw.description,
-        website: sw.website,
-        icon_url: sw.icon_url || null,
-        created_at: sw.created_at ? sw.created_at.toISOString() : new Date().toISOString(),
-        categories: (sw.categories || []).map((c: any) => ({
-          id: c._id.toString(),
-          name: c.name,
-          slug: c.slug,
-          description: c.description,
-          icon: c.icon,
-          created_at: c.created_at ? c.created_at.toISOString() : new Date().toISOString(),
-        })),
-        alternative_count: count,
-      };
-    })
-  );
-
-  return softwareWithCounts;
+    const software = await ProprietarySoftware.aggregate(pipeline);
+    
+    return software.map((sw: any) => ({
+      id: sw._id.toString(),
+      name: sw.name,
+      slug: sw.slug,
+      description: sw.description,
+      website: sw.website,
+      icon_url: sw.icon_url || null,
+      created_at: sw.created_at ? new Date(sw.created_at).toISOString() : new Date().toISOString(),
+      categories: (sw.categories || []).map((c: any) => ({
+        id: c._id.toString(),
+        name: c.name,
+        slug: c.slug,
+        description: c.description,
+        icon: c.icon,
+        created_at: c.created_at ? new Date(c.created_at).toISOString() : new Date().toISOString(),
+      })),
+      alternative_count: sw.alternative_count,
+    }));
+  });
 }
 
 export async function getProprietaryBySlug(slug: string): Promise<ProprietaryWithCount | null> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.proprietaryBySlug(slug);
+  
+  return withCache(cacheKey, CacheTTL.LONG, async () => {
+    await connectToDatabase();
 
-  const software = await ProprietarySoftware.findOne({ slug })
-    .populate('categories')
-    .lean();
+    const pipeline = [
+      { $match: { slug } },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'categories',
+          foreignField: '_id',
+          as: 'categories'
+        }
+      },
+      {
+        $lookup: {
+          from: 'alternatives',
+          let: { propId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $in: ['$$propId', '$alternative_to'] },
+                    { $eq: ['$approved', true] }
+                  ]
+                }
+              }
+            },
+            { $count: 'count' }
+          ],
+          as: 'alternativeCount'
+        }
+      },
+      {
+        $addFields: {
+          alternative_count: {
+            $ifNull: [{ $arrayElemAt: ['$alternativeCount.count', 0] }, 0]
+          }
+        }
+      }
+    ];
 
-  if (!software) return null;
+    const results = await ProprietarySoftware.aggregate(pipeline);
+    if (results.length === 0) return null;
 
-  const count = await Alternative.countDocuments({
-    alternative_to: (software as any)._id,
-    approved: true,
+    const software = results[0];
+    return {
+      id: software._id.toString(),
+      name: software.name,
+      slug: software.slug,
+      description: software.description,
+      website: software.website,
+      icon_url: software.icon_url || null,
+      created_at: software.created_at ? new Date(software.created_at).toISOString() : new Date().toISOString(),
+      categories: (software.categories || []).map((c: any) => ({
+        id: c._id.toString(),
+        name: c.name,
+        slug: c.slug,
+        description: c.description,
+        icon: c.icon,
+        created_at: c.created_at ? new Date(c.created_at).toISOString() : new Date().toISOString(),
+      })),
+      alternative_count: software.alternative_count,
+    };
   });
-
-  return {
-    id: (software as any)._id.toString(),
-    name: software.name,
-    slug: software.slug,
-    description: software.description,
-    website: software.website,
-    icon_url: (software as any).icon_url || null,
-    created_at: software.created_at ? software.created_at.toISOString() : new Date().toISOString(),
-    categories: ((software as any).categories || []).map((c: any) => ({
-      id: c._id.toString(),
-      name: c.name,
-      slug: c.slug,
-      description: c.description,
-      icon: c.icon,
-      created_at: c.created_at ? c.created_at.toISOString() : new Date().toISOString(),
-    })),
-    alternative_count: count,
-  };
 }
 
 // ============ SUBMISSION ============
@@ -660,6 +978,9 @@ export async function submitAlternative(data: {
       alternative_to: data.alternative_to_ids.map((id) => new mongoose.Types.ObjectId(id)),
     });
 
+    // Invalidate relevant caches
+    invalidateOnWrite(['alternatives', 'categories', 'tags', 'techstack', 'proprietary']);
+
     return { success: true, id: alternative._id.toString() };
   } catch (error: any) {
     console.error('Error submitting alternative:', error);
@@ -687,16 +1008,47 @@ export interface CreatorProfile {
 export async function getCreatorProfileByUserId(userId: string): Promise<CreatorProfile | null> {
   await connectToDatabase();
 
-  const user = await User.findById(userId).select('-password').lean();
-  if (!user) return null;
+  // Use aggregation to get user with count in single query
+  const pipeline = [
+    { $match: { _id: new mongoose.Types.ObjectId(userId) } },
+    {
+      $lookup: {
+        from: 'alternatives',
+        let: { userId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$user_id', '$$userId'] },
+                  { $eq: ['$approved', true] }
+                ]
+              }
+            }
+          },
+          { $count: 'count' }
+        ],
+        as: 'alternativesCount'
+      }
+    },
+    {
+      $addFields: {
+        alternatives_count: {
+          $ifNull: [{ $arrayElemAt: ['$alternativesCount.count', 0] }, 0]
+        }
+      }
+    },
+    {
+      $project: { password: 0, alternativesCount: 0 }
+    }
+  ];
 
-  const count = await Alternative.countDocuments({
-    user_id: new mongoose.Types.ObjectId(userId),
-    approved: true,
-  });
+  const results = await User.aggregate(pipeline);
+  if (results.length === 0) return null;
 
+  const user = results[0];
   return {
-    id: (user as any)._id.toString(),
+    id: user._id.toString(),
     email: user.email,
     name: user.name,
     avatar_url: user.avatar_url,
@@ -707,23 +1059,53 @@ export async function getCreatorProfileByUserId(userId: string): Promise<Creator
     linkedin_url: user.linkedin_url,
     youtube_url: user.youtube_url,
     discord_username: user.discord_username,
-    alternatives_count: count,
+    alternatives_count: user.alternatives_count,
   };
 }
 
 export async function getCreatorProfileByEmail(email: string): Promise<CreatorProfile | null> {
   await connectToDatabase();
 
-  const user = await User.findOne({ email: email.toLowerCase() }).select('-password').lean();
-  if (!user) return null;
+  const pipeline = [
+    { $match: { email: email.toLowerCase() } },
+    {
+      $lookup: {
+        from: 'alternatives',
+        let: { userId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$user_id', '$$userId'] },
+                  { $eq: ['$approved', true] }
+                ]
+              }
+            }
+          },
+          { $count: 'count' }
+        ],
+        as: 'alternativesCount'
+      }
+    },
+    {
+      $addFields: {
+        alternatives_count: {
+          $ifNull: [{ $arrayElemAt: ['$alternativesCount.count', 0] }, 0]
+        }
+      }
+    },
+    {
+      $project: { password: 0, alternativesCount: 0 }
+    }
+  ];
 
-  const count = await Alternative.countDocuments({
-    user_id: (user as any)._id,
-    approved: true,
-  });
+  const results = await User.aggregate(pipeline);
+  if (results.length === 0) return null;
 
+  const user = results[0];
   return {
-    id: (user as any)._id.toString(),
+    id: user._id.toString(),
     email: user.email,
     name: user.name,
     avatar_url: user.avatar_url,
@@ -734,7 +1116,7 @@ export async function getCreatorProfileByEmail(email: string): Promise<CreatorPr
     linkedin_url: user.linkedin_url,
     youtube_url: user.youtube_url,
     discord_username: user.discord_username,
-    alternatives_count: count,
+    alternatives_count: user.alternatives_count,
   };
 }
 
@@ -746,21 +1128,26 @@ export async function getStats(): Promise<{
   totalTechStacks: number;
   totalTags: number;
 }> {
-  await connectToDatabase();
+  const cacheKey = CacheKeys.stats();
+  
+  return withCache(cacheKey, CacheTTL.MEDIUM, async () => {
+    await connectToDatabase();
 
-  const [alternatives, categories, techStacks, tags] = await Promise.all([
-    Alternative.countDocuments({ approved: true }),
-    Category.countDocuments(),
-    TechStack.countDocuments(),
-    Tag.countDocuments(),
-  ]);
+    // Execute all counts in parallel
+    const [alternatives, categories, techStacks, tags] = await Promise.all([
+      Alternative.countDocuments({ approved: true }),
+      Category.countDocuments(),
+      TechStack.countDocuments(),
+      Tag.countDocuments(),
+    ]);
 
-  return {
-    totalAlternatives: alternatives,
-    totalCategories: categories,
-    totalTechStacks: techStacks,
-    totalTags: tags,
-  };
+    return {
+      totalAlternatives: alternatives,
+      totalCategories: categories,
+      totalTechStacks: techStacks,
+      totalTags: tags,
+    };
+  });
 }
 
 // ============ VOTES ============
@@ -768,8 +1155,10 @@ export async function getStats(): Promise<{
 export async function getVoteScore(alternativeId: string): Promise<number> {
   await connectToDatabase();
 
-  // Get vote_score directly from the Alternative document
-  const alternative = await Alternative.findById(alternativeId).select('vote_score').lean();
+  // Get vote_score directly from the Alternative document (cached in document)
+  const alternative = await Alternative.findById(alternativeId)
+    .select('vote_score')
+    .lean();
   return alternative?.vote_score || 0;
 }
 
@@ -779,7 +1168,9 @@ export async function getUserVote(userId: string, alternativeId: string): Promis
   const vote = await Vote.findOne({
     user_id: new mongoose.Types.ObjectId(userId),
     alternative_id: new mongoose.Types.ObjectId(alternativeId),
-  }).lean();
+  })
+    .select('vote_type')
+    .lean();
 
   return vote?.vote_type || null;
 }
@@ -796,7 +1187,9 @@ export async function upsertVote(
     const existingVote = await Vote.findOne({
       user_id: new mongoose.Types.ObjectId(userId),
       alternative_id: new mongoose.Types.ObjectId(alternativeId),
-    }).lean();
+    })
+      .select('vote_type')
+      .lean();
 
     const oldVoteValue = existingVote?.vote_type || 0;
     const newVoteValue = voteType === 0 ? 0 : voteType;
@@ -825,9 +1218,15 @@ export async function upsertVote(
       await Alternative.findByIdAndUpdate(alternativeId, { $inc: { vote_score: scoreDelta } });
     }
 
+    // Invalidate vote-related caches
+    invalidateOnWrite(['votes']);
+
     return { success: true };
   } catch (error: any) {
     console.error('Error upserting vote:', error);
     return { success: false, error: error.message };
   }
 }
+
+// Export cache utilities for use in API routes
+export { queryCache, CacheKeys, withCache, invalidateOnWrite };

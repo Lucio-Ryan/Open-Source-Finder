@@ -41,41 +41,73 @@ interface GitHubStats {
 
 interface AlternativeCardProps {
   alternative: AlternativeData | AlternativeWithRelations;
+  disableLiveStats?: boolean; // Option to disable live stats fetching for performance
 }
 
-export function AlternativeCard({ alternative }: AlternativeCardProps) {
+// In-memory cache for GitHub stats to prevent duplicate API calls
+const statsCache = new Map<string, { data: GitHubStats | null; timestamp: number }>();
+const STATS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+export function AlternativeCard({ alternative, disableLiveStats = false }: AlternativeCardProps) {
   const [liveStats, setLiveStats] = useState<GitHubStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
 
-  // Fetch live GitHub stats
+  // Fetch live GitHub stats with caching and debouncing
   useEffect(() => {
-    const fetchGitHubStats = async () => {
-      if (!alternative.github) return;
+    if (!alternative.github || disableLiveStats) return;
+    
+    const githubUrl = alternative.github;
+    
+    // Check cache first
+    const cached = statsCache.get(githubUrl);
+    if (cached && Date.now() - cached.timestamp < STATS_CACHE_TTL) {
+      if (cached.data) {
+        setLiveStats(cached.data);
+      }
+      return;
+    }
+
+    let isMounted = true;
+    
+    const fetchStats = async () => {
+      if (!isMounted) return;
       
       setStatsLoading(true);
       try {
-        const response = await fetch(`/api/github-stats?github=${encodeURIComponent(alternative.github)}`);
-        if (response.ok) {
+        const response = await fetch(`/api/github-stats?github=${encodeURIComponent(githubUrl)}`);
+        if (response.ok && isMounted) {
           const data = await response.json();
           if (data.data) {
-            setLiveStats({
+            const stats: GitHubStats = {
               stars: data.data.stars,
               forks: data.data.forks,
               lastCommit: data.data.lastCommit,
               healthScore: data.data.healthScore,
-            });
+            };
+            setLiveStats(stats);
+            // Cache the result
+            statsCache.set(githubUrl, { data: stats, timestamp: Date.now() });
           }
         }
       } catch (err) {
         // Silently fail and use database values
         console.error('Failed to fetch GitHub stats:', err);
+        statsCache.set(githubUrl, { data: null, timestamp: Date.now() });
       } finally {
-        setStatsLoading(false);
+        if (isMounted) {
+          setStatsLoading(false);
+        }
       }
     };
 
-    fetchGitHubStats();
-  }, [alternative.github]);
+    // Delay fetching to batch requests and reduce API load
+    const timeoutId = setTimeout(fetchStats, 500 + Math.random() * 500);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [alternative.github, disableLiveStats]);
 
   const formatNumber = (num: number): string => {
     if (num >= 1000) {
