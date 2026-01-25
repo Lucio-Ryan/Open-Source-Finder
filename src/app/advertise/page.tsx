@@ -22,7 +22,7 @@ export default function AdvertisePage() {
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-white">
               Advertise on
               <br />
-              <span className="gradient-text-brand">OS Finder_</span>
+              <span className="gradient-text-brand">OPEN_SRC.ME_</span>
             </h1>
             
             <p className="text-lg sm:text-xl text-muted mb-8 max-w-2xl mx-auto font-mono">

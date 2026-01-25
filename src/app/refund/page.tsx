@@ -25,8 +25,8 @@ async function getPolicy() {
 }
 
 export const metadata: Metadata = {
-  title: 'Refund Policy | OS Finder',
-  description: 'Refund Policy for OS Finder - Learn about our refund terms and conditions.',
+  title: 'Refund Policy | OPEN_SRC.ME',
+  description: 'Refund Policy for OPEN_SRC.ME - Learn about our refund terms and conditions.',
 };
 
 export default async function RefundPage() {

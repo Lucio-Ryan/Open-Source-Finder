@@ -760,7 +760,7 @@ export default function SubmitPage() {
           {selectedPlan === 'sponsor' ? (
             <div className="space-y-4 mb-6">
               <p className="text-muted">
-                Your project is now live and featured on OS Finder!
+                Your project is now live and featured on OPEN_SRC.ME!
               </p>
               <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4 text-left">
                 <h3 className="text-emerald-500 font-semibold mb-2 text-sm">Your Sponsor Benefits:</h3>

@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import { AdSubmitForm } from '@/components/ui/AdSubmitForm';
 
 export const metadata: Metadata = {
-  title: 'Submit Banner Ad - Advertise on OS Finder',
-  description: 'Submit a banner advertisement to be displayed below the header on all pages of OS Finder.',
+  title: 'Submit Banner Ad - Advertise on OPEN_SRC.ME',
+  description: 'Submit a banner advertisement to be displayed below the header on all pages of OPEN_SRC.ME.',
   alternates: {
     canonical: '/advertise/banner',
   },

@@ -61,7 +61,7 @@ export function Header() {
               <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-brand" />
             </div>
             <span className="font-pixel text-xs sm:text-sm text-white tracking-wider truncate">
-              OS<span className="text-brand">_</span>FINDER
+              OPEN<span className="text-brand">_</span>SRC<span className="text-brand">.</span>ME
             </span>
           </Link>
 

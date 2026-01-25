@@ -8,7 +8,7 @@ import { getProprietarySoftware } from '@/lib/mongodb/queries';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'All Proprietary Software | OS Finder',
+  title: 'All Proprietary Software | OPEN_SRC.ME',
   description: 'Browse all proprietary software and discover their open source alternatives.',
 };
 

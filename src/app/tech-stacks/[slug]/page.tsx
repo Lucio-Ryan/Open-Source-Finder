@@ -25,12 +25,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (!techStack) return { title: 'Not Found' };
 
     return {
-      title: `${techStack.name} Open Source Alternatives | OS Finder`,
+      title: `${techStack.name} Open Source Alternatives | OPEN_SRC.ME`,
       description: `Discover open source alternatives built with ${techStack.name}`,
     };
   } catch (error) {
     console.error('Error generating metadata:', error);
-    return { title: 'Tech Stack | OS Finder' };
+    return { title: 'Tech Stack | OPEN_SRC.ME' };
   }
 }
 

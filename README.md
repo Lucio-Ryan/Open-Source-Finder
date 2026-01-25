@@ -1,8 +1,8 @@
-# OS Finder
+# OPEN_SRC.ME
 
 A directory platform for discovering open source alternatives to popular proprietary software. Built with Next.js, MongoDB, and optimized for Vercel deployment.
 
-![OS Finder](https://via.placeholder.com/1200x630/0d0d0d/3ecf8e?text=OS+Finder)
+![OPEN_SRC.ME](https://via.placeholder.com/1200x630/0d0d0d/3ecf8e?text=OPEN_SRC.ME)
 
 ## Features
 
@@ -37,8 +37,8 @@ A directory platform for discovering open source alternatives to popular proprie
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/osfinder.git
-cd osfinder
+git clone https://github.com/yourusername/opensrcme.git
+cd opensrcme
 ```
 
 2. Install dependencies:
@@ -56,7 +56,7 @@ cp .env.example .env.local
 ```
 Then edit `.env.local` with your MongoDB credentials:
 ```
-MONGODB_URI=mongodb://localhost:27017/osfinder
+MONGODB_URI=mongodb://localhost:27017/opensrcme
 JWT_SECRET=your-super-secret-jwt-key
 ```
 
@@ -127,7 +127,7 @@ The easiest way to deploy is using [Vercel](https://vercel.com):
 2. Import your repository on Vercel
 3. Vercel will automatically detect Next.js and configure the build
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/osfinder)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/opensrcme)
 
 ### Environment Variables
 

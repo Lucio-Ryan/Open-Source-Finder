@@ -25,8 +25,8 @@ async function getPolicy() {
 }
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | OS Finder',
-  description: 'Privacy Policy for OS Finder - Learn how we collect, use, and protect your information.',
+  title: 'Privacy Policy | OPEN_SRC.ME',
+  description: 'Privacy Policy for OPEN_SRC.ME - Learn how we collect, use, and protect your information.',
 };
 
 export default async function PrivacyPage() {

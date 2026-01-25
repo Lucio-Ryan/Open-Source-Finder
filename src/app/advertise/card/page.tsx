@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import { AdSubmitForm } from '@/components/ui/AdSubmitForm';
 
 export const metadata: Metadata = {
-  title: 'Submit Card Ad - Advertise on OS Finder',
-  description: 'Submit a card advertisement that blends into the alternatives grid on OS Finder.',
+  title: 'Submit Card Ad - Advertise on OPEN_SRC.ME',
+  description: 'Submit a card advertisement that blends into the alternatives grid on OPEN_SRC.ME.',
   alternates: {
     canonical: '/advertise/card',
   },

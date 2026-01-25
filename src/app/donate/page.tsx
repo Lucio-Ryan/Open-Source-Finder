@@ -227,7 +227,7 @@ export default function DonatePage() {
             Support<span className="text-brand">_</span>The<span className="text-brand">_</span>Project
           </h1>
           <p className="text-muted font-mono text-sm sm:text-base max-w-xl mx-auto">
-            Help us keep OS_FINDER running and continue discovering amazing open-source alternatives.
+            Help us keep OPEN_SRC.ME running and continue discovering amazing open-source alternatives.
             Your support helps cover hosting & database costs.
           </p>
         </div>

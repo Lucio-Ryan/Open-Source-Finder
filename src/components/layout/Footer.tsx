@@ -67,7 +67,7 @@ export function Footer() {
                   <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-brand" />
                 </div>
                 <span className="font-pixel text-xs sm:text-sm text-white tracking-wider">
-                  OS<span className="text-brand">_</span>FINDER
+                  OPEN<span className="text-brand">_</span>SRC<span className="text-brand">.</span>ME
                 </span>
               </Link>
               <p className="text-muted text-xs sm:text-sm font-mono leading-relaxed mb-4 sm:mb-6">
@@ -75,7 +75,7 @@ export function Footer() {
               </p>
               <div className="flex items-center space-x-3">
                 <a
-                  href="mailto:hello@osfinder.vercel.app"
+                  href="mailto:hello@opensrc.me"
                   className="p-2 sm:p-2.5 bg-surface border border-border text-muted hover:text-brand hover:border-brand/30 rounded-lg transition-all touch-manipulation"
                   aria-label="Email"
                 >
@@ -142,7 +142,7 @@ export function Footer() {
           <div className="mt-10 sm:mt-12 lg:mt-16 pt-6 sm:pt-8 border-t border-border">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
               <p className="text-muted text-[10px] sm:text-xs font-mono text-center sm:text-left">
-                <span className="text-brand">©</span> {new Date().getFullYear()} OS Finder. Built with{' '}
+                <span className="text-brand">©</span> {new Date().getFullYear()} OPEN_SRC.ME. Built with{' '}
                 <span className="text-brand">♥</span> for the open source community.
               </p>
               <div className="flex items-center space-x-2 text-[10px] sm:text-xs font-mono text-muted">

@@ -55,7 +55,7 @@ export default async function Home() {
             </div>
             
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-relaxed text-white">
-              The largest directory of
+              Replace your tech stack with
               <br />
               <span className="block mt-2 gradient-text-brand">open source alternatives</span>
             </h1>

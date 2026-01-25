@@ -11,7 +11,7 @@ import {
 export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ossfinder.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://opensrc.me';
 
   // Return only static pages if MongoDB is not available
   if (!process.env.MONGODB_URI) {

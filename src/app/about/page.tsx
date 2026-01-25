@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Terminal, Database, Users, TrendingUp, Search, Github, Code, Unlock } from 'lucide-react';
 
 export const metadata: Metadata = {
-title: 'About OS Finder - Community-Curated Open Source Alternatives',
+title: 'About OPEN_SRC.ME - Community-Curated Open Source Alternatives',
   description: 'The largest community-curated database of open source alternatives. User-ranked listings with real GitHub stats, powerful search, and a commitment to software freedom against unfair SaaS monetization.',
   alternates: {
     canonical: '/about',

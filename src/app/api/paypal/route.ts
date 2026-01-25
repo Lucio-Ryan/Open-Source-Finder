@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     if (body.amount) {
       const amount = parseFloat(String(body.amount));
       const currency = (body.currency || 'USD').toUpperCase();
-      const description = body.description || 'Donation to OS_FINDER';
+      const description = body.description || 'Donation to OPEN_SRC.ME';
 
       if (isNaN(amount) || amount < 1) {
         return NextResponse.json({ error: 'Invalid amount. Minimum is $1' }, { status: 400 });
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
           },
         ],
         application_context: {
-          brand_name: 'OS Finder',
+          brand_name: 'OPEN_SRC.ME',
           landing_page: 'NO_PREFERENCE',
           shipping_preference: 'NO_SHIPPING',
           user_action: 'PAY_NOW',

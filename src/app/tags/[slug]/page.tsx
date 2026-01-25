@@ -25,12 +25,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (!tag) return { title: 'Not Found' };
 
     return {
-      title: `${tag.name} Open Source Alternatives | OS Finder`,
+      title: `${tag.name} Open Source Alternatives | OPEN_SRC.ME`,
       description: `Discover open source alternatives tagged with ${tag.name}`,
     };
   } catch (error) {
     console.error('Error generating metadata:', error);
-    return { title: 'Tag | OS Finder' };
+    return { title: 'Tag | OPEN_SRC.ME' };
   }
 }
 
