@@ -78,6 +78,14 @@ export function Header() {
                 <span className="opacity-0 group-hover:opacity-100 text-brand/50 transition-opacity">]</span>
               </Link>
             ))}
+            <Link
+              href="/donate"
+              className="px-4 py-2 text-muted hover:text-brand font-mono text-sm transition-colors relative group"
+            >
+              <span className="opacity-0 group-hover:opacity-100 text-brand/50 transition-opacity">[</span>
+              Support the Project
+              <span className="opacity-0 group-hover:opacity-100 text-brand/50 transition-opacity">]</span>
+            </Link>
           </nav>
 
           {/* Actions */}
@@ -97,12 +105,6 @@ export function Header() {
                 Submit_
               </Link>
             )}
-            <Link
-              href="/donate"
-              className="hidden sm:inline-flex items-center px-3 md:px-4 py-2 bg-brand text-dark font-mono text-xs md:text-sm font-medium rounded-lg hover:bg-brand-light transition-all hover:shadow-glow"
-            >
-              Support the Project
-            </Link>
             
             {/* Auth Section */}
             {loading ? (
