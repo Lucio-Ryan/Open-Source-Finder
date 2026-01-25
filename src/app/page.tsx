@@ -82,7 +82,15 @@ export default async function Home() {
                 </Link>
               ))}
             </div>
+          {/* Stats Row */}
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-8 mt-6 mb-2 text-xs sm:text-sm font-mono text-muted">
+            <span><span className="text-brand font-bold">50k+</span> monthly views</span>
+            <span className="hidden sm:inline">|</span>
+            <span><span className="text-brand font-bold">1.2k</span> avg. views/project</span>
+            <span className="hidden sm:inline">|</span>
+            <span><span className="text-brand font-bold">100+</span> newsletter subscribers</span>
           </div>
+        </div>
         </div>
         
         {/* Gradient line */}
@@ -137,6 +145,7 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
 
       {/* Featured Alternatives */}
       <section className="py-12 sm:py-16 lg:py-20 xl:py-28 relative">

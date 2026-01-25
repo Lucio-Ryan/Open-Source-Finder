@@ -99,7 +99,7 @@ export function PopupAd() {
         {currentAd.company_logo ? (
           <Image
             src={currentAd.company_logo}
-            alt=""
+            alt={`${currentAd.company_name} ad`}
             width={24}
             height={24}
             className="rounded-full"

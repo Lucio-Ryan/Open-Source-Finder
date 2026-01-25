@@ -3,6 +3,9 @@
 import { Megaphone, Users, TrendingUp, Star, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
+// Note: Client component - metadata defined in layout route
+// If this needs SSR metadata, convert to server component
+
 export default function AdvertisePage() {
   return (
     <div className="min-h-screen bg-dark">
