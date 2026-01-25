@@ -38,12 +38,21 @@ export const metadata: Metadata = {
     siteName: 'OPEN_SRC.ME',
     title: 'OPEN_SRC.ME - Discover Open Source Alternatives',
     description: 'Find the best open source alternatives to popular proprietary software. Browse by category, tech stack, or search directly.',
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: 'OPEN_SRC.ME - Discover Open Source Alternatives to Proprietary Software',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'OPEN_SRC.ME - Open Source Alternatives',
     description: 'Discover free, open source alternatives to proprietary software',
     creator: '@opensrcme',
+    images: ['/twitter-image'],
   },
   robots: {
     index: true,
