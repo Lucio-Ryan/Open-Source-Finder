@@ -55,13 +55,11 @@ export default async function Home() {
             </div>
             
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-relaxed text-white">
-              Replace your tech stack with
-              <br />
-              <span className="block mt-2 gradient-text-brand">open source alternatives</span>
+              Discover open source alternatives to proprietary software — replace parts of your tech stack
             </h1>
-            
+
             <p className="text-sm sm:text-base md:text-lg text-muted mb-3 sm:mb-4 lg:mb-6 max-w-2xl mx-auto font-mono px-2">
-              <span className="text-brand">{'>'}</span> A comprehensive, community-curated database of open source software alternatives to popular proprietary tools.
+              <span className="text-brand">{'>'}</span> OPEN_SRC.ME is a comprehensive, community-curated directory of free and open source software alternatives to popular proprietary tools. Browse projects by category, tech stack, or search for specific apps. Each listing includes concise descriptions, screenshots, license information, GitHub stats, and community voting to help you choose secure, private, and self-hosted options. Contribute new projects or vote for favorites to improve discoverability and help others find better open source choices.
             </p>
             
             {/* Search */}

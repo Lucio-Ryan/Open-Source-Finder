@@ -220,8 +220,9 @@ export function SponsoredAlternativeCard({ alternative }: SponsoredAlternativeCa
             <Link
               href={`/alternatives/${alternative.slug}`}
               className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-emerald-500 to-green-500 text-dark font-medium font-mono text-sm rounded-lg hover:opacity-90 transition-opacity"
+              aria-label={`Learn more about ${alternative.name}`}
             >
-              Learn More
+              Learn more about {alternative.name}
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
             
@@ -231,19 +232,21 @@ export function SponsoredAlternativeCard({ alternative }: SponsoredAlternativeCa
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 bg-dark border border-border rounded-lg text-muted hover:text-white hover:border-emerald-500/50 transition-colors"
-                title="Visit website"
+                title={`Visit ${alternative.name} website`}
+                aria-label={`Visit ${alternative.name} website`}
               >
                 <ExternalLink className="w-4 h-4" />
               </a>
             )}
-            
+
             {alternative.github && (
               <a
                 href={alternative.github}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 bg-dark border border-border rounded-lg text-muted hover:text-white hover:border-emerald-500/50 transition-colors"
-                title="View on GitHub"
+                title={`View ${alternative.name} on GitHub`}
+                aria-label={`View ${alternative.name} on GitHub`}
               >
                 <Github className="w-4 h-4" />
               </a>
