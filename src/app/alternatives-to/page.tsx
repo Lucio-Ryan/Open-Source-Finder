@@ -4,8 +4,8 @@ import { ArrowRight } from 'lucide-react';
 import { SearchBar } from '@/components/ui';
 import { getProprietarySoftware } from '@/lib/mongodb/queries';
 
-// Force dynamic rendering to access MongoDB at runtime
-export const dynamic = 'force-dynamic';
+// Enable ISR - revalidate every 60 seconds
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: 'All Proprietary Software | OPEN_SRC.ME',

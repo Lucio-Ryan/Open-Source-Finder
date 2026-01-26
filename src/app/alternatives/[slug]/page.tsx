@@ -7,8 +7,8 @@ import { getAlternatives, getAlternativeBySlug, getCreatorProfileByUserId, getCr
 import { AlternativeWithRelations } from '@/types/database';
 import { AlternativeCard, RichTextContent, GitHubStatsCard, ScreenshotCarousel, CreatorProfileCard, AlternativeVoteSection, DiscussionSection } from '@/components/ui';
 
-// Force dynamic rendering to access MongoDB at runtime
-export const dynamic = 'force-dynamic';
+// Enable ISR - revalidate every 60 seconds
+export const revalidate = 60;
 // Allow dynamic paths not generated at build time
 export const dynamicParams = true;
 

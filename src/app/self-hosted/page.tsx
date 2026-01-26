@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   },
 };
 
-// Force dynamic rendering to access MongoDB at runtime
-export const dynamic = 'force-dynamic';
+// Enable ISR - revalidate every 60 seconds
+export const revalidate = 60;
 
 export default async function SelfHostedPage() {
   let selfHostedAlternatives: Awaited<ReturnType<typeof getSelfHostedAlternatives>> = [];

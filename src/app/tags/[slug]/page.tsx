@@ -5,8 +5,8 @@ import { ArrowLeft, Tag } from 'lucide-react';
 import { AlternativeCard, SponsoredAlternativeCard, SearchBar, isActiveSponsor } from '@/components/ui';
 import { getTags, getTagBySlug, getAlternativesByTag } from '@/lib/mongodb/queries';
 
-// Force dynamic rendering to access MongoDB at runtime
-export const dynamic = 'force-dynamic';
+// Enable ISR - revalidate every 60 seconds
+export const revalidate = 60;
 // Allow dynamic paths not generated at build time
 export const dynamicParams = true;
 

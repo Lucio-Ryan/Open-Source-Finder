@@ -7,8 +7,8 @@ import {
   getProprietarySoftware 
 } from '@/lib/mongodb/queries';
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
+// Enable ISR - revalidate sitemap every 3600 seconds (1 hour)
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://opensrc.me';

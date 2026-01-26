@@ -7,12 +7,12 @@ import { StructuredData } from '@/components/seo/StructuredData';
 import { BannerAd, PopupAd } from '@/components/ui';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://opensrc.me'),
   title: {
-    default: 'OPEN_SRC.ME - Discover Open Source Alternatives to Proprietary Software',
+    default: 'OPEN_SRC.ME - Open Source Alternatives to Proprietary Software',
     template: '%s | OPEN_SRC.ME',
   },
-  description: 'Discover the best open source alternatives to popular proprietary software. Browse 100+ free, self-hosted tools by category and tech stack. Find privacy-focused replacements for Notion, Slack, Figma and more.',
+  description: 'Discover the best open source alternatives to popular proprietary software. Browse 100+ free, self-hosted tools by category and tech stack.',
   keywords: ['open source', 'alternatives', 'free software', 'self-hosted', 'privacy', 'open source software', 'proprietary software alternatives', 'FOSS', 'free open source'],
   authors: [{ name: 'OPEN_SRC.ME', url: 'https://opensrc.me' }],
   creator: 'OPEN_SRC.ME',
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
         url: '/opengraph-image',
         width: 1200,
         height: 630,
-        alt: 'OPEN_SRC.ME - Discover Open Source Alternatives to Proprietary Software',
+        alt: 'OPEN_SRC.ME - Open Source Alternatives to Proprietary Software',
       },
     ],
   },
@@ -79,7 +79,6 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <head>
         <script defer src="https://cloud.umami.is/script.js" data-website-id="67610b2b-567d-460f-898a-9161a00540ce"></script>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta charSet="utf-8" />
         <StructuredData />
       </head>

@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import { connectToDatabase } from '@/lib/mongodb/connection';
 import { Policy } from '@/lib/mongodb/models';
 
-// Force dynamic rendering to access MongoDB at runtime
-export const dynamic = 'force-dynamic';
+// Enable ISR - revalidate every 3600 seconds (1 hour) for static content
+export const revalidate = 3600;
 
 async function getPolicy() {
   try {
