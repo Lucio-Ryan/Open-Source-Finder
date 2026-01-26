@@ -14,7 +14,7 @@ export const revalidate = 60;
 
 export const metadata: Metadata = {
   alternates: {
-    canonical: '/',
+    canonical: 'https://opensrc.me/',
   },
 };
 

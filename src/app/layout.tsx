@@ -9,7 +9,7 @@ import { BannerAd, PopupAd } from '@/components/ui';
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://opensrc.me'),
   title: {
-    default: 'OPEN_SRC.ME - Open Source Alternatives to Proprietary Software',
+    default: 'OPEN_SRC.ME - Open Source Alternatives to Software',
     template: '%s | OPEN_SRC.ME',
   },
   description: 'Discover the best open source alternatives to popular proprietary software. Browse 100+ free, self-hosted tools by category and tech stack.',
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: 'https://opensrc.me/favicon.svg', type: 'image/svg+xml' },
       { url: '/assets/logo.svg', type: 'image/svg+xml', sizes: '64x64' },
     ],
     apple: [
@@ -34,16 +34,16 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: '/',
+    url: 'https://opensrc.me/',
     siteName: 'OPEN_SRC.ME',
     title: 'OPEN_SRC.ME - Discover Open Source Alternatives',
     description: 'Find the best open source alternatives to popular proprietary software. Browse by category, tech stack, or search directly.',
     images: [
       {
-        url: '/opengraph-image',
+        url: 'https://opensrc.me/opengraph-image',
         width: 1200,
         height: 630,
-        alt: 'OPEN_SRC.ME - Open Source Alternatives to Proprietary Software',
+        alt: 'OPEN_SRC.ME - Open Source Alternatives to Software',
       },
     ],
   },
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     title: 'OPEN_SRC.ME - Open Source Alternatives',
     description: 'Discover free, open source alternatives to proprietary software',
     creator: '@opensrcme',
-    images: ['/twitter-image'],
+    images: ['https://opensrc.me/twitter-image'],
   },
   robots: {
     index: true,
@@ -66,7 +66,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: '/',
+    canonical: 'https://opensrc.me/',
   },
 };
 
