@@ -90,6 +90,11 @@ export default async function Home() {
             <span className="hidden sm:inline">|</span>
             <span><span className="text-brand font-bold">100+</span> newsletter subscribers</span>
           </div>
+          
+          {/* Badge for testing backlink verification */}
+          <div className="flex justify-center mt-6">
+            <a href="https://opensrc.me/alternatives/open-source-finder"><img src="https://opensrc.me/badge.svg" alt="Featured on OPEN_SRC.ME" /></a>
+          </div>
         </div>
         </div>
         
