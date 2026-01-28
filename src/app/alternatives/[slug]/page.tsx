@@ -49,32 +49,35 @@ export default async function AlternativeDetailPage({ params }: Props) {
     notFound();
   }
 
-  // Fetch creator profile and similar alternatives in parallel for better performance
-  const [creatorProfile, allAlternatives] = await Promise.all([
+  // Fetch creator profile and similar alternatives in parallel using Promise.allSettled
+  let creatorProfile = null;
+  let allAlternatives: Awaited<ReturnType<typeof getAlternatives>> = [];
+  
+  const results = await Promise.allSettled([
     // Creator profile
     (async () => {
-      try {
-        if (alternative!.user_id) {
-          return await getCreatorProfileByUserId(alternative!.user_id);
-        } else if (alternative!.submitter_email) {
-          return await getCreatorProfileByEmail(alternative!.submitter_email);
-        }
-        return null;
-      } catch (error) {
-        console.error('Error fetching creator profile:', error);
-        return null;
+      if (alternative!.user_id) {
+        return await getCreatorProfileByUserId(alternative!.user_id);
+      } else if (alternative!.submitter_email) {
+        return await getCreatorProfileByEmail(alternative!.submitter_email);
       }
+      return null;
     })(),
     // Similar alternatives
-    (async () => {
-      try {
-        return await getAlternatives({ approved: true, limit: 50 }); // Limit for performance
-      } catch (error) {
-        console.error('Error fetching similar alternatives:', error);
-        return [];
-      }
-    })()
+    getAlternatives({ approved: true, limit: 50 })
   ]);
+  
+  if (results[0].status === 'fulfilled') {
+    creatorProfile = results[0].value;
+  } else {
+    console.error('Error fetching creator profile:', results[0].reason);
+  }
+  
+  if (results[1].status === 'fulfilled') {
+    allAlternatives = results[1].value;
+  } else {
+    console.error('Error fetching similar alternatives:', results[1].reason);
+  }
   
   // Filter similar alternatives based on categories
   const alternativeCategories = alternative.categories?.map((c: { slug: string }) => c.slug) || [];

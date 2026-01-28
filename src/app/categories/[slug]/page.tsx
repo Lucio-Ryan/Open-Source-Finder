@@ -40,15 +40,36 @@ export default async function CategoryPage({ params }: Props) {
   let categories: Awaited<ReturnType<typeof getCategories>> = [];
   let proprietarySoftware: Awaited<ReturnType<typeof getProprietarySoftware>> = [];
   
-  try {
-    [category, categoryAlternatives, categories, proprietarySoftware] = await Promise.all([
-      getCategoryBySlug(params.slug),
-      getAlternativesByCategory(params.slug),
-      getCategories(),
-      getProprietarySoftware(),
-    ]);
-  } catch (error) {
-    console.error('Error fetching category page data:', error);
+  // Use Promise.allSettled to ensure one failure doesn't affect others
+  const results = await Promise.allSettled([
+    getCategoryBySlug(params.slug),
+    getAlternativesByCategory(params.slug),
+    getCategories(),
+    getProprietarySoftware(),
+  ]);
+  
+  if (results[0].status === 'fulfilled') {
+    category = results[0].value;
+  } else {
+    console.error('Error fetching category:', results[0].reason);
+  }
+  
+  if (results[1].status === 'fulfilled') {
+    categoryAlternatives = results[1].value;
+  } else {
+    console.error('Error fetching category alternatives:', results[1].reason);
+  }
+  
+  if (results[2].status === 'fulfilled') {
+    categories = results[2].value;
+  } else {
+    console.error('Error fetching categories:', results[2].reason);
+  }
+  
+  if (results[3].status === 'fulfilled') {
+    proprietarySoftware = results[3].value;
+  } else {
+    console.error('Error fetching proprietary software:', results[3].reason);
   }
 
   if (!category) {

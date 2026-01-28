@@ -23,14 +23,30 @@ export default async function Home() {
   let proprietarySoftware: Awaited<ReturnType<typeof getProprietarySoftware>> = [];
   let stats: Awaited<ReturnType<typeof getStats>> | null = null;
   
-  try {
-    [featuredAlternatives, proprietarySoftware, stats] = await Promise.all([
-      getFeaturedAlternatives(),
-      getProprietarySoftware(),
-      getStats(),
-    ]);
-  } catch (error) {
-    console.error('Error fetching home page data:', error);
+  // Use Promise.allSettled to ensure one failure doesn't affect others
+  const results = await Promise.allSettled([
+    getFeaturedAlternatives(),
+    getProprietarySoftware(),
+    getStats(),
+  ]);
+  
+  // Extract successful results, use defaults for failures
+  if (results[0].status === 'fulfilled') {
+    featuredAlternatives = results[0].value;
+  } else {
+    console.error('Error fetching featured alternatives:', results[0].reason);
+  }
+  
+  if (results[1].status === 'fulfilled') {
+    proprietarySoftware = results[1].value;
+  } else {
+    console.error('Error fetching proprietary software:', results[1].reason);
+  }
+  
+  if (results[2].status === 'fulfilled') {
+    stats = results[2].value;
+  } else {
+    console.error('Error fetching stats:', results[2].reason);
   }
 
   return (

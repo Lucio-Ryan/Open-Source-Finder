@@ -38,13 +38,22 @@ export default async function TagPage({ params }: Props) {
   let tag: Awaited<ReturnType<typeof getTagBySlug>> = null;
   let tagAlternatives: Awaited<ReturnType<typeof getAlternativesByTag>> = [];
   
-  try {
-    [tag, tagAlternatives] = await Promise.all([
-      getTagBySlug(params.slug),
-      getAlternativesByTag(params.slug)
-    ]);
-  } catch (error) {
-    console.error('Error fetching tag page data:', error);
+  // Use Promise.allSettled to ensure one failure doesn't affect others
+  const results = await Promise.allSettled([
+    getTagBySlug(params.slug),
+    getAlternativesByTag(params.slug)
+  ]);
+  
+  if (results[0].status === 'fulfilled') {
+    tag = results[0].value;
+  } else {
+    console.error('Error fetching tag:', results[0].reason);
+  }
+  
+  if (results[1].status === 'fulfilled') {
+    tagAlternatives = results[1].value;
+  } else {
+    console.error('Error fetching tag alternatives:', results[1].reason);
   }
 
   if (!tag) {

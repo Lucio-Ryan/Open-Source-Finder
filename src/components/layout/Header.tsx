@@ -83,7 +83,7 @@ export function Header() {
               className="px-4 py-2 text-muted hover:text-brand font-mono text-sm transition-colors relative group"
             >
               <span className="opacity-0 group-hover:opacity-100 text-brand/50 transition-opacity">[</span>
-              Support the Project
+              Donate
               <span className="opacity-0 group-hover:opacity-100 text-brand/50 transition-opacity">]</span>
             </Link>
           </nav>

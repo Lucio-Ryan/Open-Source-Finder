@@ -17,13 +17,22 @@ export default async function LaunchesRoutePage() {
   let categories: Awaited<ReturnType<typeof getCategories>> = [];
   let proprietarySoftware: Awaited<ReturnType<typeof getProprietarySoftware>> = [];
 
-  try {
-    [categories, proprietarySoftware] = await Promise.all([
-      getCategories(),
-      getProprietarySoftware(),
-    ]);
-  } catch (error) {
-    console.error('Error fetching launches page data:', error);
+  // Use Promise.allSettled to ensure one failure doesn't affect others
+  const results = await Promise.allSettled([
+    getCategories(),
+    getProprietarySoftware(),
+  ]);
+  
+  if (results[0].status === 'fulfilled') {
+    categories = results[0].value;
+  } else {
+    console.error('Error fetching categories:', results[0].reason);
+  }
+  
+  if (results[1].status === 'fulfilled') {
+    proprietarySoftware = results[1].value;
+  } else {
+    console.error('Error fetching proprietary software:', results[1].reason);
   }
 
   // Transform to simpler format for the client component

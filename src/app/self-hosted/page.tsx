@@ -20,14 +20,29 @@ export default async function SelfHostedPage() {
   let categories: Awaited<ReturnType<typeof getCategories>> = [];
   let proprietarySoftware: Awaited<ReturnType<typeof getProprietarySoftware>> = [];
   
-  try {
-    [selfHostedAlternatives, categories, proprietarySoftware] = await Promise.all([
-      getSelfHostedAlternatives(),
-      getCategories(),
-      getProprietarySoftware(),
-    ]);
-  } catch (error) {
-    console.error('Error fetching self-hosted page data:', error);
+  // Use Promise.allSettled to ensure one failure doesn't affect others
+  const results = await Promise.allSettled([
+    getSelfHostedAlternatives(),
+    getCategories(),
+    getProprietarySoftware(),
+  ]);
+  
+  if (results[0].status === 'fulfilled') {
+    selfHostedAlternatives = results[0].value;
+  } else {
+    console.error('Error fetching self-hosted alternatives:', results[0].reason);
+  }
+  
+  if (results[1].status === 'fulfilled') {
+    categories = results[1].value;
+  } else {
+    console.error('Error fetching categories:', results[1].reason);
+  }
+  
+  if (results[2].status === 'fulfilled') {
+    proprietarySoftware = results[2].value;
+  } else {
+    console.error('Error fetching proprietary software:', results[2].reason);
   }
 
   // Transform to simpler format for the client component

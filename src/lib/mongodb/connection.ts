@@ -37,12 +37,19 @@ if (!cached) {
 // Connection health check interval - shorter for serverless (2 minutes)
 const CONNECTION_HEALTH_INTERVAL = 2 * 60 * 1000;
 
-// Connection timeout for serverless - fail fast
-const SERVERLESS_TIMEOUT = 5000;
+// Connection timeout for serverless - slightly more generous for cold starts
+const SERVERLESS_TIMEOUT = 8000;
+
+// Maximum retries for initial connection
+const MAX_CONNECTION_RETRIES = 2;
+
+// Delay between connection retries (ms)
+const CONNECTION_RETRY_DELAY = 1000;
 
 /**
  * Get or create a MongoDB connection optimized for Vercel serverless.
  * Uses aggressive caching and connection reuse to minimize connections.
+ * Includes retry logic for cold start reliability.
  */
 export async function connectToDatabase(): Promise<typeof mongoose> {
   const now = Date.now();
@@ -138,16 +145,17 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
     compressors: ['zstd', 'zlib'], // Compress data transfer
   };
 
-  // Create connection promise with timeout wrapper
+  // Create connection promise with retry wrapper
   const connectionId = ++cached.connectionId;
   
-  cached.promise = (async () => {
+  // Connection function with retry logic
+  const attemptConnection = async (attempt: number = 0): Promise<typeof mongoose> => {
     try {
       const connection = await mongoose.connect(MONGODB_URI, opts);
       
       // Only log on actual new connections, not cached
       if (connectionId === cached.connectionId) {
-        console.log(`✅ MongoDB connected (id: ${connectionId})`);
+        console.log(`✅ MongoDB connected (id: ${connectionId}, attempt: ${attempt + 1})`);
       }
       
       cached.lastConnected = Date.now();
@@ -167,11 +175,27 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
 
       return connection;
     } catch (error) {
-      // Reset on connection failure
+      const isRetryable = attempt < MAX_CONNECTION_RETRIES;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      if (isRetryable) {
+        console.warn(`⚠️ MongoDB connection attempt ${attempt + 1} failed: ${errorMessage}. Retrying in ${CONNECTION_RETRY_DELAY}ms...`);
+        // Reset before retry
+        resetCache();
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, CONNECTION_RETRY_DELAY));
+        // Retry with incremented attempt
+        return attemptConnection(attempt + 1);
+      }
+      
+      // All retries exhausted
+      console.error(`❌ MongoDB connection failed after ${attempt + 1} attempts: ${errorMessage}`);
       resetCache();
       throw error;
     }
-  })();
+  };
+  
+  cached.promise = attemptConnection();
 
   try {
     cached.conn = await cached.promise;

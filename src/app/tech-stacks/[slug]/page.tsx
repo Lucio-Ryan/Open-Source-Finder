@@ -38,13 +38,22 @@ export default async function TechStackPage({ params }: Props) {
   let techStack: Awaited<ReturnType<typeof getTechStackBySlug>> = null;
   let alternatives: Awaited<ReturnType<typeof getAlternativesByTechStack>> = [];
   
-  try {
-    [techStack, alternatives] = await Promise.all([
-      getTechStackBySlug(params.slug),
-      getAlternativesByTechStack(params.slug)
-    ]);
-  } catch (error) {
-    console.error('Error fetching tech stack page data:', error);
+  // Use Promise.allSettled to ensure one failure doesn't affect others
+  const results = await Promise.allSettled([
+    getTechStackBySlug(params.slug),
+    getAlternativesByTechStack(params.slug)
+  ]);
+  
+  if (results[0].status === 'fulfilled') {
+    techStack = results[0].value;
+  } else {
+    console.error('Error fetching tech stack:', results[0].reason);
+  }
+  
+  if (results[1].status === 'fulfilled') {
+    alternatives = results[1].value;
+  } else {
+    console.error('Error fetching tech stack alternatives:', results[1].reason);
   }
 
   if (!techStack) {

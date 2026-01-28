@@ -231,12 +231,16 @@ export const CacheKeys = {
 /**
  * Decorator-style cache wrapper for async functions
  * Includes request deduplication to prevent duplicate DB calls
+ * With retry logic for transient failures
  */
 export async function withCache<T>(
   key: string,
   ttl: number,
-  fetcher: () => Promise<T>
+  fetcher: () => Promise<T>,
+  options?: { retries?: number; retryDelay?: number }
 ): Promise<T> {
+  const { retries = 2, retryDelay = 500 } = options || {};
+  
   // Try to get from cache first
   const cached = queryCache.get<T>(key);
   if (cached !== null) {
@@ -248,17 +252,55 @@ export async function withCache<T>(
   const pending = queryCache.getPending<T>(key);
   if (pending) {
     queryCache.recordDeduplicated();
-    return pending;
+    try {
+      return await pending;
+    } catch (error) {
+      // If the pending request failed, we should try our own fetch
+      // Don't return the failed promise, fall through to retry
+      console.warn(`Pending request for ${key} failed, retrying...`);
+    }
   }
 
+  // Create fetch with retry logic
+  const fetchWithRetry = async (attempt: number = 0): Promise<T> => {
+    try {
+      const data = await fetcher();
+      queryCache.set(key, data, ttl);
+      return data;
+    } catch (error) {
+      // Check for stale data to return on error
+      const staleKey = `${key}:stale`;
+      const staleData = queryCache.get<T>(staleKey);
+      
+      if (attempt < retries) {
+        // Wait before retry with exponential backoff
+        await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, attempt)));
+        return fetchWithRetry(attempt + 1);
+      }
+      
+      // All retries exhausted, try to return stale data if available
+      if (staleData !== null) {
+        console.warn(`Using stale data for ${key} after ${retries + 1} failed attempts`);
+        return staleData;
+      }
+      
+      // No stale data, re-throw the error
+      throw error;
+    }
+  };
+
   // Create and track the fetch promise
-  const fetchPromise = (async () => {
-    const data = await fetcher();
-    queryCache.set(key, data, ttl);
-    return data;
-  })();
+  const fetchPromise = fetchWithRetry();
 
   queryCache.setPending(key, fetchPromise);
+  
+  // Also store as stale data for future fallback (with longer TTL)
+  fetchPromise.then((data) => {
+    const staleKey = `${key}:stale`;
+    queryCache.set(staleKey, data, ttl * 5); // Stale data lives 5x longer
+  }).catch(() => {
+    // Ignore - stale data storage is best-effort
+  });
   
   return fetchPromise;
 }

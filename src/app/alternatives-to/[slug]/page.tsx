@@ -38,13 +38,22 @@ export default async function AlternativesToPage({ params }: Props) {
   let software: Awaited<ReturnType<typeof getProprietaryBySlug>> = null;
   let alternatives: Awaited<ReturnType<typeof getAlternativesFor>> = [];
   
-  try {
-    [software, alternatives] = await Promise.all([
-      getProprietaryBySlug(params.slug),
-      getAlternativesFor(params.slug)
-    ]);
-  } catch (error) {
-    console.error('Error fetching alternatives-to data:', error);
+  // Use Promise.allSettled to ensure one failure doesn't affect others
+  const results = await Promise.allSettled([
+    getProprietaryBySlug(params.slug),
+    getAlternativesFor(params.slug)
+  ]);
+  
+  if (results[0].status === 'fulfilled') {
+    software = results[0].value;
+  } else {
+    console.error('Error fetching proprietary software:', results[0].reason);
+  }
+  
+  if (results[1].status === 'fulfilled') {
+    alternatives = results[1].value;
+  } else {
+    console.error('Error fetching alternatives:', results[1].reason);
   }
 
   if (!software) {
