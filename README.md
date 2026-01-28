@@ -1,5 +1,7 @@
 # OPEN_SRC.ME
 
+[![Featured on OPEN_SRC.ME](https://opensrc.me/badge.svg)](https://opensrc.me/alternatives/open-source-finder)
+
 A directory platform for discovering open source alternatives to popular proprietary software. Built with Next.js, MongoDB, and optimized for Vercel deployment.
 
 ![OPEN_SRC.ME](https://via.placeholder.com/1200x630/0d0d0d/3ecf8e?text=OPEN_SRC.ME)
