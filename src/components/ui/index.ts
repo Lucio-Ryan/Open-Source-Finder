@@ -30,6 +30,7 @@ export { AdSubmitForm } from './AdSubmitForm';
 // Submission plan components
 export { PlanSelection, type SubmissionPlan } from './PlanSelection';
 export { SponsoredAlternativeCard } from './SponsoredAlternativeCard';
+export { BacklinkVerification } from './BacklinkVerification';
 
 // Payment components
 export { PayPalButton, PayPalRedirectButton } from './PayPalButton';

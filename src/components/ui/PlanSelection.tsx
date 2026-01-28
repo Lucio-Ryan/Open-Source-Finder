@@ -97,13 +97,7 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
           <li className="flex items-start gap-2 text-sm">
             <Clock className="w-4 h-4 text-muted mt-0.5 flex-shrink-0" />
             <span className="text-muted">
-              <span className="text-white font-medium">Review process</span> - Reviewed within ~1 week
-            </span>
-          </li>
-          <li className="flex items-start gap-2 text-sm">
-            <Clock className="w-4 h-4 text-muted mt-0.5 flex-shrink-0" />
-            <span className="text-muted">
-              <span className="text-white font-medium">~1 week approval time</span> - Manual review by our team
+              <span className="text-white font-medium">~1 month approval time</span> - Manual review by our team
             </span>
           </li>
           {benefits.map((benefit, idx) => {
@@ -174,12 +168,6 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
         </div>
 
         <ul className="space-y-3 mb-6">
-          <li className="flex items-start gap-2 text-sm">
-            <Zap className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-            <span className="text-muted">
-              <span className="text-white font-medium">Instant approval</span> - Goes live immediately
-            </span>
-          </li>
           <li className="flex items-start gap-2 text-sm">
             <Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
             <span className="text-muted">

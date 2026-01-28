@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
     // Return plan-specific success message
     const successMessage = submission_plan === 'sponsor'
       ? 'Your project is now live! It will be featured on the homepage for 7 days and included in our weekly newsletter.'
-      : 'Alternative submitted successfully! It will be reviewed within approximately 1 week before being published.';
+      : 'Alternative submitted successfully! It will be reviewed within approximately 1 month before being published.';
 
     return NextResponse.json({
       success: true,

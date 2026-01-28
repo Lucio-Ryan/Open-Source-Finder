@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Send, CheckCircle, Terminal, Loader2, Upload, X, Crown, Sparkles, Eye, EyeOff, Save, Trash2, LogIn, User, Globe, Github, FileText, Camera, Twitter, Linkedin, Youtube, MessageCircle, Settings } from 'lucide-react';
-import { RichTextEditor, TechStackSelector, PlanSelection, CreatorProfileCard, PayPalButton, BioEditor, type SubmissionPlan } from '@/components/ui';
+import { RichTextEditor, TechStackSelector, PlanSelection, BacklinkVerification, CreatorProfileCard, PayPalButton, BioEditor, type SubmissionPlan } from '@/components/ui';
 import { useAuth } from '@/lib/auth/AuthContext';
 import type { CreatorProfile } from '@/lib/mongodb/queries';
 
@@ -51,6 +51,10 @@ export default function SubmitPage() {
   // Plan selection state
   const [selectedPlan, setSelectedPlan] = useState<SubmissionPlan>('free');
   const [sponsorPaymentId, setSponsorPaymentId] = useState<string | null>(null);
+  
+  // Backlink verification state (for free plan)
+  const [backlinkVerified, setBacklinkVerified] = useState(false);
+  const [backlinkUrl, setBacklinkUrl] = useState<string | undefined>();
   
   // Duplicate check state
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
@@ -598,6 +602,13 @@ export default function SubmitPage() {
       return;
     }
 
+    // Plan-specific validation
+    if (selectedPlan === 'free' && !backlinkVerified) {
+      setError('Please verify your backlink before submitting. Add the Open Source Finder badge to your README and click "Verify Backlink".');
+      setIsSubmitting(false);
+      return;
+    }
+
     // For sponsor plan, payment must be completed first via PayPal button
     if (selectedPlan === 'sponsor' && !sponsorPaymentId) {
       setError('Please complete PayPal payment before submitting.');
@@ -794,7 +805,7 @@ export default function SubmitPage() {
             </div>
           ) : (
             <p className="text-muted mb-6">
-              We&apos;ve received your submission and will review it within approximately 1 week. 
+              We&apos;ve received your submission and will review it within approximately 1 month. 
               You&apos;ll receive an email once it&apos;s been approved.
             </p>
           )}
@@ -1284,6 +1295,29 @@ export default function SubmitPage() {
             />
           </div>
 
+          {/* Backlink Verification (Free Plan Only) */}
+          {selectedPlan === 'free' && (
+            <div className="bg-surface rounded-xl border border-brand/30 p-6">
+              <h2 className="text-xl font-semibold text-white mb-2 font-mono">
+                <Terminal className="w-5 h-5 inline mr-2 text-brand" />
+                // BACKLINK_VERIFICATION
+              </h2>
+              <p className="text-sm text-muted mb-6">
+                To submit with the free plan, add a backlink to Open Source Finder in your README.
+                This helps us grow and discover more open source alternatives!
+              </p>
+              
+              <BacklinkVerification
+                projectName={formData.name || 'your-project'}
+                githubUrl={formData.github}
+                onVerificationComplete={(verified, url) => {
+                  setBacklinkVerified(verified);
+                  setBacklinkUrl(url);
+                }}
+              />
+            </div>
+          )}
+
           {/* Error Message */}
           {error && (
             <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
@@ -1495,7 +1529,7 @@ export default function SubmitPage() {
           {/* Submit Button */}
           <button
             type={selectedPlan === 'sponsor' && !sponsorPaymentId ? 'button' : 'submit'}
-            disabled={isSubmitting || checkingDuplicate}
+            disabled={isSubmitting || (selectedPlan === 'free' && !backlinkVerified) || checkingDuplicate}
             onClick={async (e) => {
               if (selectedPlan === 'sponsor' && !sponsorPaymentId) {
                 e.preventDefault();
