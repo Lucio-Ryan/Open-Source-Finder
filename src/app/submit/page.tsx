@@ -1298,15 +1298,33 @@ export default function SubmitPage() {
           {/* Backlink Verification (Free Plan Only) */}
           {selectedPlan === 'free' && (
             <div className="bg-surface rounded-xl border border-brand/30 p-6">
-              <h2 className="text-xl font-semibold text-white mb-2 font-mono">
-                <Terminal className="w-5 h-5 inline mr-2 text-brand" />
-                // BACKLINK_VERIFICATION
-              </h2>
-              <p className="text-sm text-muted mb-6">
-                To submit with the free plan, add a backlink to Open Source Finder in your README.
-                This helps us grow and discover more open source alternatives!
-              </p>
-              
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-white mb-2 font-mono">
+                    <Terminal className="w-5 h-5 inline mr-2 text-brand" />
+                    // BACKLINK_VERIFICATION
+                  </h2>
+                  <p className="text-sm text-muted mb-4">
+                    To submit with the free plan, add a backlink to Open Source Finder in your README.
+                    This helps us grow and discover more open source alternatives!
+                  </p>
+                </div>
+
+                <div className="ml-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedPlan('sponsor');
+                      setShowPaymentModal(true);
+                      setError(null);
+                    }}
+                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium bg-emerald-500 text-dark rounded-md hover:bg-emerald-600 transition"
+                  >
+                    Switch to Sponsor (skip backlink)
+                  </button>
+                </div>
+              </div>
+
               <BacklinkVerification
                 projectName={formData.name || 'your-project'}
                 githubUrl={formData.github}
@@ -1361,19 +1379,27 @@ export default function SubmitPage() {
                     <ul className="text-sm text-white space-y-2">
                       <li className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-emerald-500" />
-                        Featured on home page for 7 days
+                        Instant approval
                       </li>
                       <li className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-emerald-500" />
-                        Priority in search results
+                        SEO boost with dofollow links
                       </li>
                       <li className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-emerald-500" />
-                        Included in weekly newsletter
+                        Featured on homepage
                       </li>
                       <li className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-emerald-500" />
-                        Instant approval & dofollow links
+                         Newsletter feature
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                         Unlimited updates
+                      </li>
+                        <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                         Priority in search results
                       </li>
                     </ul>
                   </div>
@@ -1384,7 +1410,6 @@ export default function SubmitPage() {
                       <div className="flex items-center justify-between mb-6">
                         <div>
                           <h5 className="text-gray-900 font-semibold">Sponsor Plan</h5>
-                          <p className="text-sm text-gray-600">7 days of premium features</p>
                         </div>
                         <div className="text-right">
                           <p className="text-2xl font-bold text-emerald-600">$19</p>

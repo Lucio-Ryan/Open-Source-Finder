@@ -459,28 +459,36 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Benefits Section */}
-              <div className="p-4 sm:p-6 border-b border-border">
-                <h4 className="text-xs sm:text-sm font-mono text-muted mb-2 sm:mb-3">// SPONSOR_BENEFITS</h4>
-                <ul className="text-xs sm:text-sm text-white space-y-1.5 sm:space-y-2">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 flex-shrink-0" />
-                    <span>Featured on home page</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 flex-shrink-0" />
-                    <span>Top of search results for 7 days</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 flex-shrink-0" />
-                    <span>Included in weekly newsletter</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 flex-shrink-0" />
-                    <span>Auto-approve if pending review</span>
-                  </li>
-                </ul>
-              </div>
+{/* Benefits Section */}
+                  <div className="p-6 border-b border-border">
+                    <h4 className="text-sm font-mono text-muted mb-3">// SPONSOR_BENEFITS</h4>
+                    <ul className="text-sm text-white space-y-2">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                        Instant approval
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                        SEO boost with dofollow links
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                        Featured on homepage
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                         Newsletter feature
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                         Unlimited updates
+                      </li>
+                        <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                         Priority in search results
+                      </li>
+                    </ul>
+                  </div>
 
               {/* Payment Section - Separate Card */}
               <div className="p-4 sm:p-6">
@@ -488,7 +496,6 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between mb-4 sm:mb-6">
                   <div>
                     <h5 className="text-gray-900 font-semibold text-sm sm:text-base">Sponsor Boost</h5>
-                    <p className="text-xs sm:text-sm text-gray-600">7 days of premium features</p>
                   </div>
                   <div className="text-right">
                     <p className="text-xl sm:text-2xl font-bold text-emerald-600">$19</p>

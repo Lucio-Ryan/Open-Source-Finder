@@ -98,12 +98,22 @@ export function Header() {
               <Search className="w-5 h-5" />
             </Link>
             {siteSettings.showSubmitButton && (
-              <Link
-                href="/submit"
-                className="hidden sm:inline-flex items-center px-3 md:px-4 py-2 bg-brand text-dark font-mono text-xs md:text-sm font-medium rounded-lg hover:bg-brand-light transition-all hover:shadow-glow"
-              >
-                Submit_
-              </Link>
+              <>
+                {/* Desktop */}
+                <Link
+                  href="/submit"
+                  className="hidden sm:inline-flex items-center px-3 md:px-4 py-2 bg-brand text-dark font-mono text-xs md:text-sm font-medium rounded-lg hover:bg-brand-light transition-all hover:shadow-glow"
+                >
+                  Submit Project_
+                </Link>
+                {/* Mobile (visible on small screens) */}
+                <Link
+                  href="/submit"
+                  className="inline-flex sm:hidden items-center px-3 py-2 bg-brand text-dark font-mono text-xs font-medium rounded-lg hover:bg-brand-light transition-all mr-1"
+                >
+                  Submit Project
+                </Link>
+              </>
             )}
             
             {/* Auth Section */}
@@ -221,17 +231,7 @@ export function Header() {
                   <span className="text-brand/50">{'>'}</span> Sign In
                 </Link>
               )}
-              {siteSettings.showSubmitButton && (
-                <div className="p-4 pt-2">
-                  <Link
-                    href="/submit"
-                    className="flex items-center justify-center w-full px-4 py-3 bg-brand text-dark font-mono text-sm font-medium rounded-lg active:bg-brand-light transition-colors touch-manipulation"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Submit Project
-                  </Link>
-                </div>
-              )}
+              {/* Submit moved to header for mobile; keep menu minimal */}
               <div className="p-4 pt-0">
                   <Link
                     href="/donate"

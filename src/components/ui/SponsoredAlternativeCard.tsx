@@ -103,14 +103,6 @@ export function SponsoredAlternativeCard({ alternative }: SponsoredAlternativeCa
         <div className="bg-surface rounded-2xl p-5 h-full flex flex-col">
           {/* Header with icon and name */}
           <div className="flex items-start gap-3 mb-3">
-            <VoteButtons 
-              alternativeId={alternative.id} 
-              initialScore={voteScore}
-              size="sm"
-              layout="vertical"
-              className="flex-shrink-0"
-            />
-            
             {iconUrl ? (
               <Image
                 src={iconUrl}
@@ -144,6 +136,15 @@ export function SponsoredAlternativeCard({ alternative }: SponsoredAlternativeCa
                   <span className="text-muted/60">• {alternative.license}</span>
                 )}
               </div>
+            </div>
+            <div className="flex-shrink-0">
+              <VoteButtons
+                alternativeId={alternative.id}
+                initialScore={voteScore}
+                size="sm"
+                layout="vertical"
+                className="flex-shrink-0"
+              />
             </div>
           </div>
 
@@ -185,9 +186,7 @@ export function SponsoredAlternativeCard({ alternative }: SponsoredAlternativeCa
                   )}
                 </span>
               ))}
-              {alternativeTo.length > 3 && (
-                <span className="text-muted">+{alternativeTo.length - 3} more</span>
-              )}
+              {/* Removed '+N more' overflow indicator to avoid numbers appearing next to badges */}
             </div>
           )}
 

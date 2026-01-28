@@ -157,15 +157,8 @@ export function AlternativeCard({ alternative, disableLiveStats = false }: Alter
   return (
     <div className="card-dark group">
       <div className="flex items-start justify-between mb-4 sm:mb-5 gap-2">
-        {/* Vote buttons on the left */}
-        <div className="flex items-start space-x-2 sm:space-x-3 min-w-0">
-          <VoteButtons 
-            alternativeId={alternative.id} 
-            initialScore={voteScore}
-            size="sm"
-            layout="vertical"
-            className="flex-shrink-0"
-          />
+        {/* Left: Icon + Title */}
+        <div className="flex items-center gap-2 min-w-0">
           <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
             {iconUrl ? (
               <Image
@@ -201,11 +194,16 @@ export function AlternativeCard({ alternative, disableLiveStats = false }: Alter
             </div>
           </div>
         </div>
-        
-        {/* Health Score */}
-        <div className={`flex items-center space-x-1.5 sm:space-x-2 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-surface rounded-md border border-border flex-shrink-0 ${statsLoading ? 'animate-pulse' : ''}`}>
-          <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${getHealthScoreColor(displayHealthScore)}`} />
-          <span className="text-[10px] sm:text-xs font-mono text-muted">{displayHealthScore}</span>
+
+        {/* Right: Vote buttons */}
+        <div className="flex-shrink-0">
+          <VoteButtons
+            alternativeId={alternative.id}
+            initialScore={voteScore}
+            size="sm"
+            layout="vertical"
+            className="flex-shrink-0"
+          />
         </div>
       </div>
 
@@ -230,9 +228,7 @@ export function AlternativeCard({ alternative, disableLiveStats = false }: Alter
               )}
             </span>
           ))}
-          {alternativeTo.length > 2 && (
-            <span className="text-muted">+{alternativeTo.length - 2}</span>
-          )}
+          {/* Removed +N overflow indicator to avoid showing counts next to badges */}
         </div>
       )}
 

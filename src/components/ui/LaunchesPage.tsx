@@ -206,18 +206,18 @@ export function LaunchesPage({ categories, proprietarySoftware }: LaunchPageProp
             </div>
 
             {/* Time Frame Selector */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0">
+            <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-2 lg:pb-0">
               {TIME_FRAMES.map((tf) => (
                 <button
                   key={tf.value}
                   onClick={() => setTimeFrame(tf.value)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-sm whitespace-nowrap transition-all ${
+                  className={`flex items-center gap-1 sm:gap-2 px-2 py-1 sm:px-4 sm:py-2 rounded-lg font-mono text-xs sm:text-sm whitespace-nowrap transition-all ${
                     timeFrame === tf.value
                       ? 'bg-brand text-dark'
-                      : 'bg-surface border border-border text-muted hover:text-white hover:border-brand/50'
+                      : 'bg-surface sm:border sm:border-border text-muted hover:text-white hover:border-brand/50'
                   }`}
                 >
-                  {tf.icon}
+                  <span className="hidden sm:inline">{tf.icon}</span>
                   {tf.label}
                 </button>
               ))}
@@ -464,35 +464,20 @@ function LaunchCard({
   formatNumber: (num: number) => string;
 }) {
   return (
-    <div className="group bg-surface border border-border rounded-xl p-6 hover:border-brand/30 transition-all">
-      <div className="flex items-start gap-4">
-        {/* Rank badge */}
-        <div className="hidden sm:flex flex-col items-center justify-center w-10">
-          <span className="text-2xl font-bold text-brand">#{rank}</span>
-        </div>
-
-        {/* Vote Section */}
-        <div className="flex-shrink-0">
-          <VoteButtons 
-            alternativeId={alternative.id} 
-            initialScore={alternative.vote_score || 0}
-            size="md"
-            layout="vertical"
-          />
-        </div>
-
+    <div className="group bg-surface border border-border rounded-xl p-4 sm:p-6 hover:border-brand/30 transition-all">
+      <div className="flex items-start gap-3 sm:gap-4">
         {/* Icon */}
         <div className="flex-shrink-0">
           {alternative.icon_url ? (
             <Image
               src={alternative.icon_url}
               alt={`${alternative.name} icon`}
-              width={64}
-              height={64}
-              className="w-16 h-16 rounded-xl object-cover border border-border group-hover:border-brand/30 transition-colors"
+              width={48}
+              height={48}
+              className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl object-cover border border-border group-hover:border-brand/30 transition-colors"
             />
           ) : (
-            <div className="w-16 h-16 bg-brand/10 border border-border rounded-xl flex items-center justify-center text-brand font-pixel text-2xl group-hover:border-brand/30 transition-colors">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-brand/10 border border-border rounded-xl flex items-center justify-center text-brand font-pixel text-lg sm:text-2xl group-hover:border-brand/30 transition-colors">
               {alternative.name.charAt(0)}
             </div>
           )}
@@ -501,9 +486,9 @@ function LaunchCard({
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-4">
-            <div>
+            <div className="flex-1 min-w-0">
               <Link href={`/alternatives/${alternative.slug}`}>
-                <h3 className="text-lg font-semibold text-white group-hover:text-brand transition-colors">
+                <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-brand transition-colors">
                   {alternative.name}
                 </h3>
               </Link>
@@ -511,13 +496,23 @@ function LaunchCard({
                 {alternative.short_description || alternative.description}
               </p>
             </div>
+
+            {/* Mobile Vote Buttons - Right side */}
+            <div className="flex-shrink-0 sm:hidden">
+              <VoteButtons 
+                alternativeId={alternative.id} 
+                initialScore={alternative.vote_score || 0}
+                size="sm"
+                layout="vertical"
+              />
+            </div>
           </div>
 
           {/* Meta */}
-          <div className="flex flex-wrap items-center gap-3 mt-4">
-            {/* Categories */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3 sm:mt-4">
+            {/* Categories - Hidden on mobile */}
             {alternative.categories && alternative.categories.length > 0 && (
-              <div className="flex flex-wrap gap-1">
+              <div className="hidden sm:flex flex-wrap gap-1">
                 {alternative.categories.slice(0, 2).map((cat) => (
                   <Link
                     key={cat.id}
@@ -563,13 +558,17 @@ function LaunchCard({
                 {formatNumber(alternative.stars)}
               </span>
             )}
-
-            {/* Launch date */}
-            <span className="flex items-center gap-1 text-xs text-muted ml-auto">
-              <Clock className="w-3 h-3" />
-              {formatDate(alternative.created_at)}
-            </span>
           </div>
+        </div>
+
+        {/* Desktop Vote Section - Left side */}
+        <div className="hidden sm:flex flex-shrink-0">
+          <VoteButtons 
+            alternativeId={alternative.id} 
+            initialScore={alternative.vote_score || 0}
+            size="md"
+            layout="vertical"
+          />
         </div>
 
         {/* Actions */}
