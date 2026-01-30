@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Star, GitFork, Clock, ExternalLink, Github, Server, BadgeCheck, ArrowRight } from 'lucide-react';
+import { Star, GitFork, Clock, ExternalLink, Github, Server, BadgeCheck, ArrowRight, Sparkles } from 'lucide-react';
 import type { AlternativeWithRelations } from '@/types/database';
 import { VoteButtons } from './VoteButtons';
 
@@ -99,10 +99,9 @@ export function SponsoredAlternativeCard({ alternative }: SponsoredAlternativeCa
   return (
     <div className="relative group h-full">
       {/* Sponsored Badge - Top Right */}
-      <div className="absolute top-2 right-2 z-10">
-        <span className="px-2.5 py-1 bg-emerald-500 text-dark text-[10px] font-bold rounded font-mono uppercase shadow-lg">
-          Sponsored
-        </span>
+      <div className="absolute -top-2 right-3 flex items-center gap-1 px-2 py-0.5 bg-emerald-500 text-dark text-xs font-bold rounded font-mono z-10">
+        <Sparkles className="w-3 h-3" />
+        Sponsored
       </div>
       
       {/* Card with gradient border effect */}
