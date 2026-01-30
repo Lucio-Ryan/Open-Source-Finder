@@ -64,7 +64,7 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
 
   return (
     <div className="grid md:grid-cols-2 gap-6">
-      {/* Free Plan */}
+      {/* Basic Listing */}
       <div
         onClick={() => onPlanSelect('free')}
         className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all ${
@@ -87,7 +87,7 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
               <Code className="w-5 h-5 text-muted" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white font-mono">Free Plan</h3>
+              <h3 className="text-lg font-bold text-white font-mono">Basic Listing</h3>
               <p className="text-2xl font-bold text-brand">$0</p>
             </div>
           </div>
@@ -131,7 +131,7 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
         </div>
       </div>
 
-      {/* Sponsor Plan */}
+      {/* Sponsored Listing */}
       <div
         onClick={() => onPlanSelect('sponsor')}
         className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all ${
@@ -161,8 +161,8 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
               <Crown className="w-5 h-5 text-emerald-500" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white font-mono">Sponsor Plan</h3>
-              <p className="text-2xl font-bold text-emerald-500">$19</p>
+              <h3 className="text-lg font-bold text-white font-mono">Sponsored Listing</h3>
+              <p className="text-2xl font-bold text-emerald-500">$10</p>
             </div>
           </div>
         </div>

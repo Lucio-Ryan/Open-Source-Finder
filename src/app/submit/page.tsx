@@ -1409,10 +1409,10 @@ export default function SubmitPage() {
                     <div className="bg-white rounded-lg p-6 border border-emerald-500/30">
                       <div className="flex items-center justify-between mb-6">
                         <div>
-                          <h5 className="text-gray-900 font-semibold">Sponsor Plan</h5>
+                          <h5 className="text-gray-900 font-semibold">Sponsored Listing</h5>
                         </div>
                         <div className="text-right">
-                          <p className="text-2xl font-bold text-emerald-600">$19</p>
+                          <p className="text-2xl font-bold text-emerald-600">$10</p>
                           <p className="text-xs text-gray-500">one-time</p>
                         </div>
                       </div>
@@ -1425,7 +1425,7 @@ export default function SubmitPage() {
 
                       <PayPalButton
                         paymentType="sponsor_submission"
-                        amount="19"
+                        amount="10"
                         projectName={formData.name}
                         onSuccess={async (data) => {
                           setSponsorPaymentId(data.captureId);

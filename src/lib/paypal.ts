@@ -12,12 +12,12 @@ const PAYPAL_BASE_URL = PAYPAL_MODE === 'live'
 // Pricing configuration
 export const PRICES = {
   sponsor_submission: {
-    amount: '19.00',
+    amount: '10.00',
     currency: 'USD',
     description: 'Sponsor Plan - Featured listing for 7 days + Newsletter feature + Instant approval',
   },
   boost_alternative: {
-    amount: '19.00',
+    amount: '10.00',
     currency: 'USD',
     description: 'Boost Alternative - Featured listing for 7 days + Newsletter feature',
   },

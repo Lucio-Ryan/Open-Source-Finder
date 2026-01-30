@@ -369,8 +369,8 @@ export default function DashboardPage() {
                           ) : (
                             <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                           )}
-                          <span className="hidden xs:inline">{upgradingId === alt.id ? 'Upgrading...' : 'Boost $19'}</span>
-                          <span className="xs:hidden">$19</span>
+                          <span className="hidden xs:inline">{upgradingId === alt.id ? 'Upgrading...' : 'Boost $10'}</span>
+                          <span className="xs:hidden">$10</span>
                         </button>
                       )}
                       {alt.approved && (
@@ -498,7 +498,7 @@ export default function DashboardPage() {
                     <h5 className="text-gray-900 font-semibold text-sm sm:text-base">Sponsor Boost</h5>
                   </div>
                   <div className="text-right">
-                    <p className="text-xl sm:text-2xl font-bold text-emerald-600">$19</p>
+                    <p className="text-xl sm:text-2xl font-bold text-emerald-600">$10</p>
                     <p className="text-[10px] sm:text-xs text-gray-500">one-time</p>
                   </div>
                 </div>
@@ -511,7 +511,7 @@ export default function DashboardPage() {
 
                 <PayPalButton
                   paymentType="boost_alternative"
-                  amount="19"
+                  amount="10"
                   alternativeId={boostModal.alternativeId || undefined}
                   projectName={boostModal.alternativeName || undefined}
                   onSuccess={handleBoostPaymentSuccess}

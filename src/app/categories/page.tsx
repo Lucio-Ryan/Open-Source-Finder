@@ -5,7 +5,7 @@ import { CategoryCard } from '@/components/ui';
 import { getCategories } from '@/lib/mongodb/queries';
 
 export const metadata: Metadata = {
-  title: 'Browse Open Source Software by Category',
+  title: 'Open Source Alternatives',
   description: 'Explore open source alternatives organized by category. Find free tools for project management, communication, design, development, business software, and 50+ other categories.',
   alternates: {
     canonical: '/categories',

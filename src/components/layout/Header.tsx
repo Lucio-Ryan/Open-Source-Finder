@@ -104,14 +104,14 @@ export function Header() {
                   href="/submit"
                   className="hidden sm:inline-flex items-center px-3 md:px-4 py-2 bg-brand text-dark font-mono text-xs md:text-sm font-medium rounded-lg hover:bg-brand-light transition-all hover:shadow-glow"
                 >
-                  Submit Project_
+                  Submit OSS_
                 </Link>
                 {/* Mobile (visible on small screens) */}
                 <Link
                   href="/submit"
                   className="inline-flex sm:hidden items-center px-3 py-2 bg-brand text-dark font-mono text-xs font-medium rounded-lg hover:bg-brand-light transition-all mr-1"
                 >
-                  Submit Project
+                  Submit OSS
                 </Link>
               </>
             )}
