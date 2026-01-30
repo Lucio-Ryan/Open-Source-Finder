@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "update-sponsored": "tsx scripts/update-sponsored-alternatives.ts",
+    "update-ownership": "tsx scripts/update-alternative-ownership.ts",
+    "add-upvotes": "tsx scripts/add-random-upvotes.ts",
+    "update-featured": "tsx scripts/update-featured-alternatives.ts"
   },
   "dependencies": {
     "@tiptap/extension-link": "^3.14.0",

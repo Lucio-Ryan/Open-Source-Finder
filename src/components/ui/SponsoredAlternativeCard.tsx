@@ -98,6 +98,13 @@ export function SponsoredAlternativeCard({ alternative }: SponsoredAlternativeCa
 
   return (
     <div className="relative group h-full">
+      {/* Sponsored Badge - Top Right */}
+      <div className="absolute top-2 right-2 z-10">
+        <span className="px-2.5 py-1 bg-emerald-500 text-dark text-[10px] font-bold rounded font-mono uppercase shadow-lg">
+          Sponsored
+        </span>
+      </div>
+      
       {/* Card with gradient border effect */}
       <div className="relative h-full p-[2px] rounded-2xl bg-gradient-to-r from-emerald-500/50 via-green-500/50 to-emerald-500/50">
         <div className="bg-surface rounded-2xl p-5 h-full flex flex-col">
