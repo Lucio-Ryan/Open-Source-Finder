@@ -1,3 +1,11 @@
+// Alternative Tags interface for alerts, highlights, platforms, properties
+export interface AlternativeTagsData {
+  alerts: string[];
+  highlights: string[];
+  platforms: string[];
+  properties: string[];
+}
+
 export type Json =
   | string
   | number
@@ -67,6 +75,7 @@ export type Database = {
           sponsor_payment_id: string | null;
           sponsor_paid_at: string | null;
           newsletter_included: boolean;
+          alternative_tags: AlternativeTagsData | null;
           created_at: string;
           updated_at: string;
         };
@@ -100,6 +109,7 @@ export type Database = {
           sponsor_payment_id?: string | null;
           sponsor_paid_at?: string | null;
           newsletter_included?: boolean;
+          alternative_tags?: AlternativeTagsData | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -133,6 +143,7 @@ export type Database = {
           sponsor_payment_id?: string | null;
           sponsor_paid_at?: string | null;
           newsletter_included?: boolean;
+          alternative_tags?: AlternativeTagsData | null;
           created_at?: string;
           updated_at?: string;
         };

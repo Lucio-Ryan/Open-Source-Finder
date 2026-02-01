@@ -116,8 +116,43 @@ export default async function Home() {
       {/* Simple Newsletter Section - Below Hero */}
       <NewsletterSection totalAlternatives={stats?.totalAlternatives} />
 
+      {/* Featured Alternatives - MOVED TO TOP */}
+      <section className="py-10 sm:py-12 lg:py-16 xl:py-20 bg-surface/30 border-b border-border relative">
+        <div className="absolute inset-0 bg-grid-pattern opacity-3"></div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8 sm:mb-10 lg:mb-12">
+            <div>
+              <p className="text-brand font-mono text-xs sm:text-sm mb-2 sm:mb-3">// FEATURED</p>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+                Top Alternatives<span className="text-brand">_</span>
+              </h2>
+            </div>
+            <Link
+              href="/alternatives"
+              className="hidden sm:flex items-center text-muted hover:text-brand font-mono text-xs sm:text-sm transition-colors group"
+            >
+              View all
+              <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+          
+          <AlternativesGridWithAds alternatives={featuredAlternatives} maxAds={1} />
+          
+          <div className="mt-8 sm:mt-10 text-center sm:hidden">
+            <Link
+              href="/alternatives"
+              className="inline-flex items-center text-brand font-mono text-sm touch-manipulation"
+            >
+              View All Alternatives
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Discover Alternatives To Section */}
-      <section className="py-10 sm:py-12 lg:py-16 xl:py-20 bg-surface/30 border-b border-border">
+      <section className="py-12 sm:py-16 lg:py-20 xl:py-28 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8 sm:mb-10 lg:mb-12">
             <div>
@@ -158,42 +193,6 @@ export default async function Home() {
                 </div>
               </Link>
             ))}
-          </div>
-        </div>
-      </section>
-
-
-      {/* Featured Alternatives */}
-      <section className="py-12 sm:py-16 lg:py-20 xl:py-28 relative">
-        <div className="absolute inset-0 bg-grid-pattern opacity-3"></div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8 sm:mb-10 lg:mb-12">
-            <div>
-              <p className="text-brand font-mono text-xs sm:text-sm mb-2 sm:mb-3">// FEATURED</p>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
-                Top Alternatives<span className="text-brand">_</span>
-              </h2>
-            </div>
-            <Link
-              href="/alternatives"
-              className="hidden sm:flex items-center text-muted hover:text-brand font-mono text-xs sm:text-sm transition-colors group"
-            >
-              View all
-              <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-          
-          <AlternativesGridWithAds alternatives={featuredAlternatives} maxAds={1} />
-          
-          <div className="mt-8 sm:mt-10 text-center sm:hidden">
-            <Link
-              href="/alternatives"
-              className="inline-flex items-center text-brand font-mono text-sm touch-manipulation"
-            >
-              View All Alternatives
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
           </div>
         </div>
       </section>

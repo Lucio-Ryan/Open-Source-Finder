@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Star, GitFork, Clock, ExternalLink, Github, Server, BadgeCheck, ArrowRight, Sparkles } from 'lucide-react';
 import type { AlternativeWithRelations } from '@/types/database';
 import { VoteButtons } from './VoteButtons';
+import { AlertHighlightBadges } from './AlternativeTagsBadges';
 
 interface GitHubStats {
   stars: number;
@@ -174,6 +175,13 @@ export function SponsoredAlternativeCard({ alternative }: SponsoredAlternativeCa
               {plainDescription}
             </p>
           </div>
+
+          {/* Alert & Highlight Tags */}
+          {alternative.alternative_tags && (alternative.alternative_tags.alerts?.length > 0 || alternative.alternative_tags.highlights?.length > 0) && (
+            <div className="mb-3">
+              <AlertHighlightBadges alternativeTags={alternative.alternative_tags} maxDisplay={5} />
+            </div>
+          )}
 
           {/* Alternative To - like standard card with orange links */}
           {alternativeTo.length > 0 && (

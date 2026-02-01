@@ -20,6 +20,15 @@ export { LaunchesPage } from './LaunchesPage';
 export { default as DiscussionSection } from './DiscussionSection';
 export { default as NotificationsPanel } from './NotificationsPanel';
 
+// Alternative Tags components (alerts, highlights, platforms, properties)
+export { 
+  AlternativeTagBadge, 
+  AlertHighlightBadges, 
+  AllTagsBadges, 
+  AlternativeTagsHeader 
+} from './AlternativeTagsBadges';
+export { AlternativeTagsSelector } from './AlternativeTagsSelector';
+
 // Advertisement components
 export { PopupAd } from './PopupAd';
 export { BannerAd } from './BannerAd';
@@ -31,6 +40,8 @@ export { AdSubmitForm } from './AdSubmitForm';
 export { PlanSelection, type SubmissionPlan } from './PlanSelection';
 export { SponsoredAlternativeCard } from './SponsoredAlternativeCard';
 export { BacklinkVerification } from './BacklinkVerification';
+export { ClaimProject } from './ClaimProject';
+export { ClaimButton } from './ClaimButton';
 
 // Payment components
 export { PayPalButton, PayPalRedirectButton } from './PayPalButton';

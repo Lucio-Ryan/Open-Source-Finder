@@ -82,6 +82,7 @@ export async function GET(request: NextRequest) {
       rejection_reason: item.rejection_reason,
       rejected_at: item.rejected_at,
       submitter_email: item.submitter_email,
+      alternative_tags: item.alternative_tags || { alerts: [], highlights: [], platforms: [], properties: [] },
       created_at: item.created_at,
       updated_at: item.updated_at,
       categories: item.categories || [],
@@ -118,6 +119,13 @@ export async function PUT(request: NextRequest) {
       updateData.approved = true;
       updateData.rejection_reason = null;
       updateData.rejected_at = null;
+      // Also update alternative_tags if provided during approval
+      if (updates.alternative_tags) {
+        updateData.alternative_tags = updates.alternative_tags;
+      }
+      if (updates.featured !== undefined) {
+        updateData.featured = updates.featured;
+      }
     } else if (action === 'reject') {
       // Mark as rejected with reason instead of deleting
       updateData.approved = false;
@@ -149,7 +157,7 @@ export async function PUT(request: NextRequest) {
       const allowedFields = [
         'name', 'description', 'short_description', 'long_description',
         'website', 'github', 'icon_url', 'license', 'is_self_hosted',
-        'featured', 'approved', 'health_score'
+        'featured', 'approved', 'health_score', 'alternative_tags'
       ];
 
       for (const field of allowedFields) {

@@ -17,9 +17,12 @@ import {
   Star,
   Clock,
   AlertCircle,
-  Filter
+  Filter,
+  Tags
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { AlertHighlightBadges } from '@/components/ui/AlternativeTagsBadges';
+import type { AlternativeTagsData } from '@/data/alternative-tags';
 
 interface Submission {
   id: string;
@@ -41,6 +44,7 @@ interface Submission {
   submitter_name: string | null;
   submitter_email: string | null;
   created_at: string;
+  alternative_tags: AlternativeTagsData;
   alternative_categories: { categories: { name: string } }[];
   alternative_to: { proprietary_software: { name: string } }[];
 }
@@ -379,6 +383,35 @@ export default function AdminSubmissionsPage() {
                     <p className="text-muted text-sm mt-3 line-clamp-2">
                       {submission.short_description || submission.description}
                     </p>
+
+                    {/* Alternative Tags Section */}
+                    <div className="flex items-center gap-3 mt-3">
+                      {submission.alternative_tags && (
+                        submission.alternative_tags.alerts?.length > 0 || 
+                        submission.alternative_tags.highlights?.length > 0 ||
+                        submission.alternative_tags.platforms?.length > 0 ||
+                        submission.alternative_tags.properties?.length > 0
+                      ) ? (
+                        <div className="flex items-center gap-2">
+                          <Tags className="w-4 h-4 text-muted" />
+                          <AlertHighlightBadges alternativeTags={submission.alternative_tags} maxDisplay={6} />
+                          <Link
+                            href={`/admin/submissions/${submission.id}`}
+                            className="text-xs text-brand hover:underline"
+                          >
+                            Edit tags
+                          </Link>
+                        </div>
+                      ) : (
+                        <Link
+                          href={`/admin/submissions/${submission.id}`}
+                          className="flex items-center gap-1 text-xs text-muted hover:text-brand transition-colors"
+                        >
+                          <Tags className="w-3.5 h-3.5" />
+                          Add tags
+                        </Link>
+                      )}
+                    </div>
 
                     <div className="flex items-center gap-4 mt-4 text-sm">
                       {submission.website && (

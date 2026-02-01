@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { Star, GitFork, Clock, ExternalLink, Github, Server } from 'lucide-react';
 import type { AlternativeWithRelations } from '@/types/database';
 import { VoteButtons } from './VoteButtons';
+import { AlertHighlightBadges } from './AlternativeTagsBadges';
+import type { AlternativeTagsData } from '@/data/alternative-tags';
 
 // Unified interface that works with both old static data and new Supabase data
 interface AlternativeData {
@@ -30,6 +32,7 @@ interface AlternativeData {
   submission_plan?: string | null;
   tags?: string[] | { slug: string; name: string }[];
   alternative_to?: { id: string; name: string; slug: string }[];
+  alternative_tags?: AlternativeTagsData | null;
 }
 
 interface GitHubStats {
@@ -143,6 +146,7 @@ export function AlternativeCard({ alternative, disableLiveStats = false }: Alter
   const iconUrl = (alternative as any).icon_url ?? null;
   const voteScore = (alternative as any).vote_score ?? 0;
   const isSponsor = (alternative as any).submission_plan === 'sponsor';
+  const alternativeTags: AlternativeTagsData | null = (alternative as any).alternative_tags ?? null;
   
   // Use live stats if available, fallback to database values
   const displayStars = liveStats?.stars ?? alternative.stars ?? 0;
@@ -210,6 +214,13 @@ export function AlternativeCard({ alternative, disableLiveStats = false }: Alter
       <p className="text-muted text-xs sm:text-sm mb-4 sm:mb-5 line-clamp-2 font-mono leading-relaxed">
         {alternative.short_description || alternative.description}
       </p>
+
+      {/* Alert & Highlight Tags */}
+      {alternativeTags && (alternativeTags.alerts?.length > 0 || alternativeTags.highlights?.length > 0) && (
+        <div className="mb-4 sm:mb-5">
+          <AlertHighlightBadges alternativeTags={alternativeTags} maxDisplay={5} />
+        </div>
+      )}
 
       {/* Alternative To */}
       {alternativeTo.length > 0 && (

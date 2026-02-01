@@ -1,8 +1,16 @@
 'use client';
 
-import { Check, Crown, Clock, Link, Newspaper, Zap, Sparkles, Code, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Check, Crown, Clock, Link, Newspaper, Zap, Sparkles, Code, X, AlertCircle } from 'lucide-react';
 
 export type SubmissionPlan = 'free' | 'sponsor';
+
+interface SponsorStatus {
+  canAccept: boolean;
+  currentCount: number;
+  maxCount: number;
+  slotsRemaining: number;
+}
 
 interface PlanSelectionProps {
   selectedPlan: SubmissionPlan;
@@ -10,6 +18,37 @@ interface PlanSelectionProps {
 }
 
 export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps) {
+  const [sponsorStatus, setSponsorStatus] = useState<SponsorStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSponsorStatus = async () => {
+      try {
+        const response = await fetch('/api/alternatives/sponsor-status');
+        if (response.ok) {
+          const data = await response.json();
+          setSponsorStatus(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch sponsor status:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSponsorStatus();
+  }, []);
+
+  const isSponsorFull = sponsorStatus && !sponsorStatus.canAccept;
+
+  const handlePlanSelect = (plan: SubmissionPlan) => {
+    // Don't allow selecting sponsor if slots are full
+    if (plan === 'sponsor' && isSponsorFull) {
+      return;
+    }
+    onPlanSelect(plan);
+  };
+
   const benefits = [
     { 
       name: 'Listed in search & categories', 
@@ -133,21 +172,29 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
 
       {/* Sponsored Listing */}
       <div
-        onClick={() => onPlanSelect('sponsor')}
-        className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all ${
-          selectedPlan === 'sponsor'
-            ? 'border-emerald-500 bg-emerald-500/5'
-            : 'border-border hover:border-emerald-500/50 bg-surface'
+        onClick={() => handlePlanSelect('sponsor')}
+        className={`relative p-6 rounded-xl border-2 transition-all ${
+          isSponsorFull
+            ? 'border-border/50 bg-surface/50 cursor-not-allowed opacity-60'
+            : selectedPlan === 'sponsor'
+            ? 'border-emerald-500 bg-emerald-500/5 cursor-pointer'
+            : 'border-border hover:border-emerald-500/50 bg-surface cursor-pointer'
         }`}
       >
-        {/* Recommended badge */}
+        {/* Recommended badge or Sold Out badge */}
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="px-3 py-1 bg-gradient-to-r from-emerald-500 to-green-500 text-dark text-xs font-bold rounded-full">
-            RECOMMENDED
-          </span>
+          {isSponsorFull ? (
+            <span className="px-3 py-1 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-bold rounded-full">
+              SOLD OUT
+            </span>
+          ) : (
+            <span className="px-3 py-1 bg-gradient-to-r from-emerald-500 to-green-500 text-dark text-xs font-bold rounded-full">
+              RECOMMENDED
+            </span>
+          )}
         </div>
 
-        {selectedPlan === 'sponsor' && (
+        {selectedPlan === 'sponsor' && !isSponsorFull && (
           <div className="absolute top-4 right-4">
             <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
               <Check className="w-4 h-4 text-dark" />
@@ -157,14 +204,28 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
 
         <div className="mb-4 mt-2">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-10 h-10 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center justify-center">
-              <Crown className="w-5 h-5 text-emerald-500" />
+            <div className={`w-10 h-10 border rounded-lg flex items-center justify-center ${
+              isSponsorFull 
+                ? 'bg-muted/10 border-muted/30' 
+                : 'bg-emerald-500/10 border-emerald-500/30'
+            }`}>
+              <Crown className={`w-5 h-5 ${isSponsorFull ? 'text-muted' : 'text-emerald-500'}`} />
             </div>
             <div>
               <h3 className="text-lg font-bold text-white font-mono">Sponsored Listing</h3>
-              <p className="text-2xl font-bold text-emerald-500">$10</p>
+              <div className="flex items-center gap-2">
+                <p className={`text-2xl font-bold ${isSponsorFull ? 'text-muted' : 'text-emerald-500'}`}>$10</p>
+                {!loading && sponsorStatus && (
+                  <span className={`text-sm font-medium ${
+                    isSponsorFull ? 'text-red-400' : 'text-muted'
+                  }`}>
+                    ({sponsorStatus.slotsRemaining}/{sponsorStatus.maxCount} Left)
+                  </span>
+                )}
+              </div>
             </div>
           </div>
+          
         </div>
 
         <ul className="space-y-3 mb-6">

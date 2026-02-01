@@ -10,6 +10,7 @@ import {
 } from './models';
 import { queryCache, CacheKeys, withCache, invalidateOnWrite, CacheTTL } from './cache';
 import mongoose from 'mongoose';
+import type { AlternativeTagsData } from '@/types/database';
 
 // ============ TYPE DEFINITIONS ============
 
@@ -45,6 +46,7 @@ export interface AlternativeWithRelations {
   sponsor_payment_id: string | null;
   sponsor_paid_at: string | null;
   newsletter_included: boolean;
+  alternative_tags: AlternativeTagsData | null;
   created_at: string;
   updated_at: string;
   categories: CategoryData[];
@@ -171,6 +173,7 @@ function transformAlternative(alt: any): AlternativeWithRelations {
       icon_url: p.icon_url || null,
       created_at: p.created_at ? new Date(p.created_at).toISOString() : new Date().toISOString(),
     })),
+    alternative_tags: alt.alternative_tags || { alerts: [], highlights: [], platforms: [], properties: [] },
   };
 }
 
@@ -1121,6 +1124,35 @@ export async function getCreatorProfileByEmail(email: string): Promise<CreatorPr
 }
 
 // ============ STATS ============
+
+// Maximum number of sponsored alternatives allowed at one time
+export const MAX_SPONSORED_ALTERNATIVES = 15;
+
+export async function getActiveSponsorCount(): Promise<number> {
+  const cacheKey = 'sponsors:active-count';
+  
+  return withCache(cacheKey, CacheTTL.SHORT, async () => {
+    await connectToDatabase();
+
+    const now = new Date();
+    const count = await Alternative.countDocuments({
+      submission_plan: 'sponsor',
+      sponsor_priority_until: { $gt: now },
+      approved: true,
+    });
+
+    return count;
+  });
+}
+
+export async function canAcceptNewSponsor(): Promise<{ canAccept: boolean; currentCount: number; maxCount: number }> {
+  const currentCount = await getActiveSponsorCount();
+  return {
+    canAccept: currentCount < MAX_SPONSORED_ALTERNATIVES,
+    currentCount,
+    maxCount: MAX_SPONSORED_ALTERNATIVES,
+  };
+}
 
 export async function getStats(): Promise<{
   totalAlternatives: number;

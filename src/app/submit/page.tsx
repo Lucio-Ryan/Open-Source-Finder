@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Send, CheckCircle, Terminal, Loader2, Upload, X, Crown, Sparkles, Eye, EyeOff, Save, Trash2, LogIn, User, Globe, Github, FileText, Camera, Twitter, Linkedin, Youtube, MessageCircle, Settings } from 'lucide-react';
-import { RichTextEditor, TechStackSelector, PlanSelection, BacklinkVerification, CreatorProfileCard, PayPalButton, BioEditor, type SubmissionPlan } from '@/components/ui';
+import { RichTextEditor, TechStackSelector, PlanSelection, BacklinkVerification, CreatorProfileCard, PayPalButton, BioEditor, ClaimProject, type SubmissionPlan } from '@/components/ui';
 import { useAuth } from '@/lib/auth/AuthContext';
 import type { CreatorProfile } from '@/lib/mongodb/queries';
 
@@ -60,6 +60,18 @@ export default function SubmitPage() {
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
   const [duplicateChecked, setDuplicateChecked] = useState(false);
+  
+  // Claim existing alternative state
+  const [showClaimModal, setShowClaimModal] = useState(false);
+  const [existingAlternative, setExistingAlternative] = useState<{
+    id: string;
+    name: string;
+    slug: string;
+    github: string;
+    hasOwner: boolean;
+    approved: boolean;
+  } | null>(null);
+  const [canClaim, setCanClaim] = useState(false);
   
   // Payment modal state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -453,11 +465,15 @@ export default function SubmitPage() {
     if (!formData.name && !formData.github) {
       setDuplicateError(null);
       setDuplicateChecked(false);
+      setExistingAlternative(null);
+      setCanClaim(false);
       return false;
     }
 
     setCheckingDuplicate(true);
     setDuplicateError(null);
+    setExistingAlternative(null);
+    setCanClaim(false);
 
     try {
       const res = await fetch('/api/submit/check-duplicate', {
@@ -475,10 +491,19 @@ export default function SubmitPage() {
         setDuplicateError(data.errors.join('. '));
         setDuplicateChecked(true);
         setError(data.errors.join('. '));
+        
+        // Check if user can claim this alternative
+        if (data.existingAlternative) {
+          setExistingAlternative(data.existingAlternative);
+          setCanClaim(data.canClaim && user !== null);
+        }
+        
         return false;
       } else {
         setDuplicateError(null);
         setDuplicateChecked(true);
+        setExistingAlternative(null);
+        setCanClaim(false);
         return true;
       }
     } catch (err) {
@@ -494,6 +519,8 @@ export default function SubmitPage() {
   useEffect(() => {
     setDuplicateChecked(false);
     setDuplicateError(null);
+    setExistingAlternative(null);
+    setCanClaim(false);
   }, [formData.name, formData.github]);
 
   // Save draft function
@@ -1315,7 +1342,6 @@ export default function SubmitPage() {
                     type="button"
                     onClick={() => {
                       setSelectedPlan('sponsor');
-                      setShowPaymentModal(true);
                       setError(null);
                     }}
                     className="inline-flex items-center px-3 py-1.5 text-sm font-medium bg-emerald-500 text-dark rounded-md hover:bg-emerald-600 transition"
@@ -1336,10 +1362,59 @@ export default function SubmitPage() {
             </div>
           )}
 
-          {/* Error Message */}
+          {/* Error Message with Claim Option */}
           {error && (
             <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
               <p className="text-red-400 font-mono text-sm">{error}</p>
+              
+              {/* Show claim button if the alternative can be claimed */}
+              {canClaim && existingAlternative && user && (
+                <div className="mt-4 pt-4 border-t border-red-500/20">
+                  <p className="text-white text-sm mb-3">
+                    Are you the owner of this project? You can claim it to get ownership.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowClaimModal(true)}
+                    className="px-4 py-2 bg-red-500 text-white font-mono font-semibold rounded-lg hover:bg-red-600 transition-colors text-sm"
+                  >
+                    Claim This Project
+                  </button>
+                </div>
+              )}
+              
+              {/* Show login prompt if can claim but not logged in */}
+              {existingAlternative && !existingAlternative.hasOwner && !user && (
+                <div className="mt-4 pt-4 border-t border-red-500/20">
+                  <p className="text-white text-sm mb-3">
+                    Are you the owner of this project? Log in to claim ownership.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowAuthModal(true)}
+                    className="px-4 py-2 bg-brand text-dark font-mono font-semibold rounded-lg hover:bg-brand-light transition-colors text-sm"
+                  >
+                    Log In to Claim
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Claim Project Modal */}
+          {showClaimModal && existingAlternative && (
+            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+              <div className="max-w-lg w-full">
+                <ClaimProject
+                  existingAlternative={existingAlternative}
+                  onClaimSuccess={() => {
+                    setShowClaimModal(false);
+                    // Redirect to dashboard after successful claim
+                    router.push('/dashboard');
+                  }}
+                  onCancel={() => setShowClaimModal(false)}
+                />
+              </div>
             </div>
           )}
 

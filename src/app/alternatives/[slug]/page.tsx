@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, ExternalLink, Github, Server, Scale } from 'lucide-react';
 import { getAlternatives, getAlternativeBySlug, getCreatorProfileByUserId, getCreatorProfileByEmail } from '@/lib/mongodb/queries';
 import { AlternativeWithRelations } from '@/types/database';
-import { AlternativeCard, RichTextContent, GitHubStatsCard, ScreenshotCarousel, CreatorProfileCard, AlternativeVoteSection, DiscussionSection } from '@/components/ui';
+import { AlternativeCard, RichTextContent, GitHubStatsCard, ScreenshotCarousel, CreatorProfileCard, AlternativeVoteSection, DiscussionSection, AlternativeTagsHeader, ClaimButton } from '@/components/ui';
 
 // Enable ISR - revalidate every 60 seconds
 export const revalidate = 60;
@@ -102,44 +102,74 @@ export default async function AlternativeDetailPage({ params }: Props) {
           </Link>
 
           <div className="flex flex-col gap-4 sm:gap-6">
-            <div className="flex items-start space-x-3 sm:space-x-4">
-              {alternative.icon_url ? (
-                <Image
-                  src={alternative.icon_url}
-                  alt={`${alternative.name} icon`}
-                  width={64}
-                  height={64}
-                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl object-cover flex-shrink-0 border border-border"
-                />
-              ) : (
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-brand/10 rounded-xl flex items-center justify-center text-brand font-bold text-xl sm:text-2xl flex-shrink-0 font-mono">
-                  {alternative.name.charAt(0)}
-                </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 sm:mb-2 font-mono truncate">
-                  {alternative.name}<span className="text-brand">_</span>
-                </h1>
-                <p className="text-sm sm:text-base lg:text-lg text-muted line-clamp-2 sm:line-clamp-none max-w-2xl">
-                  {alternative.short_description || alternative.description.replace(/<[^>]*>/g, '').slice(0, 150)}
-                  {!alternative.short_description && alternative.description.replace(/<[^>]*>/g, '').length > 150 ? '...' : ''}
-                </p>
-                <div className="flex items-center flex-wrap gap-2 sm:gap-4 mt-3 sm:mt-4">
-                  {alternative.is_self_hosted && (
-                    <span className="inline-flex items-center px-2 sm:px-3 py-1 bg-brand/10 text-brand rounded-full text-xs sm:text-sm font-medium font-mono">
-                      <Server className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                      Self-Hosted
-                    </span>
-                  )}
-                  {alternative.license && (
-                    <span className="inline-flex items-center px-2 sm:px-3 py-1 bg-surface text-muted rounded-full text-xs sm:text-sm font-medium font-mono">
-                      <Scale className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                      {alternative.license}
-                    </span>
-                  )}
+            <div className="flex items-start justify-between gap-4">
+              {/* Left side: Icon, Name, Description */}
+              <div className="flex items-start space-x-3 sm:space-x-4 flex-1 min-w-0">
+                {alternative.icon_url ? (
+                  <Image
+                    src={alternative.icon_url}
+                    alt={`${alternative.name} icon`}
+                    width={64}
+                    height={64}
+                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl object-cover flex-shrink-0 border border-border"
+                  />
+                ) : (
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-brand/10 rounded-xl flex items-center justify-center text-brand font-bold text-xl sm:text-2xl flex-shrink-0 font-mono">
+                    {alternative.name.charAt(0)}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 sm:mb-2 font-mono truncate">
+                    {alternative.name}<span className="text-brand">_</span>
+                  </h1>
+                  <p className="text-sm sm:text-base lg:text-lg text-muted line-clamp-2 sm:line-clamp-none max-w-2xl">
+                    {alternative.short_description || alternative.description.replace(/<[^>]*>/g, '').slice(0, 150)}
+                    {!alternative.short_description && alternative.description.replace(/<[^>]*>/g, '').length > 150 ? '...' : ''}
+                  </p>
+                  <div className="flex items-center flex-wrap gap-2 sm:gap-4 mt-3 sm:mt-4">
+                    {alternative.is_self_hosted && (
+                      <span className="inline-flex items-center px-2 sm:px-3 py-1 bg-brand/10 text-brand rounded-full text-xs sm:text-sm font-medium font-mono">
+                        <Server className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                        Self-Hosted
+                      </span>
+                    )}
+                    {alternative.license && (
+                      <span className="inline-flex items-center px-2 sm:px-3 py-1 bg-surface text-muted rounded-full text-xs sm:text-sm font-medium font-mono">
+                        <Scale className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                        {alternative.license}
+                      </span>
+                    )}
+                    {/* Claim button - only show if no owner and has github */}
+                    {!alternative.user_id && alternative.github && (
+                      <ClaimButton
+                        alternative={{
+                          id: alternative.id,
+                          name: alternative.name,
+                          slug: alternative.slug,
+                          github: alternative.github,
+                          hasOwner: false,
+                          approved: alternative.approved || false,
+                        }}
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
+              
+              {/* Right side: Alternative Tags */}
+              {(alternative as any).alternative_tags && (
+                <div className="hidden sm:block flex-shrink-0 max-w-xs">
+                  <AlternativeTagsHeader alternativeTags={(alternative as any).alternative_tags} />
+                </div>
+              )}
             </div>
+            
+            {/* Mobile: Alternative Tags */}
+            {(alternative as any).alternative_tags && (
+              <div className="sm:hidden">
+                <AlternativeTagsHeader alternativeTags={(alternative as any).alternative_tags} />
+              </div>
+            )}
 
             <div className="flex flex-col xs:flex-row gap-2 sm:gap-3">
               <a

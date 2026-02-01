@@ -140,6 +140,25 @@ const ProprietarySoftwareSchema = new Schema<IProprietarySoftware>(
 
 // Note: slug index is already created by unique: true
 
+// ============ ALTERNATIVE TAGS EMBEDDED SCHEMA ============
+// These are the special alert/highlight/platform/property tags
+export interface IAlternativeTags {
+  alerts: string[];
+  highlights: string[];
+  platforms: string[];
+  properties: string[];
+}
+
+const AlternativeTagsSubSchema = new Schema<IAlternativeTags>(
+  {
+    alerts: [{ type: String }],
+    highlights: [{ type: String }],
+    platforms: [{ type: String }],
+    properties: [{ type: String }],
+  },
+  { _id: false }
+);
+
 // ============ ALTERNATIVE SCHEMA ============
 export interface IAlternative extends Document {
   _id: mongoose.Types.ObjectId;
@@ -174,6 +193,8 @@ export interface IAlternative extends Document {
   sponsor_payment_id: string | null;
   sponsor_paid_at: Date | null;
   newsletter_included: boolean;
+  // Alternative tags (alerts, highlights, platforms, properties)
+  alternative_tags: IAlternativeTags;
   // Relations stored as references
   categories: mongoose.Types.ObjectId[];
   tags: mongoose.Types.ObjectId[];
@@ -216,6 +237,11 @@ const AlternativeSchema = new Schema<IAlternative>(
     sponsor_payment_id: { type: String, default: null },
     sponsor_paid_at: { type: Date, default: null },
     newsletter_included: { type: Boolean, default: false },
+    // Alternative tags (alerts, highlights, platforms, properties)
+    alternative_tags: { 
+      type: AlternativeTagsSubSchema, 
+      default: () => ({ alerts: [], highlights: [], platforms: [], properties: [] })
+    },
     // Relations
     categories: [{ type: Schema.Types.ObjectId, ref: 'Category' }],
     tags: [{ type: Schema.Types.ObjectId, ref: 'Tag' }],
