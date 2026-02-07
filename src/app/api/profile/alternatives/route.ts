@@ -29,7 +29,7 @@ export async function GET() {
     }
 
     const data = await Alternative.find(filter)
-      .select('_id name slug description approved status rejection_reason rejected_at created_at icon_url submission_plan sponsor_featured_until sponsor_priority_until')
+      .select('_id name slug description approved status rejection_reason rejected_at created_at icon_url submission_plan sponsor_featured_until sponsor_priority_until last_edited_at')
       .sort({ created_at: -1 })
       .lean();
 
@@ -47,6 +47,7 @@ export async function GET() {
       submission_plan: alt.submission_plan,
       sponsor_featured_until: alt.sponsor_featured_until ? (alt.sponsor_featured_until as Date).toISOString() : null,
       sponsor_priority_until: alt.sponsor_priority_until ? (alt.sponsor_priority_until as Date).toISOString() : null,
+      last_edited_at: alt.last_edited_at ? (alt.last_edited_at as Date).toISOString() : null,
     }));
 
     return NextResponse.json({ alternatives });

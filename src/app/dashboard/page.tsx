@@ -21,6 +21,7 @@ interface UserAlternative {
   submission_plan: 'free' | 'sponsor' | null;
   sponsor_featured_until: string | null;
   sponsor_priority_until: string | null;
+  last_edited_at: string | null;
 }
 
 interface BoostModalState {
@@ -375,7 +376,7 @@ export default function DashboardPage() {
                           ) : (
                             <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                           )}
-                          <span className="hidden xs:inline">{upgradingId === alt.id ? 'Upgrading...' : 'Boost $49'}</span>
+                          <span className="hidden xs:inline">{upgradingId === alt.id ? 'Upgrading...' : 'Boost Listing'}</span>
                           <span className="xs:hidden">$49</span>
                         </button>
                       )}
@@ -388,16 +389,42 @@ export default function DashboardPage() {
                           <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </Link>
                       )}
-                      {/* Only sponsors can edit their listings (unlimited times) */}
-                      {(alt.submission_plan === 'sponsor' || alt.rejected_at) && (
-                        <Link
-                          href={`/dashboard/edit/${alt.id}`}
-                          className="p-1.5 sm:p-2 text-muted hover:text-brand border border-border hover:border-brand/50 rounded-lg transition-colors touch-manipulation"
-                          title={alt.rejected_at ? "Edit & Resubmit" : "Edit"}
-                        >
-                          <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        </Link>
-                      )}
+                      {/* Edit button - sponsors: unlimited, free: once per 30 days */}
+                      {(() => {
+                        const isSponsor = alt.submission_plan === 'sponsor';
+                        const isRejected = !!alt.rejected_at;
+                        // Free listings: check 30-day cooldown
+                        const nextEditDate = (!isSponsor && alt.last_edited_at)
+                          ? new Date(new Date(alt.last_edited_at).getTime() + 30 * 24 * 60 * 60 * 1000)
+                          : null;
+                        const editCooldownActive = nextEditDate && nextEditDate > new Date();
+                        // Show edit for: sponsors (always), rejected (re-submit), or approved free listings
+                        const showEdit = isSponsor || isRejected || alt.approved;
+                        if (!showEdit) return null;
+                        if (!isSponsor && !isRejected && editCooldownActive) {
+                          const daysLeft = Math.ceil((nextEditDate!.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                          return (
+                            <span
+                              className="p-1.5 sm:p-2 text-muted/40 border border-border/50 rounded-lg cursor-not-allowed touch-manipulation relative group"
+                              title={`Next edit available in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`}
+                            >
+                              <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-dark border border-border rounded text-[10px] sm:text-xs font-mono text-muted whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                Edit in {daysLeft}d
+                              </span>
+                            </span>
+                          );
+                        }
+                        return (
+                          <Link
+                            href={`/dashboard/edit/${alt.id}`}
+                            className="p-1.5 sm:p-2 text-muted hover:text-brand border border-border hover:border-brand/50 rounded-lg transition-colors touch-manipulation"
+                            title={isRejected ? "Edit & Resubmit" : "Edit"}
+                          >
+                            <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          </Link>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
