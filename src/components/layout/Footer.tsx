@@ -75,7 +75,7 @@ export function Footer() {
               </p>
               <div className="flex items-center space-x-3">
                 <a
-                  href="mailto:hello@opensrc.me"
+                  href="mailto:admin@opensrc.me"
                   className="p-2 sm:p-2.5 bg-surface border border-border text-muted hover:text-brand hover:border-brand/30 rounded-lg transition-all touch-manipulation"
                   aria-label="Email"
                 >

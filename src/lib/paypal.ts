@@ -12,12 +12,12 @@ const PAYPAL_BASE_URL = PAYPAL_MODE === 'live'
 // Pricing configuration
 export const PRICES = {
   sponsor_submission: {
-    amount: '10.00',
+    amount: '49.00',
     currency: 'USD',
     description: 'Sponsor Plan - Featured listing for 7 days + Newsletter feature + Instant approval',
   },
   boost_alternative: {
-    amount: '10.00',
+    amount: '49.00',
     currency: 'USD',
     description: 'Boost Alternative - Featured listing for 7 days + Newsletter feature',
   },
@@ -37,6 +37,46 @@ export const PRICES = {
     description: 'Popup Advertisement - 7 days visibility',
   },
 } as const;
+
+// Coupon codes configuration
+export const COUPON_CODES: Record<string, { discount: number; description: string; validFor?: PaymentType[] }> = {
+  'LAUNCH60': {
+    discount: 0.60, // 60% off
+    description: '60% launch discount',
+    validFor: ['sponsor_submission', 'boost_alternative'],
+  },
+};
+
+/**
+ * Apply a coupon code to a price
+ */
+export function applyCoupon(
+  paymentType: PaymentType,
+  couponCode: string
+): { valid: boolean; originalAmount: string; discountedAmount: string; discount: number; description?: string } {
+  const normalizedCode = couponCode.trim().toUpperCase();
+  const coupon = COUPON_CODES[normalizedCode];
+  const originalAmount = PRICES[paymentType].amount;
+  
+  if (!coupon) {
+    return { valid: false, originalAmount, discountedAmount: originalAmount, discount: 0 };
+  }
+  
+  // Check if coupon is valid for this payment type
+  if (coupon.validFor && !coupon.validFor.includes(paymentType)) {
+    return { valid: false, originalAmount, discountedAmount: originalAmount, discount: 0 };
+  }
+  
+  const discountedAmount = (parseFloat(originalAmount) * (1 - coupon.discount)).toFixed(2);
+  
+  return {
+    valid: true,
+    originalAmount,
+    discountedAmount,
+    discount: coupon.discount,
+    description: coupon.description,
+  };
+}
 
 export type PaymentType = keyof typeof PRICES;
 
@@ -122,10 +162,20 @@ export async function createPayPalOrder(
     advertisementId?: string;
     alternativeId?: string;
     projectName?: string;
+    couponCode?: string;
   }
 ): Promise<{ orderId: string; approvalUrl: string }> {
   const accessToken = await getAccessToken();
   const priceConfig = PRICES[paymentType];
+
+  // Apply coupon if provided
+  let finalAmount = priceConfig.amount;
+  if (metadata.couponCode) {
+    const couponResult = applyCoupon(paymentType, metadata.couponCode);
+    if (couponResult.valid) {
+      finalAmount = couponResult.discountedAmount;
+    }
+  }
 
   // Build reference ID to track what this payment is for
   const referenceId = JSON.stringify({
@@ -142,7 +192,7 @@ export async function createPayPalOrder(
         description: priceConfig.description,
         amount: {
           currency_code: priceConfig.currency,
-          value: priceConfig.amount,
+          value: finalAmount,
         },
         custom_id: metadata.submissionId || metadata.advertisementId || metadata.alternativeId || '',
       },

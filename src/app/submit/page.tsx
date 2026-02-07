@@ -5,7 +5,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Send, CheckCircle, Terminal, Loader2, Upload, X, Crown, Sparkles, Eye, EyeOff, Save, Trash2, LogIn, User, Globe, Github, FileText, Camera, Twitter, Linkedin, Youtube, MessageCircle, Settings } from 'lucide-react';
+import { ArrowLeft, Send, CheckCircle, Terminal, Loader2, Upload, X, Crown, Sparkles, Eye, EyeOff, Save, Trash2, LogIn, User, Globe, Github, FileText, Camera, Twitter, Linkedin, Youtube, MessageCircle, Settings, TrendingUp } from 'lucide-react';
 import { RichTextEditor, TechStackSelector, PlanSelection, BacklinkVerification, CreatorProfileCard, PayPalButton, BioEditor, ClaimProject, type SubmissionPlan } from '@/components/ui';
 import { useAuth } from '@/lib/auth/AuthContext';
 import type { CreatorProfile } from '@/lib/mongodb/queries';
@@ -76,6 +76,12 @@ export default function SubmitPage() {
   // Payment modal state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  
+  // Coupon state
+  const [couponCode, setCouponCode] = useState('');
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponError, setCouponError] = useState<string | null>(null);
   
   // Draft state
   const [draftLoading, setDraftLoading] = useState(false);
@@ -1451,6 +1457,10 @@ export default function SubmitPage() {
                   {/* Benefits Section */}
                   <div className="p-6 border-b border-border">
                     <h4 className="text-sm font-mono text-muted mb-3">// SPONSOR_BENEFITS</h4>
+                    <p className="text-sm font-bold text-emerald-400 mb-3 flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-emerald-500" />
+                      Average sponsored listings get 1.2k clicks/month
+                    </p>
                     <ul className="text-sm text-white space-y-2">
                       <li className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-emerald-500" />
@@ -1482,14 +1492,76 @@ export default function SubmitPage() {
                   {/* Payment Section */}
                   <div className="p-6">
                     <div className="bg-white rounded-lg p-6 border border-emerald-500/30">
-                      <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center justify-between mb-4">
                         <div>
                           <h5 className="text-gray-900 font-semibold">Sponsored Listing</h5>
                         </div>
                         <div className="text-right">
-                          <p className="text-2xl font-bold text-emerald-600">$10</p>
+                          {couponApplied ? (
+                            <>
+                              <p className="text-sm text-gray-400 line-through">${'49'}</p>
+                              <p className="text-2xl font-bold text-emerald-600">${(49 * (1 - couponDiscount)).toFixed(2)}</p>
+                            </>
+                          ) : (
+                            <p className="text-2xl font-bold text-emerald-600">$49</p>
+                          )}
                           <p className="text-xs text-gray-500">one-time</p>
                         </div>
+                      </div>
+
+                      {/* Coupon Code Input */}
+                      <div className="mb-4">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={couponCode}
+                            onChange={(e) => {
+                              setCouponCode(e.target.value.toUpperCase());
+                              setCouponError(null);
+                            }}
+                            placeholder="Coupon code"
+                            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-gray-900"
+                            disabled={couponApplied}
+                          />
+                          {couponApplied ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCouponApplied(false);
+                                setCouponDiscount(0);
+                                setCouponCode('');
+                              }}
+                              className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50"
+                            >
+                              Remove
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                // Validate coupon code
+                                const validCoupons: Record<string, number> = { 'LAUNCH60': 0.60 };
+                                const discount = validCoupons[couponCode.trim().toUpperCase()];
+                                if (discount) {
+                                  setCouponApplied(true);
+                                  setCouponDiscount(discount);
+                                  setCouponError(null);
+                                } else {
+                                  setCouponError('Invalid coupon code');
+                                }
+                              }}
+                              className="px-4 py-2 text-sm font-medium text-emerald-600 border border-emerald-300 rounded-lg hover:bg-emerald-50"
+                            >
+                              Apply
+                            </button>
+                          )}
+                        </div>
+                        {couponError && (
+                          <p className="text-red-500 text-xs mt-1">{couponError}</p>
+                        )}
+                        {couponApplied && (
+                          <p className="text-emerald-600 text-xs mt-1">✓ Coupon applied: {Math.round(couponDiscount * 100)}% off</p>
+                        )}
                       </div>
 
                       {paymentError && (
@@ -1500,8 +1572,9 @@ export default function SubmitPage() {
 
                       <PayPalButton
                         paymentType="sponsor_submission"
-                        amount="10"
+                        amount={couponApplied ? (49 * (1 - couponDiscount)).toFixed(2) : "49"}
                         projectName={formData.name}
+                        couponCode={couponApplied ? couponCode : undefined}
                         onSuccess={async (data) => {
                           setSponsorPaymentId(data.captureId);
                           setError(null);

@@ -78,14 +78,14 @@ export function Header() {
                 <span className="opacity-0 group-hover:opacity-100 text-brand/50 transition-opacity">]</span>
               </Link>
             ))}
-            <Link
-              href="/donate"
+            <a
+              href="https://opensrc.me/alternatives-to"
               className="px-4 py-2 text-muted hover:text-brand font-mono text-sm transition-colors relative group"
             >
               <span className="opacity-0 group-hover:opacity-100 text-brand/50 transition-opacity">[</span>
-              Donate
+              Alternatives To
               <span className="opacity-0 group-hover:opacity-100 text-brand/50 transition-opacity">]</span>
-            </Link>
+            </a>
           </nav>
 
           {/* Actions */}
@@ -233,13 +233,13 @@ export function Header() {
               )}
               {/* Submit moved to header for mobile; keep menu minimal */}
               <div className="p-4 pt-0">
-                  <Link
-                    href="/donate"
+                  <a
+                    href="https://opensrc.me/alternatives-to"
                     className="flex items-center justify-center w-full px-4 py-3 bg-brand text-dark font-mono text-sm font-medium rounded-lg active:bg-brand-light transition-colors touch-manipulation"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Support the Project
-                  </Link>
+                    Browse Alternatives To
+                  </a>
               </div>
             </nav>
           </div>

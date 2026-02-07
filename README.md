@@ -2,7 +2,7 @@
 
 [![Featured on OPEN_SRC.ME](https://opensrc.me/badge.svg)](https://opensrc.me/alternatives/open-source-finder)
 
-A directory platform for discovering open source alternatives to popular proprietary software. Built with Next.js, MongoDB, and optimized for Vercel deployment.
+A directory platform for discovering open source alternatives to popular proprietary software. Built with Next.js, MongoDB, and ready for deployment on Render.com, Vercel, or any Node.js host.
 
 ![OPEN_SRC.ME](https://via.placeholder.com/1200x630/0d0d0d/3ecf8e?text=OPEN_SRC.ME)
 
@@ -25,7 +25,7 @@ A directory platform for discovering open source alternatives to popular proprie
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
 - **Icons:** Lucide React
-- **Deployment:** Vercel
+- **Deployment:** Render.com / Vercel / any Node.js host
 
 ## Getting Started
 
@@ -121,9 +121,23 @@ src/
 
 ## Deployment
 
+### Deploy to Render.com
+
+1. Push your code to GitHub
+2. Create a new **Web Service** on [Render.com](https://render.com)
+3. Connect your GitHub repository
+4. Render will auto-detect the `render.yaml` blueprint, or configure manually:
+   - **Build Command:** `npm install && npm run build`
+   - **Start Command:** `npm run start`
+   - **Environment:** Node
+5. Add your environment variables in the Render dashboard (see `.env.example`)
+6. Deploy!
+
+> Render automatically sets the `PORT` environment variable. The start script reads it.
+
 ### Deploy to Vercel
 
-The easiest way to deploy is using [Vercel](https://vercel.com):
+Alternatively, deploy using [Vercel](https://vercel.com):
 
 1. Push your code to GitHub
 2. Import your repository on Vercel
@@ -133,10 +147,21 @@ The easiest way to deploy is using [Vercel](https://vercel.com):
 
 ### Environment Variables
 
-No environment variables are required for basic functionality. For production, you may want to add:
+Required for production:
 
-- `NEXT_PUBLIC_SITE_URL` - Your production URL
-- Database connection strings (if adding a backend)
+- `MONGODB_URI` - MongoDB connection string (Atlas or self-hosted)
+- `JWT_SECRET` - Secret key for JWT signing
+- `NEXT_PUBLIC_SITE_URL` - Your production URL (e.g. `https://yourdomain.com`)
+- `NEXT_PUBLIC_APP_URL` - Same as above (used for PayPal redirects)
+
+Optional:
+
+- `GITHUB_TOKEN` - GitHub personal access token for higher API rate limits
+- `NEXT_PUBLIC_PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET` - PayPal integration
+- `PAYPAL_MODE` - `sandbox` or `live`
+- `ADMIN_SECRET` / `ADMIN_INDEX_SECRET` - Admin endpoint protection
+
+See `.env.example` for the full list.
 
 ## Customization
 

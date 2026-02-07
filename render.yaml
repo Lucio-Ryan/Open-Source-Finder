@@ -1,0 +1,41 @@
+# Render.com Infrastructure-as-Code Blueprint
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: opensrcme
+    runtime: node
+    plan: starter
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: MONGODB_URI
+        sync: false  # Set manually in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: NEXT_PUBLIC_PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_MODE
+        value: live
+      - key: NEXT_PUBLIC_PAYPAL_ME
+        sync: false
+      - key: NEXT_PUBLIC_PAYPAL_BUSINESS_ID
+        sync: false
+      - key: ADMIN_SECRET
+        sync: false
+      - key: ADMIN_INDEX_SECRET
+        sync: false

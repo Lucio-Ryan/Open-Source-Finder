@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Standalone output for Docker/Render.com deployment
+  output: 'standalone',
+  
   images: {
     remotePatterns: [
       {
@@ -43,7 +46,7 @@ const nextConfig = {
   // Compression enabled by default
   compress: true,
   
-  // Increase static generation timeout for Vercel
+  // Increase static generation timeout for builds
   staticPageGenerationTimeout: 180,
   
   // Experimental performance optimizations

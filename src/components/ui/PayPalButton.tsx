@@ -16,6 +16,7 @@ interface PayPalButtonProps {
   advertisementId?: string;
   alternativeId?: string;
   projectName?: string;
+  couponCode?: string;
   onSuccess: (captureData: {
     captureId: string;
     amount: string;
@@ -36,6 +37,7 @@ export function PayPalButton({
   advertisementId,
   alternativeId,
   projectName,
+  couponCode,
   onSuccess,
   onError,
   onCancel,
@@ -128,6 +130,7 @@ export function PayPalButton({
               advertisement_id: advertisementId,
               alternative_id: alternativeId,
               project_name: projectName,
+              coupon_code: couponCode,
             }),
           });
 
@@ -190,7 +193,7 @@ export function PayPalButton({
       },
     }).render(paypalContainerRef.current);
 
-  }, [sdkLoaded, disabled, paymentType, submissionId, advertisementId, alternativeId, projectName, onSuccess, onError, onCancel]);
+  }, [sdkLoaded, disabled, paymentType, submissionId, advertisementId, alternativeId, projectName, couponCode, onSuccess, onError, onCancel]);
 
   // Reset buttons when disabled changes
   useEffect(() => {

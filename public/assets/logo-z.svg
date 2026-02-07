@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Zenith logo">
+  <!-- Dark green rounded square background (no border) -->
+  <rect x="1" y="1" width="22" height="22" rx="5" fill="#155239" />
+
+  <!-- Terminal glyph: Z in brand teal -->
+  <g fill="none" stroke="#3ECF8E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Z character with cut bottom -->
+    <path d="M7 7 L17 7" />
+    <path d="M17 7 L7 17" />
+    <path d="M7 17 L10.5 17" />
+    <path d="M13.5 17 L17 17" />
+  </g>
+
+  <!-- Optional: subtle inner highlight for a polished look -->
+  <rect x="2" y="2" width="20" height="20" rx="4" fill="none" stroke="#FFFFFF" stroke-opacity="0.03" />
+</svg>

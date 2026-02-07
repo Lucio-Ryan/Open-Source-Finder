@@ -58,6 +58,15 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
       icon: Check 
     },
     { 
+      name: 'Unlimited updates', 
+      description: 'Edit your listing anytime',
+      free: false, 
+      sponsor: true,
+      freeName: 'Limited updates',
+      freeDescription: '1 free edit per month',
+      icon: Check 
+    },
+    { 
       name: 'Featured on homepage', 
       description: 'Top Alternatives section for 7 days',
       free: false, 
@@ -88,13 +97,6 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
     { 
       name: 'Premium card design', 
       description: 'Full-width with screenshots',
-      free: false, 
-      sponsor: true,
-      icon: Check 
-    },
-    { 
-      name: 'Unlimited updates', 
-      description: 'Edit your listing anytime',
       free: false, 
       sponsor: true,
       icon: Check 
@@ -142,17 +144,25 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
           {benefits.map((benefit, idx) => {
             const Icon = benefit.icon;
             const included = benefit.free;
+            const hasFreeDescription = 'freeDescription' in benefit && (benefit as any).freeDescription;
+            const freeName = 'freeName' in benefit ? (benefit as any).freeName : benefit.name;
             return (
               <li key={idx} className="flex items-start gap-2 text-sm">
                 {included ? (
                   <Check className="w-4 h-4 text-brand mt-0.5 flex-shrink-0" />
+                ) : hasFreeDescription ? (
+                  <Check className="w-4 h-4 text-white mt-0.5 flex-shrink-0" />
                 ) : (
                   <X className="w-4 h-4 text-muted/40 mt-0.5 flex-shrink-0" />
                 )}
-                <span className={included ? 'text-muted' : 'text-muted/60 line-through'}>
+                <span className={included || hasFreeDescription ? 'text-muted' : 'text-muted/60 line-through'}>
                   {included ? (
                     <>
-                      <span className="font-medium">{benefit.name}</span> - {benefit.description}
+                      <span className={`font-medium ${benefit.name === 'Listed in search & categories' ? 'text-white' : ''}`}>{benefit.name}</span> - {benefit.description}
+                    </>
+                  ) : hasFreeDescription ? (
+                    <>
+                      <span className="font-medium text-white">{freeName}</span> - {(benefit as any).freeDescription}
                     </>
                   ) : (
                     <>
@@ -214,7 +224,7 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
             <div>
               <h3 className="text-lg font-bold text-white font-mono">Sponsored Listing</h3>
               <div className="flex items-center gap-2">
-                <p className={`text-2xl font-bold ${isSponsorFull ? 'text-muted' : 'text-emerald-500'}`}>$10</p>
+                <p className={`text-2xl font-bold ${isSponsorFull ? 'text-muted' : 'text-emerald-500'}`}>$49</p>
                 {!loading && sponsorStatus && (
                   <span className={`text-sm font-medium ${
                     isSponsorFull ? 'text-red-400' : 'text-muted'

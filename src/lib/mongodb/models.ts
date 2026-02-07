@@ -193,6 +193,8 @@ export interface IAlternative extends Document {
   sponsor_payment_id: string | null;
   sponsor_paid_at: Date | null;
   newsletter_included: boolean;
+  // Track when free listings last edited (for once-per-month restriction)
+  last_edited_at: Date | null;
   // Alternative tags (alerts, highlights, platforms, properties)
   alternative_tags: IAlternativeTags;
   // Relations stored as references
@@ -237,6 +239,8 @@ const AlternativeSchema = new Schema<IAlternative>(
     sponsor_payment_id: { type: String, default: null },
     sponsor_paid_at: { type: Date, default: null },
     newsletter_included: { type: Boolean, default: false },
+    // Track when free listings last edited (for once-per-month restriction)
+    last_edited_at: { type: Date, default: null },
     // Alternative tags (alerts, highlights, platforms, properties)
     alternative_tags: { 
       type: AlternativeTagsSubSchema, 

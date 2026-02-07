@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/mongodb/auth';
-import { createPayPalOrder, PaymentType, PRICES, getPayPalClientId, getAccessToken } from '@/lib/paypal';
+import { createPayPalOrder, PaymentType, PRICES, getPayPalClientId, getAccessToken, applyCoupon } from '@/lib/paypal';
 
 // Helper to pick PayPal base URL
 function getPayPalBaseUrl() {
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const { payment_type, submission_id, advertisement_id, alternative_id, project_name } = body;
+    const { payment_type, submission_id, advertisement_id, alternative_id, project_name, coupon_code } = body;
 
     // Validate payment type
     if (!payment_type || !Object.keys(PRICES).includes(payment_type)) {
@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
       advertisementId: advertisement_id,
       alternativeId: alternative_id,
       projectName: project_name,
+      couponCode: coupon_code,
     });
 
     return NextResponse.json({ success: true, order_id: orderId, approval_url: approvalUrl });

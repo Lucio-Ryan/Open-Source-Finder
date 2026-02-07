@@ -39,6 +39,28 @@ export async function PUT(
       );
     }
 
+    // Check edit restrictions for free listings (once per month)
+    const isSponsor = (existing as any).submission_plan === 'sponsor';
+    if (!isSponsor) {
+      const lastEditedAt = (existing as any).last_edited_at;
+      if (lastEditedAt) {
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+        
+        if (new Date(lastEditedAt) > oneMonthAgo) {
+          const nextEditDate = new Date(lastEditedAt);
+          nextEditDate.setMonth(nextEditDate.getMonth() + 1);
+          return NextResponse.json(
+            { 
+              error: `Free listings can only be edited once per month. You can edit again on ${nextEditDate.toLocaleDateString()}.`,
+              next_edit_date: nextEditDate.toISOString()
+            },
+            { status: 429 }
+          );
+        }
+      }
+    }
+
     const {
       name,
       short_description,
@@ -68,10 +90,15 @@ export async function PUT(
       license: license || null,
       screenshots: screenshots?.length > 0 ? screenshots : [],
       // Sponsored apps don't need approval on edit, free submissions are resubmitted for review
-      approved: (existing as any).submission_plan === 'sponsor' ? true : false,
+      approved: isSponsor ? true : false,
       rejection_reason: null,
       rejected_at: null,
     };
+
+    // Track last edit time for free listings (for once-per-month restriction)
+    if (!isSponsor) {
+      updateData.last_edited_at = new Date();
+    }
 
     // Update relations if provided
     if (category_ids !== undefined) {

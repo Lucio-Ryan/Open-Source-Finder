@@ -1,6 +1,6 @@
 /**
  * In-memory caching layer for MongoDB queries
- * Optimized for Vercel serverless to minimize database connections
+ * Optimized for both serverless and persistent server environments
  * 
  * Features:
  * - Query result caching with TTL

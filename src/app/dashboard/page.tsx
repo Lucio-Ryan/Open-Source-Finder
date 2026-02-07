@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Plus, Edit2, Eye, Clock, CheckCircle, XCircle, Loader2, LogOut, Settings, Sparkles, Zap, Megaphone, X } from 'lucide-react';
+import { Plus, Edit2, Eye, Clock, CheckCircle, XCircle, Loader2, LogOut, Settings, Sparkles, Zap, Megaphone, X, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { NotificationsPanel, PayPalButton } from '@/components/ui';
 
@@ -42,6 +42,12 @@ export default function DashboardPage() {
     alternativeName: null,
   });
   const [boostError, setBoostError] = useState<string | null>(null);
+  
+  // Coupon state for boost modal
+  const [boostCouponCode, setBoostCouponCode] = useState('');
+  const [boostCouponApplied, setBoostCouponApplied] = useState(false);
+  const [boostCouponDiscount, setBoostCouponDiscount] = useState(0);
+  const [boostCouponError, setBoostCouponError] = useState<string | null>(null);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -369,8 +375,8 @@ export default function DashboardPage() {
                           ) : (
                             <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                           )}
-                          <span className="hidden xs:inline">{upgradingId === alt.id ? 'Upgrading...' : 'Boost $10'}</span>
-                          <span className="xs:hidden">$10</span>
+                          <span className="hidden xs:inline">{upgradingId === alt.id ? 'Upgrading...' : 'Boost $49'}</span>
+                          <span className="xs:hidden">$49</span>
                         </button>
                       )}
                       {alt.approved && (
@@ -462,6 +468,10 @@ export default function DashboardPage() {
 {/* Benefits Section */}
                   <div className="p-6 border-b border-border">
                     <h4 className="text-sm font-mono text-muted mb-3">// SPONSOR_BENEFITS</h4>
+                    <p className="text-sm font-bold text-emerald-400 mb-3 flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-emerald-500" />
+                      Average sponsored listings get 1.2k clicks/month
+                    </p>
                     <ul className="text-sm text-white space-y-2">
                       <li className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-emerald-500" />
@@ -493,14 +503,76 @@ export default function DashboardPage() {
               {/* Payment Section - Separate Card */}
               <div className="p-4 sm:p-6">
                 <div className="bg-white rounded-lg p-4 sm:p-6 border border-emerald-500/30">
-                  <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div>
                     <h5 className="text-gray-900 font-semibold text-sm sm:text-base">Sponsor Boost</h5>
                   </div>
                   <div className="text-right">
-                    <p className="text-xl sm:text-2xl font-bold text-emerald-600">$10</p>
+                    {boostCouponApplied ? (
+                      <>
+                        <p className="text-xs sm:text-sm text-gray-400 line-through">${'49'}</p>
+                        <p className="text-xl sm:text-2xl font-bold text-emerald-600">${(49 * (1 - boostCouponDiscount)).toFixed(2)}</p>
+                      </>
+                    ) : (
+                      <p className="text-xl sm:text-2xl font-bold text-emerald-600">$49</p>
+                    )}
                     <p className="text-[10px] sm:text-xs text-gray-500">one-time</p>
                   </div>
+                </div>
+
+                {/* Coupon Code Input */}
+                <div className="mb-4">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={boostCouponCode}
+                      onChange={(e) => {
+                        setBoostCouponCode(e.target.value.toUpperCase());
+                        setBoostCouponError(null);
+                      }}
+                      placeholder="Coupon code"
+                      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-gray-900"
+                      disabled={boostCouponApplied}
+                    />
+                    {boostCouponApplied ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBoostCouponApplied(false);
+                          setBoostCouponDiscount(0);
+                          setBoostCouponCode('');
+                        }}
+                        className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50"
+                      >
+                        Remove
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // Validate coupon code
+                          const validCoupons: Record<string, number> = { 'LAUNCH60': 0.60 };
+                          const discount = validCoupons[boostCouponCode.trim().toUpperCase()];
+                          if (discount) {
+                            setBoostCouponApplied(true);
+                            setBoostCouponDiscount(discount);
+                            setBoostCouponError(null);
+                          } else {
+                            setBoostCouponError('Invalid coupon code');
+                          }
+                        }}
+                        className="px-4 py-2 text-sm font-medium text-emerald-600 border border-emerald-300 rounded-lg hover:bg-emerald-50"
+                      >
+                        Apply
+                      </button>
+                    )}
+                  </div>
+                  {boostCouponError && (
+                    <p className="text-red-500 text-xs mt-1">{boostCouponError}</p>
+                  )}
+                  {boostCouponApplied && (
+                    <p className="text-emerald-600 text-xs mt-1">✓ Coupon applied: {Math.round(boostCouponDiscount * 100)}% off</p>
+                  )}
                 </div>
 
                 {boostError && (
@@ -511,9 +583,10 @@ export default function DashboardPage() {
 
                 <PayPalButton
                   paymentType="boost_alternative"
-                  amount="10"
+                  amount={boostCouponApplied ? (49 * (1 - boostCouponDiscount)).toFixed(2) : "49"}
                   alternativeId={boostModal.alternativeId || undefined}
                   projectName={boostModal.alternativeName || undefined}
+                  couponCode={boostCouponApplied ? boostCouponCode : undefined}
                   onSuccess={handleBoostPaymentSuccess}
                   onError={(error) => setBoostError(error)}
                   onCancel={() => setBoostError('Payment was cancelled. Please try again.')}

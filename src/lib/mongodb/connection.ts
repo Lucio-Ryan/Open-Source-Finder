@@ -1,16 +1,26 @@
 import mongoose from 'mongoose';
 
 /**
- * MongoDB Connection Manager - Optimized for Vercel Serverless
+ * MongoDB Connection Manager
  * 
- * Key optimizations for serverless without static IP:
- * 1. Single connection per function instance (maxPoolSize: 1)
+ * Supports both persistent servers (Render.com, Docker, VPS) and
+ * serverless environments (Vercel, AWS Lambda).
+ * 
+ * Key features:
+ * 1. Connection pooling (sized for persistent or serverless)
  * 2. Aggressive connection reuse via global cache
- * 3. Short timeouts to fail fast on network issues
- * 4. No keepAlive since functions are ephemeral
- * 5. Disabled auto-indexing in production
- * 6. Promise deduplication to prevent connection storms
+ * 3. Configurable timeouts
+ * 4. Disabled auto-indexing in production
+ * 5. Promise deduplication to prevent connection storms
+ * 6. Health checks with graceful reconnection
  */
+
+// Detect if running in a serverless environment
+const IS_SERVERLESS = !!(
+  process.env.VERCEL ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  process.env.NETLIFY
+);
 
 declare global {
   // eslint-disable-next-line no-var
@@ -34,11 +44,12 @@ if (!cached) {
   };
 }
 
-// Connection health check interval - shorter for serverless (2 minutes)
-const CONNECTION_HEALTH_INTERVAL = 2 * 60 * 1000;
+// Connection health check interval
+// Persistent servers can afford longer intervals; serverless checks more often
+const CONNECTION_HEALTH_INTERVAL = IS_SERVERLESS ? 2 * 60 * 1000 : 5 * 60 * 1000;
 
-// Connection timeout for serverless - slightly more generous for cold starts
-const SERVERLESS_TIMEOUT = 8000;
+// Connection timeout
+const CONNECTION_TIMEOUT = IS_SERVERLESS ? 8000 : 15000;
 
 // Maximum retries for initial connection
 const MAX_CONNECTION_RETRIES = 2;
@@ -47,9 +58,10 @@ const MAX_CONNECTION_RETRIES = 2;
 const CONNECTION_RETRY_DELAY = 1000;
 
 /**
- * Get or create a MongoDB connection optimized for Vercel serverless.
+ * Get or create a MongoDB connection.
+ * Adapts pool sizing and timeouts based on environment (serverless vs persistent).
  * Uses aggressive caching and connection reuse to minimize connections.
- * Includes retry logic for cold start reliability.
+ * Includes retry logic for reliability.
  */
 export async function connectToDatabase(): Promise<typeof mongoose> {
   const now = Date.now();
@@ -107,42 +119,40 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
     throw new Error('Please define the MONGODB_URI environment variable');
   }
 
-  // Optimized MongoDB connection options for Vercel serverless
-  // These settings minimize connections while maintaining reliability
+  // MongoDB connection options - adapt based on environment
   const opts: mongoose.ConnectOptions = {
     // Disable command buffering - fail fast if not connected
     bufferCommands: false,
     
-    // === CRITICAL: Connection pool for serverless ===
-    // Use minimal pool size since each serverless function instance
-    // gets its own pool. This dramatically reduces total connections.
-    maxPoolSize: 1,               // Single connection per instance
-    minPoolSize: 0,               // Don't maintain idle connections
+    // === Connection pool sizing ===
+    // Serverless: minimal pool (1 conn per instance)
+    // Persistent: larger pool for concurrent request handling
+    maxPoolSize: IS_SERVERLESS ? 1 : 10,
+    minPoolSize: IS_SERVERLESS ? 0 : 2,
     
     // === Timeout Configuration ===
-    // Aggressive timeouts to fail fast and not waste function execution time
-    serverSelectionTimeoutMS: SERVERLESS_TIMEOUT,  // Fast fail on server selection
-    socketTimeoutMS: 30000,       // Socket timeout for operations
-    connectTimeoutMS: SERVERLESS_TIMEOUT,  // Connection establishment timeout
+    serverSelectionTimeoutMS: CONNECTION_TIMEOUT,
+    socketTimeoutMS: IS_SERVERLESS ? 30000 : 45000,
+    connectTimeoutMS: CONNECTION_TIMEOUT,
     
     // === Connection Lifecycle ===
-    maxIdleTimeMS: 10000,         // Close idle connections quickly (10s)
-    waitQueueTimeoutMS: SERVERLESS_TIMEOUT, // Don't wait long for pool slot
+    maxIdleTimeMS: IS_SERVERLESS ? 10000 : 30000,
+    waitQueueTimeoutMS: CONNECTION_TIMEOUT,
     
     // === Reliability ===
-    writeConcern: { w: 1 },       // Acknowledge writes
-    readPreference: 'primaryPreferred', // Prefer primary, fallback to secondary
-    retryWrites: true,            // Auto-retry transient write failures
-    retryReads: true,             // Auto-retry transient read failures
+    writeConcern: { w: 1 },
+    readPreference: 'primaryPreferred',
+    retryWrites: true,
+    retryReads: true,
     
-    // === Monitoring (reduced for serverless) ===
-    heartbeatFrequencyMS: 30000,  // Less frequent heartbeats
+    // === Monitoring ===
+    heartbeatFrequencyMS: IS_SERVERLESS ? 30000 : 10000,
     
     // === Indexing ===
-    autoIndex: false,             // Never auto-index in serverless (use migration)
+    autoIndex: false,
     
     // === Compression ===
-    compressors: ['zstd', 'zlib'], // Compress data transfer
+    compressors: ['zstd', 'zlib'],
   };
 
   // Create connection promise with retry wrapper
@@ -257,7 +267,7 @@ export async function closeConnection(): Promise<void> {
 
 /**
  * Execute a database operation with automatic connection management.
- * This is the recommended way to run database operations in serverless.
+ * This is the recommended way to run database operations.
  * 
  * @param operation - Async function that performs database operations
  * @returns Result of the operation
