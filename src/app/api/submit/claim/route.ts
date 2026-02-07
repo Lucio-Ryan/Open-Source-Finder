@@ -34,9 +34,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find the alternative by GitHub URL
+    // Find the alternative by GitHub URL (case-insensitive)
     const alternative = await Alternative.findOne({ 
-      github: github.toLowerCase() 
+      github: { $regex: new RegExp(`^${github.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
     });
 
     if (!alternative) {
