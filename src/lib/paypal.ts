@@ -169,7 +169,7 @@ export async function createPayPalOrder(
   const priceConfig = PRICES[paymentType];
 
   // Apply coupon if provided
-  let finalAmount = priceConfig.amount;
+  let finalAmount: string = priceConfig.amount;
   if (metadata.couponCode) {
     const couponResult = applyCoupon(paymentType, metadata.couponCode);
     if (couponResult.valid) {
