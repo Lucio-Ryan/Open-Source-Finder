@@ -5,7 +5,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Send, CheckCircle, Terminal, Loader2, Upload, X, Crown, Sparkles, Eye, EyeOff, Save, Trash2, LogIn, User, Globe, Github, FileText, Camera, Twitter, Linkedin, Youtube, MessageCircle, Settings, TrendingUp } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Terminal, Loader2, Upload, X, Crown, Sparkles, Eye, EyeOff, Save, Trash2, LogIn, User, Globe, Github, FileText, Camera, Twitter, Linkedin, Youtube, MessageCircle, Settings, TrendingUp } from 'lucide-react';
 import { RichTextEditor, TechStackSelector, PlanSelection, BacklinkVerification, CreatorProfileCard, PayPalButton, BioEditor, ClaimProject, type SubmissionPlan } from '@/components/ui';
 import { useAuth } from '@/lib/auth/AuthContext';
 import type { CreatorProfile } from '@/lib/mongodb/queries';
@@ -49,7 +49,7 @@ export default function SubmitPage() {
   const [alternativeToSearch, setAlternativeToSearch] = useState('');
   
   // Plan selection state
-  const [selectedPlan, setSelectedPlan] = useState<SubmissionPlan>('free');
+  const [selectedPlan, setSelectedPlan] = useState<SubmissionPlan>('sponsor');
   const [sponsorPaymentId, setSponsorPaymentId] = useState<string | null>(null);
   
   // Backlink verification state (for free plan)
@@ -877,9 +877,10 @@ export default function SubmitPage() {
       </div>
 
       {/* Form */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div id="submit-form" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Personal Info - Now at the top */}
+
+          {/* Personal Info */}
           <div className="bg-surface rounded-xl border border-border p-6">
             <h2 className="text-xl font-semibold text-white mb-2 font-mono">
               <Terminal className="w-5 h-5 inline mr-2 text-brand" />

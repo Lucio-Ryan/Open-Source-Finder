@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Check, Crown, Clock, Link, Newspaper, Zap, Sparkles, Code, X, AlertCircle } from 'lucide-react';
+import { Check, Crown, Clock, Link, Newspaper, Zap, Sparkles, Code, X, AlertCircle, TrendingUp } from 'lucide-react';
 
 export type SubmissionPlan = 'free' | 'sponsor';
 
@@ -136,6 +136,12 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
 
         <ul className="space-y-3 mb-6">
           <li className="flex items-start gap-2 text-sm">
+            <TrendingUp className="w-4 h-4 text-muted mt-0.5 flex-shrink-0" />
+            <span className="text-muted">
+              <span className="text-white font-medium">&gt;100 clicks/month</span> - Average traffic to your repo
+            </span>
+          </li>
+          <li className="flex items-start gap-2 text-sm">
             <Clock className="w-4 h-4 text-muted mt-0.5 flex-shrink-0" />
             <span className="text-muted">
               <span className="text-white font-medium">~1 month approval time</span> - Manual review by our team
@@ -149,16 +155,16 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
             return (
               <li key={idx} className="flex items-start gap-2 text-sm">
                 {included ? (
-                  <Check className="w-4 h-4 text-brand mt-0.5 flex-shrink-0" />
+                  <Check className="w-4 h-4 text-muted mt-0.5 flex-shrink-0" />
                 ) : hasFreeDescription ? (
-                  <Check className="w-4 h-4 text-white mt-0.5 flex-shrink-0" />
+                  <Check className="w-4 h-4 text-muted mt-0.5 flex-shrink-0" />
                 ) : (
                   <X className="w-4 h-4 text-muted/40 mt-0.5 flex-shrink-0" />
                 )}
                 <span className={included || hasFreeDescription ? 'text-muted' : 'text-muted/60 line-through'}>
                   {included ? (
                     <>
-                      <span className={`font-medium ${benefit.name === 'Listed in search & categories' ? 'text-white' : ''}`}>{benefit.name}</span> - {benefit.description}
+                      <span className="font-medium text-white">{benefit.name}</span> - {benefit.description}
                     </>
                   ) : hasFreeDescription ? (
                     <>
@@ -175,9 +181,6 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
           })}
         </ul>
 
-        <div className="text-xs text-muted bg-dark/50 rounded-lg p-3 font-mono">
-          Perfect for open source projects looking to gain visibility
-        </div>
       </div>
 
       {/* Sponsored Listing */}
@@ -240,6 +243,12 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
 
         <ul className="space-y-3 mb-6">
           <li className="flex items-start gap-2 text-sm">
+            <TrendingUp className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+            <span className="text-muted">
+              <span className="text-white font-medium">1.2k clicks/month</span> - Average traffic to your repo
+            </span>
+          </li>
+          <li className="flex items-start gap-2 text-sm">
             <Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
             <span className="text-muted">
               <span className="text-white font-medium">Instant approval</span> - No waiting, go live immediately
@@ -259,9 +268,6 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
           })}
         </ul>
 
-        <div className="text-xs text-emerald-500/80 bg-emerald-500/10 rounded-lg p-3 font-mono border border-emerald-500/20">
-          Maximum visibility & instant launch for your project
-        </div>
       </div>
     </div>
   );
