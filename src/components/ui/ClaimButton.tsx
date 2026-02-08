@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Shield, X } from 'lucide-react';
 import { ClaimProject } from './ClaimProject';
 import { useRouter } from 'next/navigation';
@@ -20,27 +20,56 @@ export function ClaimButton({ alternative }: ClaimButtonProps) {
   const [showClaimModal, setShowClaimModal] = useState(false);
   const router = useRouter();
 
-  const handleClaimSuccess = () => {
+  // On mount, auto-open if the URL already has #claim (direct link support)
+  useEffect(() => {
+    if (window.location.hash === '#claim') {
+      setShowClaimModal(true);
+    }
+
+    const onHashChange = () => {
+      if (window.location.hash === '#claim') {
+        setShowClaimModal(true);
+      }
+    };
+
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  const openModal = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Push #claim into the URL so it's shareable
+    history.pushState(null, '', `/alternatives/${alternative.slug}#claim`);
+    setShowClaimModal(true);
+  };
+
+  const closeModal = () => {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
     setShowClaimModal(false);
+  };
+
+  const handleClaimSuccess = () => {
+    closeModal();
     router.push('/dashboard');
   };
 
   return (
     <>
-      <button
-        onClick={() => setShowClaimModal(true)}
+      <a
+        href={`/alternatives/${alternative.slug}#claim`}
+        onClick={openModal}
         className="inline-flex items-center px-2 sm:px-3 py-1 bg-brand/10 text-brand rounded-full text-xs sm:text-sm font-medium font-mono"
       >
         <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
         Claim
-      </button>
+      </a>
 
       {/* Claim Modal */}
       {showClaimModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="relative max-w-lg w-full">
             <button
-              onClick={() => setShowClaimModal(false)}
+              onClick={closeModal}
               className="absolute -top-10 right-0 text-white/60 hover:text-white"
             >
               <X className="w-6 h-6" />
@@ -55,7 +84,7 @@ export function ClaimButton({ alternative }: ClaimButtonProps) {
                 approved: alternative.approved,
               }}
               onClaimSuccess={handleClaimSuccess}
-              onCancel={() => setShowClaimModal(false)}
+              onCancel={closeModal}
             />
           </div>
         </div>

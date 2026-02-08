@@ -70,10 +70,10 @@ export default async function Home() {
               </code>
             </div>
             
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-relaxed text-white">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-tight sm:leading-relaxed text-white">
               Replace your tech stack with
               <br />
-              <span className="block mt-2 gradient-text-brand">open source alternatives</span>
+              <span className="block mt-1 sm:mt-2 gradient-text-brand">open source alternatives</span>
             </h1>
             
             <p className="text-sm sm:text-base md:text-lg text-muted mb-3 sm:mb-4 lg:mb-6 max-w-2xl mx-auto font-mono px-2">

@@ -15,7 +15,7 @@
   </noscript>
   <![endif]-->
   <style>
-    /* Reset styles */
+    /* === RESET === */
     body, table, td, p, a, li, blockquote {
       -webkit-text-size-adjust: 100%;
       -ms-text-size-adjust: 100%;
@@ -31,45 +31,125 @@
       line-height: 100%;
       outline: none;
       text-decoration: none;
+      max-width: 100%;
     }
     body {
       margin: 0 !important;
       padding: 0 !important;
       width: 100% !important;
+      background-color: #FFFFFF;
     }
-    
-    /* Dark theme */
-    body {
-      background-color: #0D0D0D;
+
+    /* === LINK STYLES === */
+    a { color: #3ECF8E; text-decoration: none; }
+    a:hover { color: #5DDBA3; }
+
+    /* =============================================
+       MOBILE-FIRST DEFAULTS (< 600px)
+       Per Email on Acid: code mobile styles first,
+       then expand for desktop via min-width query.
+       ============================================= */
+
+    /* Outer wrapper fills the screen */
+    .container {
+      width: 100% !important;
+      padding: 16px !important;
     }
-    
-    /* Link styles */
-    a {
-      color: #3ECF8E;
-      text-decoration: none;
+
+    /* Content card padding — comfortable on small screens */
+    .content {
+      padding: 24px 20px !important;
     }
-    a:hover {
-      color: #5DDBA3;
+
+    /* Benefit table: stack label + description vertically */
+    .benefit-table td {
+      display: block !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
     }
-    
-    /* Responsive */
-    @media screen and (max-width: 600px) {
+    .benefit-label {
+      padding: 10px 16px 4px 16px !important;
+      border-bottom: none !important;
+    }
+    .benefit-desc {
+      padding: 0 16px 10px 16px !important;
+    }
+
+    /* CTA button — full-width, large touch target (≥ 48px) on mobile */
+    .cta-button {
+      display: block !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+      text-align: center !important;
+      padding: 16px 20px !important;
+      font-size: 15px !important;
+    }
+
+    /* Sponsor box */
+    .sponsor-box {
+      padding: 20px 16px !important;
+    }
+
+    /* Transparency aside */
+    .transparency-note {
+      padding: 14px 16px !important;
+    }
+
+    /* Footer */
+    .footer-cell {
+      padding: 24px 16px !important;
+    }
+
+    /* =============================================
+       DESKTOP EXPANSION (≥ 600px)
+       ============================================= */
+    @media only screen and (min-width: 600px) {
       .container {
-        width: 100% !important;
-        padding: 20px !important;
+        max-width: 600px !important;
+        margin: 0 auto !important;
+        padding: 40px 20px !important;
       }
+
       .content {
+        padding: 40px !important;
+      }
+
+      /* Benefit table: side-by-side columns on desktop */
+      .benefit-label {
+        display: table-cell !important;
+        width: 40% !important;
+        padding: 10px 16px !important;
+        border-bottom: 1px solid #2D2D2D !important;
+      }
+      .benefit-desc {
+        display: table-cell !important;
+        width: 60% !important;
+        padding: 10px 16px !important;
+        border-bottom: 1px solid #2D2D2D !important;
+      }
+
+      .cta-button {
+        display: inline-block !important;
+        width: auto !important;
+        padding: 14px 28px !important;
+        font-size: 14px !important;
+      }
+
+      .sponsor-box {
         padding: 24px !important;
       }
-      .benefit-table td {
-        display: block !important;
-        width: 100% !important;
-        padding: 12px 16px !important;
+
+      .transparency-note {
+        padding: 16px 20px !important;
+      }
+
+      .footer-cell {
+        padding: 32px 20px !important;
       }
     }
   </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #0D0D0D; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+<body style="margin: 0; padding: 0; background-color: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
   
   <!-- Preheader text (hidden) -->
   <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
@@ -78,33 +158,30 @@
   </div>
   
   <!-- Email wrapper -->
-  <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color: #0D0D0D;">
+  <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FFFFFF;">
     <tr>
-      <td align="center" style="padding: 40px 20px;">
+      <td align="center" class="container" style="padding: 16px;">
         
         <!-- Main container -->
-        <table role="presentation" cellpadding="0" cellspacing="0" width="600" class="container" style="max-width: 600px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
           
           <!-- Header with logo -->
           <tr>
-            <td align="center" style="padding-bottom: 32px;">
+            <td align="center" style="padding-bottom: 24px;">
               <table role="presentation" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="vertical-align: middle;">
-                    <!-- Logo icon - matching logo.svg -->
-                    <div style="display: inline-block; width: 40px; height: 40px; background-color: #155239; border-radius: 9px; text-align: center; vertical-align: middle; position: relative;">
-                      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" height="100%">
-                        <tr>
-                          <td align="center" valign="middle" style="padding-top: 2px;">
-                            <span style="color: #3ECF8E; font-family: 'Courier New', monospace; font-size: 16px; font-weight: normal;">&gt;</span>
-                            <span style="color: #3ECF8E; font-family: 'Courier New', monospace; font-size: 16px; font-weight: normal; margin-left: 2px;">_</span>
-                          </td>
-                        </tr>
-                      </table>
-                    </div>
+                    <!-- Logo icon from favicon.svg -->
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 36px; height: 36px; display: inline-block; vertical-align: middle;">
+                      <rect x="1" y="1" width="22" height="22" rx="5" fill="#155239"/>
+                      <g fill="none" stroke="#3ECF8E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M7.8 8.8 L11.2 12 L7.8 15.2"/>
+                        <path d="M13.8 16 H16.2"/>
+                      </g>
+                    </svg>
                   </td>
-                  <td style="vertical-align: middle; padding-left: 12px;">
-                    <span style="font-family: 'Courier New', monospace; font-size: 18px; color: #EDEDED; letter-spacing: 0.5px;">OPEN</span><span style="font-family: 'Courier New', monospace; font-size: 18px; color: #3ECF8E; letter-spacing: 0.5px;">_</span><span style="font-family: 'Courier New', monospace; font-size: 18px; color: #EDEDED; letter-spacing: 0.5px;">SRC</span><span style="font-family: 'Courier New', monospace; font-size: 18px; color: #3ECF8E; letter-spacing: 0.5px;">.</span><span style="font-family: 'Courier New', monospace; font-size: 18px; color: #EDEDED; letter-spacing: 0.5px;">ME</span>
+                  <td style="vertical-align: middle; padding-left: 10px;">
+                    <span style="font-family: 'Courier New', monospace; font-size: 22px; color: #333333; letter-spacing: 0.1em; white-space: nowrap; display: inline-block; font-weight: bold;">OPEN<span style="color: #3ECF8E;">_</span>SRC<span style="color: #3ECF8E;">.</span>ME</span>
                   </td>
                 </tr>
               </table>
@@ -116,189 +193,182 @@
             <td>
               <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color: #181818; border: 1px solid #2D2D2D; border-radius: 12px;">
                 <tr>
-                  <td class="content" style="padding: 40px;">
+                  <td class="content" style="padding: 24px 20px;">
                     
                     <!-- Greeting -->
-                    <p style="margin: 0 0 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 16px; line-height: 1.6; color: #EDEDED;">
-                      Hi <span style="color: #3ECF8E; font-family: 'Courier New', monospace;">[Name]</span>,
+                    <p style="margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 16px; line-height: 1.6; color: #8B8B8B;">
+                      Hi <span style="color: #8B8B8B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">{{contact.FIRSTNAME}}</span>,
                     </p>
                     
-                    <p style="margin: 0 0 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 16px; line-height: 1.6; color: #8B8B8B;">
-                      I hope this message finds you well! I'm reaching out because your project <strong style="color: #3ECF8E;">[Project Name]</strong> has been listed on <a href="https://opensrc.me" style="color: #3ECF8E; text-decoration: underline;">opensrc.me</a> as an open source alternative to <strong style="color: #FB923C;">[Proprietary Tool]</strong>.
+                    <p style="margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 16px; line-height: 1.6; color: #8B8B8B;">
+                      I hope this message finds you well! I'm reaching out because your project <strong style="color: #3ECF8E;">{{contact.NAME}}</strong> has been listed on <a href="https://opensrc.me" style="color: #3ECF8E; text-decoration: underline;">opensrc.me</a> as an open source alternative to <strong style="color: #FB923C;">{{contact.PROPRIETARY_TOOLS}}</strong>.
                     </p>
                     
-                    <p style="margin: 0 0 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 16px; line-height: 1.6; color: #8B8B8B;">
-                      We built <a href="https://opensrc.me" style="color: #3ECF8E; text-decoration: underline;">opensrc.me</a> as a community resource to help developers discover quality open source alternatives to the proprietary tools they use every day. Your project stood out as an excellent solution, so we included it in our directory to help more developers find it.
+                    <p style="margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 16px; line-height: 1.6; color: #8B8B8B;">
+                      We built <a href="https://opensrc.me" style="color: #3ECF8E; text-decoration: underline;">opensrc.me</a> to help people break free from proprietary software and predatory SaaS monetization. We believe in the right to own the tools you use. Your project stood out as an excellent solution, so we included it in our directory to help more people find it.
                     </p>
                     
                     <!-- Project listing CTA -->
-                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin: 32px 0;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin: 28px 0;">
                       <tr>
                         <td align="center">
-                          <a href="[listing-link]" style="display: inline-block; padding: 14px 28px; background-color: #155239; border: 2px solid #3ECF8E; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px; color: #3ECF8E; text-decoration: none; font-weight: bold;">
-                            → View [Project Name] on opensrc.me
+                          <!--[if mso]>
+                          <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="{{contact.LISTING_URL}}" style="height:48px;v-text-anchor:middle;width:320px;" arcsize="17%" strokecolor="#3ECF8E" fillcolor="#155239">
+                            <w:anchorlock/>
+                            <center style="color:#3ECF8E;font-family:'Courier New',monospace;font-size:14px;font-weight:bold;">→ View {{contact.NAME}} on opensrc.me</center>
+                          </v:roundrect>
+                          <![endif]-->
+                          <!--[if !mso]><!-->
+                          <a href="{{contact.LISTING_URL}}" class="cta-button" style="display: block; padding: 16px 20px; background-color: #155239; border: 2px solid #3ECF8E; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 15px; color: #3ECF8E; text-decoration: none; font-weight: bold; text-align: center;">
+                            → View {{contact.NAME}} on opensrc.me
                           </a>
+                          <!--<![endif]-->
                         </td>
                       </tr>
                     </table>
                     
                     <!-- Claim listing section -->
                     <p style="margin: 0 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 16px; line-height: 1.6; color: #8B8B8B;">
-                      While your project is already live and discoverable on our platform, I'd love to invite you to <strong style="color: #EDEDED;">claim your listing</strong> so you have full control over how your project is represented. Claiming your listing is completely free and gives you:
+                      While your project is already live and discoverable on our platform, I'd love to invite you to <a href="{{contact.LISTING_URL}}#claim" style="color: #3ECF8E; text-decoration: underline;"><strong>claim your listing</strong></a> so you have full control over how your project is represented. Claiming your listing is completely free and gives you:
                     </p>
                     
                     <!-- Benefits list -->
-                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin: 24px 0;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin: 20px 0;">
                       <tr>
                         <td style="padding: 12px 0; border-bottom: 1px solid #2D2D2D;">
                           <span style="color: #3ECF8E; font-family: 'Courier New', monospace; font-size: 14px;">✓</span>
-                          <span style="color: #EDEDED; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; margin-left: 12px;"><strong>Full editing access</strong></span>
-                          <span style="color: #8B8B8B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px;"> – Update your description, add screenshots, and keep all information current</span>
+                          <span style="color: #EDEDED; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; margin-left: 12px;"><strong>Full editing access</strong></span><br/>
+                          <span style="color: #8B8B8B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; margin-left: 26px; display: inline-block; margin-top: 4px;">Update your description, add screenshots, and keep all information current</span>
                         </td>
                       </tr>
                       <tr>
                         <td style="padding: 12px 0; border-bottom: 1px solid #2D2D2D;">
                           <span style="color: #3ECF8E; font-family: 'Courier New', monospace; font-size: 14px;">✓</span>
-                          <span style="color: #EDEDED; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; margin-left: 12px;"><strong>Direct ownership</strong></span>
-                          <span style="color: #8B8B8B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px;"> – Be the recognized maintainer of your project's presence on our platform</span>
+                          <span style="color: #EDEDED; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; margin-left: 12px;"><strong>Direct ownership</strong></span><br/>
+                          <span style="color: #8B8B8B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; margin-left: 26px; display: inline-block; margin-top: 4px;">Be the recognized maintainer of your project's presence on our platform</span>
                         </td>
                       </tr>
                       <tr>
                         <td style="padding: 12px 0;">
                           <span style="color: #3ECF8E; font-family: 'Courier New', monospace; font-size: 14px;">✓</span>
-                          <span style="color: #EDEDED; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; margin-left: 12px;"><strong>Priority support</strong></span>
-                          <span style="color: #8B8B8B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px;"> – Direct line to our team for any listing-related questions</span>
+                          <span style="color: #EDEDED; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; margin-left: 12px;"><strong>Priority support</strong></span><br/>
+                          <span style="color: #8B8B8B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; margin-left: 26px; display: inline-block; margin-top: 4px;">Direct line to our team for any listing-related questions</span>
                         </td>
                       </tr>
                     </table>
                     
                     <!-- Sponsor section -->
-                    <div style="background-color: #0D0D0D; border: 1px solid #3ECF8E; border-radius: 8px; padding: 24px; margin: 32px 0;">
+                    <div class="sponsor-box" style="background-color: #0D0D0D; border: 1px solid #3ECF8E; border-radius: 8px; padding: 20px 16px; margin: 28px 0;">
                       <p style="margin: 0 0 4px 0; font-family: 'Courier New', monospace; font-size: 12px; color: #3ECF8E; text-transform: uppercase; letter-spacing: 2px;">
                         // BONUS
                       </p>
                       <h3 style="margin: 0 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 18px; color: #EDEDED; font-weight: 600;">
                         Sponsor your listing for maximum visibility
                       </h3>
-                      <p style="margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; line-height: 1.5; color: #8B8B8B;">
-                        If you're interested in giving <strong style="color: #3ECF8E;">[Project Name]</strong> an extra boost, we offer sponsored placement that helps more developers discover your project:
+                      <p style="margin: 0 0 12px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; line-height: 1.5; color: #8B8B8B;">
+                        If you're interested in giving <strong style="color: #3ECF8E;">{{contact.NAME}}</strong> an extra boost, we offer sponsored placement that helps more people discover your project. <strong style="color: #3ECF8E;">The average sponsored listing get 1.2k clicks/month</strong>.
                       </p>
-                      
+
+                      <p style="margin: 12px 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; line-height: 1.5; color: #8B8B8B;">
+                        Here are the benefits of a sponsored listing:
+                      </p>
+
                       <!-- Benefits table -->
                       <table role="presentation" cellpadding="0" cellspacing="0" width="100%" class="benefit-table" style="margin: 20px 0;">
                         <tr style="background-color: #181818;">
-                          <td style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D; width: 40%;">
+                          <td class="benefit-label" style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D; width: 40%;">
                             <span style="color: #3ECF8E; font-family: 'Courier New', monospace; font-size: 13px;">Instant approval</span>
                           </td>
-                          <td style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
+                          <td class="benefit-desc" style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
                             <span style="color: #8B8B8B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px;">No waiting—your enhanced listing goes live immediately</span>
                           </td>
                         </tr>
                         <tr style="background-color: #181818;">
-                          <td style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
+                          <td class="benefit-label" style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
                             <span style="color: #3ECF8E; font-family: 'Courier New', monospace; font-size: 13px;">Featured on homepage</span>
                           </td>
-                          <td style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
+                          <td class="benefit-desc" style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
                             <span style="color: #8B8B8B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px;">Your project appears in our Top Alternatives section for 7 days</span>
                           </td>
                         </tr>
                         <tr style="background-color: #181818;">
-                          <td style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
+                          <td class="benefit-label" style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
                             <span style="color: #3ECF8E; font-family: 'Courier New', monospace; font-size: 13px;">Newsletter feature</span>
                           </td>
-                          <td style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
+                          <td class="benefit-desc" style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
                             <span style="color: #8B8B8B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px;">Shared with our weekly subscribers who actively seek open source tools</span>
                           </td>
                         </tr>
                         <tr style="background-color: #181818;">
-                          <td style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
+                          <td class="benefit-label" style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
                             <span style="color: #3ECF8E; font-family: 'Courier New', monospace; font-size: 13px;">Verified sponsor badge</span>
                           </td>
-                          <td style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
+                          <td class="benefit-desc" style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
                             <span style="color: #8B8B8B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px;">A green checkmark that builds trust with visitors</span>
                           </td>
                         </tr>
                         <tr style="background-color: #181818;">
-                          <td style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
+                          <td class="benefit-label" style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
                             <span style="color: #3ECF8E; font-family: 'Courier New', monospace; font-size: 13px;">SEO boost</span>
                           </td>
-                          <td style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
+                          <td class="benefit-desc" style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
                             <span style="color: #8B8B8B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px;">Dofollow links that pass full SEO credit to your project</span>
                           </td>
                         </tr>
                         <tr style="background-color: #181818;">
-                          <td style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
+                          <td class="benefit-label" style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
                             <span style="color: #3ECF8E; font-family: 'Courier New', monospace; font-size: 13px;">Premium card design</span>
                           </td>
-                          <td style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
+                          <td class="benefit-desc" style="padding: 10px 16px; border-bottom: 1px solid #2D2D2D;">
                             <span style="color: #8B8B8B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px;">Full-width listing with screenshots that make a strong impression</span>
                           </td>
                         </tr>
                         <tr style="background-color: #181818;">
-                          <td style="padding: 10px 16px;">
+                          <td class="benefit-label" style="padding: 10px 16px;">
                             <span style="color: #3ECF8E; font-family: 'Courier New', monospace; font-size: 13px;">Unlimited updates</span>
                           </td>
-                          <td style="padding: 10px 16px;">
+                          <td class="benefit-desc" style="padding: 10px 16px;">
                             <span style="color: #8B8B8B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px;">Edit your listing anytime to keep information fresh</span>
                           </td>
                         </tr>
                       </table>
                       
                       <p style="margin: 16px 0 0 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; color: #8B8B8B;">
-                        The sponsored placement is just <strong style="color: #EDEDED;">$10/month</strong>—a small investment to reach developers actively searching for alternatives like yours.
+                        The sponsored placement is just <strong style="color: #EDEDED;">$49 (one-time)</strong>—a simple one-time fee to reach developers actively searching for alternatives like yours.
                       </p>
+
+                      <p style="margin: 12px 0 12px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; color: #8B8B8B;">
+                        Because our admin team already added your project to the directory, your listing is eligible for <strong style="color: #EDEDED;">60% off</strong>. Use the code <strong style="color: #3ECF8E; font-family: 'Courier New', monospace;">"LISTEDDISCOUNT"</strong> to apply the discount when upgrading to a sponsored placement.
+                      </p>
+
+                      <!-- Coupon code (non-interactive) -->
+                      <div style="margin: 0px 0 0 0;">
+                      </div>
                     </div>
                     
-                    <!-- Next steps -->
-                    <h3 style="margin: 32px 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 18px; color: #EDEDED; font-weight: 600;">
-                      Next steps:
-                    </h3>
-                    
-                    <!-- CTA buttons -->
-                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin: 24px 0;">
-                      <tr>
-                        <td style="padding: 8px 0;">
-                          <span style="color: #3ECF8E; font-family: 'Courier New', monospace; font-size: 16px; margin-right: 8px;">1.</span>
-                          <a href="[claim-link]" style="color: #3ECF8E; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; text-decoration: underline;">Claim your free listing →</a>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 8px 0;">
-                          <span style="color: #3ECF8E; font-family: 'Courier New', monospace; font-size: 16px; margin-right: 8px;">2.</span>
-                          <a href="[sponsor-link]" style="color: #3ECF8E; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; text-decoration: underline;">Or upgrade to sponsored placement →</a>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 8px 0;">
-                          <span style="color: #3ECF8E; font-family: 'Courier New', monospace; font-size: 16px; margin-right: 8px;">3.</span>
-                          <span style="color: #8B8B8B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px;">Questions? Just reply to this email—I'm happy to help!</span>
-                        </td>
-                      </tr>
-                    </table>
-                    
                     <!-- Transparency note -->
-                    <div style="background-color: #0D0D0D; border-left: 3px solid #3ECF8E; padding: 16px 20px; margin: 32px 0;">
+                    <div class="transparency-note" style="background-color: #0D0D0D; border-left: 3px solid #3ECF8E; padding: 14px 16px; margin: 28px 0;">
                       <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.6; color: #8B8B8B; font-style: italic;">
                         I understand you may not have been expecting this message, so I want to be transparent: your project was added to our directory because we genuinely believe it deserves more visibility. This invitation is simply an opportunity for you to take control of that visibility if it interests you.
                       </p>
                     </div>
                     
                     <p style="margin: 24px 0 0 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 16px; line-height: 1.6; color: #8B8B8B;">
-                      Either way, we're honored to feature <strong style="color: #3ECF8E;">[Project Name]</strong> and believe more developers should know about it.
+                      Either way, we're honored to feature <strong style="color: #3ECF8E;">{{contact.NAME}}</strong> and believe more people should know about it.
                     </p>
                     
                     <!-- Signature -->
-                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 40px; border-top: 1px solid #2D2D2D; padding-top: 24px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 32px; border-top: 1px solid #2D2D2D; padding-top: 20px;">
                       <tr>
                         <td>
                           <p style="margin: 0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; color: #8B8B8B;">
                             Best regards,
                           </p>
                           <p style="margin: 8px 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 16px; color: #EDEDED; font-weight: 600;">
-                            [Your Name]
+                            Admin Team
                           </p>
                           <p style="margin: 0; font-family: 'Courier New', monospace; font-size: 13px; color: #8B8B8B;">
-                            Founder, <a href="https://opensrc.me" style="color: #3ECF8E; text-decoration: none;">opensrc.me</a>
+                            @ <a href="https://opensrc.me" style="color: #3ECF8E; text-decoration: none;">opensrc.me</a>
                           </p>
                         </td>
                       </tr>
@@ -312,8 +382,8 @@
           
           <!-- Footer -->
           <tr>
-            <td align="center" style="padding: 32px 20px;">
-              <table role="presentation" cellpadding="0" cellspacing="0">
+            <td align="center" class="footer-cell" style="padding: 24px 16px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td align="center">
                     <p style="margin: 0 0 8px 0; font-family: 'Courier New', monospace; font-size: 12px; color: #8B8B8B;">
@@ -322,7 +392,7 @@
                     <p style="margin: 0; font-family: 'Courier New', monospace; font-size: 11px; color: #555555;">
                       <a href="https://opensrc.me" style="color: #3ECF8E; text-decoration: none;">opensrc.me</a>
                       &nbsp;•&nbsp;
-                      <a href="[unsubscribe-link]" style="color: #555555; text-decoration: underline;">Unsubscribe</a>
+                      <a href="[UNSUBSCRIBE_URL]" style="color: #555555; text-decoration: underline;">Unsubscribe</a>
                     </p>
                   </td>
                 </tr>

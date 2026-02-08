@@ -282,7 +282,7 @@ export function AlternativeTagsHeader({
     <div className="bg-surface border border-border rounded-lg p-3 space-y-2">
       {/* Alerts - show full name with icon (orange) or Clear if none */}
       <div className="flex items-start gap-2">
-        <span className="text-xs font-mono text-white/60 w-16 pt-0.5">alerts:</span>
+        <span className="text-xs font-mono text-white/60 w-20 sm:w-16 pt-0.5">alerts:</span>
         <div className="flex flex-wrap gap-2">
           {alerts.length > 0 ? (
             alerts.map(tag => {
@@ -313,7 +313,7 @@ export function AlternativeTagsHeader({
       {/* Highlights - show full name with icon (green) */}
       {highlights.length > 0 && (
         <div className="flex items-start gap-2">
-          <span className="text-xs font-mono text-white/60 w-16 pt-0.5">highlights:</span>
+          <span className="text-xs font-mono text-white/60 w-20 sm:w-16 pt-0.5">highlights:</span>
           <div className="flex flex-wrap gap-2">
             {highlights.map(tag => {
               const Icon = tagIcons[tag.id];
@@ -335,7 +335,7 @@ export function AlternativeTagsHeader({
       {/* Platforms (white) */}
       {platforms.length > 0 && (
         <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-white/60 w-16">platforms:</span>
+          <span className="text-xs font-mono text-white/60 w-20 sm:w-16">platforms:</span>
           <div className="flex flex-wrap gap-1">
             {platforms.map(tag => (
               <span 
@@ -353,7 +353,7 @@ export function AlternativeTagsHeader({
       {/* Properties (white) */}
       {properties.length > 0 && (
         <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-white/60 w-16">props:</span>
+          <span className="text-xs font-mono text-white/60 w-20 sm:w-16">props:</span>
           <div className="flex flex-wrap gap-1">
             {properties.map(tag => (
               <span 

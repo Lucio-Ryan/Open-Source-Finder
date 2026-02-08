@@ -377,7 +377,7 @@ export default function DashboardPage() {
                             <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                           )}
                           <span className="hidden xs:inline">{upgradingId === alt.id ? 'Upgrading...' : 'Boost Listing'}</span>
-                          <span className="xs:hidden">$49</span>
+                          <span className="xs:hidden">{upgradingId === alt.id ? '...' : 'Boost'}</span>
                         </button>
                       )}
                       {alt.approved && (
@@ -578,7 +578,7 @@ export default function DashboardPage() {
                         type="button"
                         onClick={() => {
                           // Validate coupon code
-                          const validCoupons: Record<string, number> = { 'LAUNCH60': 0.60 };
+                          const validCoupons: Record<string, number> = { 'LAUNCH60': 0.60, 'LISTEDDISCOUNT': 0.60 };
                           const discount = validCoupons[boostCouponCode.trim().toUpperCase()];
                           if (discount) {
                             setBoostCouponApplied(true);
