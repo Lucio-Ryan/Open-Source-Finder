@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { 
   Shield, 
   CheckCircle, 
@@ -156,7 +157,22 @@ export function ClaimProject({ existingAlternative, onClaimSuccess, onCancel }: 
         <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-red-400">{error}</p>
+            <p className="text-sm text-red-400">
+              {error === 'You must be logged in to claim a project' ? (
+                <>
+                  You must be logged in to claim a project.{' '}
+                  <Link
+                    href={`/signup?returnTo=${encodeURIComponent(`/alternatives/${existingAlternative.slug}#claim`)}`}
+                    className="text-brand hover:text-brand-light underline font-semibold transition-colors"
+                  >
+                    Sign up
+                  </Link>{' '}
+                  to get started.
+                </>
+              ) : (
+                error
+              )}
+            </p>
           </div>
         </div>
       )}

@@ -188,11 +188,15 @@ export async function createPayPalOrder(
   }
 
   // Build reference ID to track what this payment is for
-  const referenceId = JSON.stringify({
-    type: paymentType,
-    ...metadata,
-    timestamp: Date.now(),
-  });
+  // Exclude couponCode (already applied to price) and undefined fields to keep under PayPal's 256-char limit
+  const compactMeta: Record<string, any> = { type: paymentType };
+  if (metadata.userId) compactMeta.userId = metadata.userId;
+  if (metadata.submissionId) compactMeta.submissionId = metadata.submissionId;
+  if (metadata.advertisementId) compactMeta.advertisementId = metadata.advertisementId;
+  if (metadata.alternativeId) compactMeta.alternativeId = metadata.alternativeId;
+  if (metadata.projectName) compactMeta.projectName = metadata.projectName.slice(0, 40);
+  compactMeta.ts = Date.now();
+  const referenceId = JSON.stringify(compactMeta);
 
   const orderData = {
     intent: 'CAPTURE',
@@ -229,7 +233,8 @@ export async function createPayPalOrder(
   if (!response.ok) {
     const error = await response.text();
     console.error('PayPal create order error:', error);
-    throw new Error('Failed to create PayPal order');
+    console.error('PayPal reference_id length:', Buffer.from(referenceId).toString('base64').length);
+    throw new Error(`Failed to create PayPal order: ${error.slice(0, 200)}`);
   }
 
   const data: PayPalOrderResponse = await response.json();

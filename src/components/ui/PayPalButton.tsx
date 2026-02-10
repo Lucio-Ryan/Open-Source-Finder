@@ -102,6 +102,15 @@ export function PayPalButton({
     };
   }, [clientId, sdkLoaded]);
 
+  // Re-render PayPal buttons when amount or couponCode changes
+  useEffect(() => {
+    if (buttonsRendered.current && paypalContainerRef.current) {
+      // Clear existing buttons so they re-render with updated values
+      paypalContainerRef.current.innerHTML = '';
+      buttonsRendered.current = false;
+    }
+  }, [amount, couponCode]);
+
   // Render PayPal buttons
   useEffect(() => {
     if (!sdkLoaded || !window.paypal || !paypalContainerRef.current || buttonsRendered.current || disabled) {
@@ -193,7 +202,7 @@ export function PayPalButton({
       },
     }).render(paypalContainerRef.current);
 
-  }, [sdkLoaded, disabled, paymentType, submissionId, advertisementId, alternativeId, projectName, couponCode, onSuccess, onError, onCancel]);
+  }, [sdkLoaded, disabled, paymentType, amount, submissionId, advertisementId, alternativeId, projectName, couponCode, onSuccess, onError, onCancel]);
 
   // Reset buttons when disabled changes
   useEffect(() => {

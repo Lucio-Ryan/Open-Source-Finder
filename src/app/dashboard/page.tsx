@@ -493,39 +493,59 @@ export default function DashboardPage() {
               </div>
 
 {/* Benefits Section */}
-                  <div className="p-6 border-b border-border">
-                    <h4 className="text-sm font-mono text-muted mb-3">// SPONSOR_BENEFITS</h4>
-                    <p className="text-sm font-bold text-emerald-400 mb-3 flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5 text-emerald-500" />
-                      Average sponsored listings get 1.2k clicks/month
-                    </p>
-                    <ul className="text-sm text-white space-y-2">
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-emerald-500" />
-                        Instant approval
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-emerald-500" />
-                        SEO boost with dofollow links
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-emerald-500" />
-                        Featured on homepage
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-emerald-500" />
-                         Newsletter feature
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-emerald-500" />
-                         Unlimited updates
-                      </li>
-                        <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-emerald-500" />
-                         Priority in search results
-                      </li>
-                    </ul>
-                  </div>
+              <div className="p-4 sm:p-6 border-b border-border">
+                <h4 className="text-sm font-mono text-muted mb-3">// SPONSOR_BENEFITS</h4>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-2 text-sm">
+                    <TrendingUp className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-muted">
+                      <span className="text-white font-medium">1.2k clicks/month</span> - Average traffic to your repo
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-muted">
+                      <span className="text-white font-medium">Instant approval</span> - No waiting, go live immediately
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-muted">
+                      <span className="text-white font-medium">Unlimited updates</span> - Edit your listing anytime
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-muted">
+                      <span className="text-white font-medium">Featured on homepage</span> - Top Alternatives section for 7 days
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-muted">
+                      <span className="text-white font-medium">Newsletter feature</span> - Shared with our weekly subscribers
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-muted">
+                      <span className="text-white font-medium">Verified sponsor badge</span> - Green checkmark on your listing
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-muted">
+                      <span className="text-white font-medium">SEO boost with dofollow links</span> - Full SEO credit
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-muted">
+                      <span className="text-white font-medium">Premium card design</span> - Full-width with screenshots
+                    </span>
+                  </li>
+                </ul>
+              </div>
 
               {/* Payment Section - Separate Card */}
               <div className="p-4 sm:p-6">
@@ -578,7 +598,7 @@ export default function DashboardPage() {
                         type="button"
                         onClick={() => {
                           // Validate coupon code
-                          const validCoupons: Record<string, number> = { 'LAUNCH60': 0.60, 'LISTEDDISCOUNT': 0.60 };
+                          const validCoupons: Record<string, number> = { 'LAUNCH60': 0.60, 'LISTEDDISCOUNT': 0.60, 'PH30OFF': 0.30 };
                           const discount = validCoupons[boostCouponCode.trim().toUpperCase()];
                           if (discount) {
                             setBoostCouponApplied(true);
