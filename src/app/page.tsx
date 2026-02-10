@@ -106,6 +106,12 @@ export default async function Home() {
             <span className="hidden sm:inline">|</span>
             <span><span className="text-brand font-bold">100+</span> newsletter subscribers</span>
           </div>
+          {/* Product Hunt Badge */}
+          <div className="flex justify-center mt-14 mb-2">
+            <a href="https://www.producthunt.com/products/open_src-me?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-open_src-me" target="_blank" rel="noopener noreferrer">
+              <img alt="OPEN_SRC.ME - Database of 1000+ open source alternatives to SaaS software | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1076317&theme=light&t=1770720095974" />
+            </a>
+          </div>
         </div>
         </div>
         
