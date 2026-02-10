@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Hunt — Slide 1: Hero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --brand: #3ECF8E;
+    --brand-dark: #30A46C;
+    --bg: #0D0D0D;
+    --surface: #181818;
+    --surface-raised: #1E1E1E;
+    --border: #2D2D2D;
+    --border-subtle: #232323;
+    --text: #EDEDED;
+    --muted: #8B8B8B;
+    --blue: #60A5FA;
+    --purple: #A78BFA;
+    --amber: #FBBF24;
+    --orange: #FB923C;
+    --yellow: #EAB308;
+  }
+  body {
+    background: #080808;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 32px;
+  }
+
+  /* ══════════════════════════════════════
+     Product Hunt Gallery — 1270 × 760
+     ══════════════════════════════════════ */
+  .slide {
+    width: 1270px;
+    height: 760px;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* Scan-lines */
+  .slide::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(62,207,142,0.008) 3px, rgba(62,207,142,0.008) 4px);
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* Grid pattern */
+  .grid-bg {
+    position: absolute; inset: 0; z-index: 0; opacity: 0.02; pointer-events: none;
+    background-image: linear-gradient(var(--brand) 1px, transparent 1px), linear-gradient(90deg, var(--brand) 1px, transparent 1px);
+    background-size: 80px 80px;
+  }
+
+  /* Glows */
+  .glow { position: absolute; pointer-events: none; border-radius: 50%; z-index: 0; }
+  .glow-1 { top: -120px; left: 50%; transform: translateX(-50%); width: 600px; height: 400px; background: radial-gradient(ellipse, rgba(62,207,142,0.1) 0%, transparent 70%); }
+  .glow-2 { bottom: -100px; left: -80px; width: 400px; height: 350px; background: radial-gradient(circle, rgba(96,165,250,0.045) 0%, transparent 70%); }
+  .glow-3 { bottom: -80px; right: -60px; width: 350px; height: 300px; background: radial-gradient(circle, rgba(167,139,250,0.04) 0%, transparent 70%); }
+
+  /* Content */
+  .content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; padding: 0 80px; }
+
+  /* Badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--brand);
+    background: rgba(62,207,142,0.06);
+    border: 1px solid rgba(62,207,142,0.15);
+    border-radius: 20px;
+    padding: 8px 18px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+  .badge svg { width: 14px; height: 14px; stroke: var(--brand); stroke-width: 2; fill: none; }
+
+  /* Logo */
+  .logo-row { display: flex; align-items: center; gap: 18px; margin-bottom: 36px; }
+  .logo-icon {
+    width: 64px; height: 64px; border-radius: 16px;
+    background: rgba(62,207,142,0.08); border: 1px solid rgba(62,207,142,0.2);
+    display: flex; align-items: center; justify-content: center; color: var(--brand);
+  }
+  .wordmark {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 36px; font-weight: 800; letter-spacing: 0.04em; color: var(--text);
+  }
+  .wordmark .a { color: var(--brand); }
+
+  /* Headline */
+  .headline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 40px; font-weight: 700; line-height: 1.3; color: var(--text); margin-bottom: 20px;
+  }
+  .headline .hi { color: var(--brand); }
+
+  /* Subtitle */
+  .subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px; color: var(--muted); line-height: 1.7; max-width: 720px; margin-bottom: 44px;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex; align-items: center; gap: 0;
+    background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 12px;
+    overflow: hidden;
+  }
+  .stat {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 18px 36px;
+  }
+  .stat-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px; font-weight: 800; color: var(--brand);
+  }
+  .stat-lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .stat-div { width: 1px; height: 44px; background: var(--border-subtle); }
+
+  /* Page indicator */
+  .page-dots {
+    position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; z-index: 5;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+  .dot.active { background: var(--brand); box-shadow: 0 0 8px rgba(62,207,142,0.4); }
+
+  /* Slide number */
+  .slide-num {
+    position: absolute; top: 24px; right: 28px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(139,139,139,0.3);
+    letter-spacing: 0.06em; z-index: 5;
+  }
+</style>
+</head>
+<body>
+
+<div class="slide">
+  <div class="grid-bg"></div>
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+  <div class="glow glow-3"></div>
+  <span class="slide-num">01 / 03</span>
+
+  <div class="content">
+
+    <div class="badge">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+      Launching on Product Hunt
+    </div>
+
+    <div class="logo-row">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="4 17 10 11 4 5"></polyline>
+          <line x1="12" y1="19" x2="20" y2="19"></line>
+        </svg>
+      </div>
+      <span class="wordmark">OPEN<span class="a">_</span>SRC<span class="a">.</span>ME</span>
+    </div>
+
+    <h1 class="headline">
+      The Largest Database of<br>
+      <span class="hi">Open Source Alternatives</span><span class="hi">_</span>
+    </h1>
+
+    <p class="subtitle">
+      Community-curated, user-ranked listings backed by real GitHub statistics.<br>
+      Break free from unfair SaaS lock-in &amp; own the tools you use.
+    </p>
+
+    <div class="stats-bar">
+      <div class="stat">
+        <span class="stat-val">1000+</span>
+        <span class="stat-lbl">Alternatives</span>
+      </div>
+      <div class="stat-div"></div>
+      <div class="stat">
+        <span class="stat-val">100+</span>
+        <span class="stat-lbl">Categories</span>
+      </div>
+      <div class="stat-div"></div>
+      <div class="stat">
+        <span class="stat-val">Live</span>
+        <span class="stat-lbl">GitHub Stats</span>
+      </div>
+      <div class="stat-div"></div>
+      <div class="stat">
+        <span class="stat-val">100%</span>
+        <span class="stat-lbl">Free &amp; Open</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="page-dots">
+    <div class="dot active"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+</div>
+
+</body>
+</html>

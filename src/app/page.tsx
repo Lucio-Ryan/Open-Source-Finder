@@ -71,7 +71,7 @@ export default async function Home() {
             </div>
             
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-tight sm:leading-relaxed text-white">
-              Replace your tech stack with
+              Replace SaaS subscriptions with
               <br />
               <span className="block mt-1 sm:mt-2 gradient-text-brand">open source alternatives</span>
             </h1>

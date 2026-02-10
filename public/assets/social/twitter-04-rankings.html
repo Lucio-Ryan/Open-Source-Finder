@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Twitter 04 — Community Rankings</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--brand:#3ECF8E;--bg:#0D0D0D;--surface:#181818;--sr:#1E1E1E;--border:#2D2D2D;--bs:#232323;--text:#EDEDED;--muted:#8B8B8B;--blue:#60A5FA;--purple:#A78BFA;--amber:#FBBF24;--yellow:#EAB308}
+body{background:#080808;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.card{width:1200px;height:675px;background:var(--bg);position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 64px}
+.card::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(62,207,142,.008) 3px,rgba(62,207,142,.008) 4px);pointer-events:none;z-index:10}
+.g{position:absolute;pointer-events:none;border-radius:50%}
+.g1{top:-80px;left:50%;transform:translateX(-50%);width:500px;height:350px;background:radial-gradient(ellipse,rgba(62,207,142,.08) 0%,transparent 70%)}
+.header{display:flex;align-items:center;gap:14px;margin-bottom:12px;position:relative;z-index:2}
+.logo-sm{width:32px;height:32px;border-radius:8px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.2);display:flex;align-items:center;justify-content:center;color:var(--brand)}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--brand);letter-spacing:.1em;text-transform:uppercase}
+.h2{font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:700;color:var(--text);text-align:center;margin-bottom:8px;position:relative;z-index:2}.h2 .hi{color:var(--brand)}
+.sub{font-family:'Inter',sans-serif;font-size:15px;color:var(--muted);text-align:center;margin-bottom:36px;position:relative;z-index:2}
+.rankings{width:100%;max-width:800px;position:relative;z-index:2;display:flex;flex-direction:column;gap:10px}
+.rank-row{display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--bs);border-radius:10px;padding:14px 20px;transition:border-color .2s}
+.rank-row.gold{border-color:rgba(251,191,36,.2)}
+.rank-row.silver{border-color:rgba(139,139,139,.15)}
+.rank-row.bronze{border-color:rgba(251,146,60,.15)}
+.rank-num{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800;width:32px;text-align:center;flex-shrink:0}
+.rank-num.g{color:var(--amber)}.rank-num.s{color:var(--muted)}.rank-num.b{color:var(--amber);opacity:.7}
+.rank-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;flex-shrink:0}
+.rank-icon.gr{background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.15);color:var(--brand)}
+.rank-icon.bl{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.15);color:var(--blue)}
+.rank-icon.pu{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.15);color:var(--purple)}
+.rank-icon.am{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.15);color:var(--amber)}
+.rank-info{flex:1;min-width:0}
+.rank-name{font-family:'Inter',sans-serif;font-size:15px;font-weight:700;color:var(--text)}
+.rank-desc{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.rank-stats{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.rs{display:flex;align-items:center;gap:4px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+.rs svg{width:12px;height:12px;stroke-width:2;fill:none}
+.rs .star{stroke:var(--yellow)}.rs .vote{stroke:var(--brand)}
+.rank-score{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;color:var(--brand);flex-shrink:0;width:48px;text-align:right}
+.tag{position:absolute;bottom:20px;right:28px;font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(139,139,139,.3);letter-spacing:.06em;z-index:5}
+</style>
+</head>
+<body>
+<div class="card">
+<div class="g g1"></div>
+<div class="header"><div class="logo-sm"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div><span class="lbl">// Community Rankings</span></div>
+<h2 class="h2">The community decides<br>what rises to the <span class="hi">top</span><span class="hi">_</span></h2>
+<p class="sub">Real users vote on the alternatives they trust and use every day</p>
+<div class="rankings">
+<div class="rank-row gold"><span class="rank-num g">1</span><div class="rank-icon gr">N</div><div class="rank-info"><div class="rank-name">Nextcloud</div><div class="rank-desc">alt to Google Drive, Dropbox · self-hosted · AGPL-3.0</div></div><div class="rank-stats"><span class="rs"><svg viewBox="0 0 24 24" class="star" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>28.4k</span><span class="rs"><svg viewBox="0 0 24 24" class="vote" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>247</span></div></div>
+<div class="rank-row silver"><span class="rank-num s">2</span><div class="rank-icon bl">G</div><div class="rank-info"><div class="rank-name">Gitea</div><div class="rank-desc">alt to GitHub, GitLab SaaS · self-hosted · MIT</div></div><div class="rank-stats"><span class="rs"><svg viewBox="0 0 24 24" class="star" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>46.1k</span><span class="rs"><svg viewBox="0 0 24 24" class="vote" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>198</span></div></div>
+<div class="rank-row bronze"><span class="rank-num b">3</span><div class="rank-icon pu">P</div><div class="rank-info"><div class="rank-name">Plausible</div><div class="rank-desc">alt to Google Analytics · self-hosted · AGPL-3.0</div></div><div class="rank-stats"><span class="rs"><svg viewBox="0 0 24 24" class="star" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>21.3k</span><span class="rs"><svg viewBox="0 0 24 24" class="vote" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>176</span></div></div>
+<div class="rank-row"><span class="rank-num" style="color:var(--muted);opacity:.5">4</span><div class="rank-icon am">I</div><div class="rank-info"><div class="rank-name">Immich</div><div class="rank-desc">alt to Google Photos · self-hosted · AGPL-3.0</div></div><div class="rank-stats"><span class="rs"><svg viewBox="0 0 24 24" class="star" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>54.7k</span><span class="rs"><svg viewBox="0 0 24 24" class="vote" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>165</span></div></div>
+</div>
+<span class="tag">opensrc.me</span>
+</div>
+</body>
+</html>

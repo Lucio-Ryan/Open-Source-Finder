@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Twitter 03 — Search Feature</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--brand:#3ECF8E;--bg:#0D0D0D;--surface:#181818;--sr:#1E1E1E;--border:#2D2D2D;--bs:#232323;--text:#EDEDED;--muted:#8B8B8B;--blue:#60A5FA;--purple:#A78BFA;--amber:#FBBF24;--yellow:#EAB308}
+body{background:#080808;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.card{width:1200px;height:675px;background:var(--bg);position:relative;overflow:hidden;display:grid;grid-template-columns:440px 1fr}
+.card::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(62,207,142,.008) 3px,rgba(62,207,142,.008) 4px);pointer-events:none;z-index:10}
+.g{position:absolute;pointer-events:none;border-radius:50%}
+.g1{top:-60px;right:60px;width:300px;height:280px;background:radial-gradient(circle,rgba(62,207,142,.07) 0%,transparent 70%)}
+.left{display:flex;flex-direction:column;justify-content:center;padding:56px 44px;position:relative;z-index:2;border-right:1px solid var(--bs);background:linear-gradient(165deg,var(--surface) 0%,var(--bg) 55%)}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--brand);letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px}
+.h2{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;line-height:1.35;color:var(--text);margin-bottom:16px}.h2 .hi{color:var(--brand)}
+.sub{font-family:'Inter',sans-serif;font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:28px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;padding:6px 12px;border-radius:6px;border:1px solid var(--bs);background:var(--surface);color:var(--muted)}
+.right{display:flex;align-items:center;justify-content:center;padding:40px 44px;position:relative;z-index:2}
+.browser{width:100%;max-width:620px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.browser-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--bs);background:var(--sr)}
+.bd{width:8px;height:8px;border-radius:50%}.bd.r{background:#EF4444}.bd.y{background:#FBBF24}.bd.g{background:var(--brand)}
+.burl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-left:8px}
+.browser-body{padding:20px}
+.search-bar{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:16px}
+.search-bar svg{width:16px;height:16px;stroke:var(--muted);stroke-width:2;fill:none;flex-shrink:0}
+.search-bar span{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text)}
+.search-bar .cursor{color:var(--brand);animation:blink 1.2s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+.result{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--bs)}
+.result:last-child{border-bottom:none}
+.ri{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;flex-shrink:0}
+.ri.gr{background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.15);color:var(--brand)}
+.ri.bl{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.15);color:var(--blue)}
+.ri.pu{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.15);color:var(--purple)}
+.ri.am{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.15);color:var(--amber)}
+.rinfo{flex:1;min-width:0}
+.rname{font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+.rdesc{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rstats{display:flex;align-items:center;gap:4px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);flex-shrink:0}
+.rstats svg{width:10px;height:10px;stroke:var(--yellow);stroke-width:2;fill:none}
+.tag{position:absolute;bottom:20px;right:28px;font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(139,139,139,.3);letter-spacing:.06em;z-index:5}
+</style>
+</head>
+<body>
+<div class="card">
+<div class="g g1"></div>
+<div class="left">
+<div class="lbl">// Search</div>
+<h2 class="h2"><span class="hi">Find</span> an alternative<br>to anything<span class="hi">_</span></h2>
+<p class="sub">Lightning-fast search with intelligent filters. Type any proprietary tool and discover its open source counterparts instantly.</p>
+<div class="chips">
+<span class="chip">Category</span><span class="chip">Tech Stack</span><span class="chip">License</span><span class="chip">Self-Hosted</span><span class="chip">Language</span>
+</div>
+</div>
+<div class="right">
+<div class="browser">
+<div class="browser-bar"><div class="bd r"></div><div class="bd y"></div><div class="bd g"></div><span class="burl">opensrc.me/search</span></div>
+<div class="browser-body">
+<div class="search-bar"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Alternative to Notion<span class="cursor">|</span></span></div>
+<div class="result"><div class="ri gr">A</div><div class="rinfo"><div class="rname">AppFlowy</div><div class="rdesc">Open source Notion alternative — notes, wikis, projects</div></div><div class="rstats"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>58.2k</div></div>
+<div class="result"><div class="ri bl">A</div><div class="rinfo"><div class="rname">AnyType</div><div class="rdesc">Local-first, private knowledge management</div></div><div class="rstats"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>22.7k</div></div>
+<div class="result"><div class="ri pu">O</div><div class="rinfo"><div class="rname">Outline</div><div class="rdesc">Fast, collaborative wiki for your team</div></div><div class="rstats"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>29.1k</div></div>
+<div class="result"><div class="ri am">B</div><div class="rinfo"><div class="rname">BookStack</div><div class="rdesc">Simple, self-hosted wiki &amp; documentation platform</div></div><div class="rstats"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>15.8k</div></div>
+</div>
+</div>
+</div>
+<span class="tag">opensrc.me</span>
+</div>
+</body>
+</html>

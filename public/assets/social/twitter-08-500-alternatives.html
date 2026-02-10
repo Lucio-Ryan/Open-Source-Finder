@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Twitter 08 — 500+ Alternatives Stat</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--brand:#3ECF8E;--bg:#0D0D0D;--surface:#181818;--border:#2D2D2D;--bs:#232323;--text:#EDEDED;--muted:#8B8B8B;--blue:#60A5FA;--purple:#A78BFA;--amber:#FBBF24}
+body{background:#080808;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.card{width:1200px;height:675px;background:var(--bg);position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.card::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(62,207,142,.008) 3px,rgba(62,207,142,.008) 4px);pointer-events:none;z-index:10}
+.grid-bg{position:absolute;inset:0;opacity:.02;pointer-events:none;background-image:linear-gradient(var(--brand) 1px,transparent 1px),linear-gradient(90deg,var(--brand) 1px,transparent 1px);background-size:80px 80px}
+.g{position:absolute;pointer-events:none;border-radius:50%}
+.g1{top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:500px;background:radial-gradient(ellipse,rgba(62,207,142,.08) 0%,transparent 65%)}
+.cnt{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center}
+.big-num{font-family:'JetBrains Mono',monospace;font-size:140px;font-weight:800;color:var(--brand);line-height:1;margin-bottom:8px;text-shadow:0 0 60px rgba(62,207,142,.15)}
+.big-lbl{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:var(--text);letter-spacing:.06em;text-transform:uppercase;margin-bottom:16px}
+.sub{font-family:'Inter',sans-serif;font-size:16px;color:var(--muted);text-align:center;max-width:500px;margin-bottom:40px;line-height:1.6}
+.mini-stats{display:flex;gap:32px}
+.ms{display:flex;flex-direction:column;align-items:center;gap:4px}
+.ms-val{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:800;color:var(--text)}
+.ms-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.ms-sep{width:1px;height:40px;background:var(--bs);align-self:center}
+.tag{position:absolute;bottom:20px;right:28px;font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(139,139,139,.3);letter-spacing:.06em;z-index:5}
+.wm{position:absolute;top:28px;left:32px;display:flex;align-items:center;gap:10px;z-index:5}
+.wm-icon{width:28px;height:28px;border-radius:7px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.2);display:flex;align-items:center;justify-content:center;color:var(--brand)}
+.wm-text{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:var(--text);letter-spacing:.04em}
+.wm-text .a{color:var(--brand)}
+</style>
+</head>
+<body>
+<div class="card">
+<div class="grid-bg"></div><div class="g g1"></div>
+<div class="wm"><div class="wm-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div><span class="wm-text">OPEN<span class="a">_</span>SRC<span class="a">.</span>ME</span></div>
+<div class="cnt">
+<div class="big-num">500+</div>
+<div class="big-lbl">Open Source Alternatives</div>
+<p class="sub">The most comprehensive community-curated collection — and growing daily with new submissions</p>
+<div class="mini-stats">
+<div class="ms"><span class="ms-val">100+</span><span class="ms-lbl">Categories</span></div>
+<div class="ms-sep"></div>
+<div class="ms"><span class="ms-val">50+</span><span class="ms-lbl">Tech Stacks</span></div>
+<div class="ms-sep"></div>
+<div class="ms"><span class="ms-val">200+</span><span class="ms-lbl">Self-Hosted</span></div>
+<div class="ms-sep"></div>
+<div class="ms"><span class="ms-val">100%</span><span class="ms-lbl">Free</span></div>
+</div>
+</div>
+<span class="tag">opensrc.me</span>
+</div>
+</body>
+</html>

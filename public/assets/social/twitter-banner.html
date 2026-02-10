@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPEN_SRC.ME — Twitter Banner Infographic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --brand: #3ECF8E;
+    --brand-dark: #30A46C;
+    --bg: #0D0D0D;
+    --surface: #181818;
+    --surface-raised: #1E1E1E;
+    --border: #2D2D2D;
+    --border-subtle: #232323;
+    --text: #EDEDED;
+    --muted: #8B8B8B;
+    --muted-light: #A0A0A0;
+    --blue: #60A5FA;
+    --purple: #A78BFA;
+    --emerald: #34D399;
+    --amber: #FBBF24;
+    --orange: #FB923C;
+    --yellow: #EAB308;
+  }
+
+  body {
+    background: #080808;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 32px;
+  }
+
+  /* ════════════════════════════════════════════
+     Twitter / X Header Banner — 1500 × 500
+     ════════════════════════════════════════════ */
+  .twitter-banner {
+    width: 1500px;
+    height: 500px;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 520px 1fr;
+  }
+
+  /* ── Global scan-lines ── */
+  .twitter-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(62, 207, 142, 0.008) 3px,
+      rgba(62, 207, 142, 0.008) 4px
+    );
+    pointer-events: none;
+    z-index: 20;
+  }
+
+  /* ── Ambient glows ── */
+  .glow { position: absolute; pointer-events: none; border-radius: 50%; }
+  .glow-1 {
+    top: -100px; left: -60px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(62,207,142,0.09) 0%, transparent 70%);
+  }
+  .glow-2 {
+    bottom: -80px; right: 300px;
+    width: 350px; height: 350px;
+    background: radial-gradient(circle, rgba(62,207,142,0.05) 0%, transparent 70%);
+  }
+  .glow-3 {
+    top: 40px; right: -60px;
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(96,165,250,0.04) 0%, transparent 70%);
+  }
+
+  /* ════════════════════════
+     LEFT: Brand + Message
+     ════════════════════════ */
+  .left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 52px;
+    position: relative;
+    z-index: 2;
+    border-right: 1px solid var(--border-subtle);
+    background: linear-gradient(165deg, var(--surface) 0%, var(--bg) 55%);
+  }
+
+  /* Logo */
+  .logo-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .logo-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
+    background: rgba(62, 207, 142, 0.08);
+    border: 1px solid rgba(62, 207, 142, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brand);
+  }
+
+  .wordmark {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--text);
+  }
+  .wordmark .a { color: var(--brand); }
+
+  /* Headline */
+  .headline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+  .headline .hi { color: var(--brand); }
+
+  /* Sub */
+  .sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 400px;
+    margin-bottom: 28px;
+  }
+
+  /* URL bar */
+  .url-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted-light);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 18px;
+    width: fit-content;
+  }
+  .url-bar .prompt { color: var(--brand); font-weight: 700; }
+  .url-bar .domain { color: var(--text); font-weight: 600; }
+
+  /* ════════════════════════
+     RIGHT: Infographic
+     ════════════════════════ */
+  .right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 44px 52px 44px 48px;
+    position: relative;
+    z-index: 2;
+    gap: 20px;
+  }
+
+  /* ── Stats row ── */
+  .stats-row {
+    display: flex;
+    gap: 16px;
+  }
+
+  .stat-card {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 20px 18px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .stat-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+  }
+  .stat-icon svg {
+    width: 15px;
+    height: 15px;
+    stroke-width: 2;
+    fill: none;
+  }
+  .stat-icon.green  { background: rgba(62,207,142,0.1);  color: var(--brand); }
+  .stat-icon.blue   { background: rgba(96,165,250,0.1);  color: var(--blue); }
+  .stat-icon.purple { background: rgba(167,139,250,0.1); color: var(--purple); }
+  .stat-icon.amber  { background: rgba(251,191,36,0.1);  color: var(--amber); }
+
+  .stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Feature row ── */
+  .features-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .feature {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 16px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .feature-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .feature-dot.green  { background: var(--brand); box-shadow: 0 0 6px rgba(62,207,142,0.4); }
+  .feature-dot.blue   { background: var(--blue);  box-shadow: 0 0 6px rgba(96,165,250,0.4); }
+  .feature-dot.purple { background: var(--purple); box-shadow: 0 0 6px rgba(167,139,250,0.4); }
+  .feature-dot.amber  { background: var(--amber); box-shadow: 0 0 6px rgba(251,191,36,0.4); }
+
+  .feature-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .feature-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  .feature-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* ── Bottom bar: mock listing snippet ── */
+  .listing-snippet {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+  }
+
+  .snippet-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    background: rgba(62, 207, 142, 0.08);
+    border: 1px solid rgba(62, 207, 142, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--brand);
+    flex-shrink: 0;
+  }
+
+  .snippet-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .snippet-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .snippet-desc {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .snippet-stats {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .snippet-stats span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .snippet-stats svg {
+    width: 12px;
+    height: 12px;
+    stroke-width: 2;
+    fill: none;
+  }
+
+  .snippet-stats .star { stroke: var(--yellow); }
+  .snippet-stats .fork { stroke: var(--muted); }
+
+  .snippet-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    background: rgba(62, 207, 142, 0.1);
+    color: var(--brand);
+    border: 1px solid rgba(62, 207, 142, 0.15);
+    border-radius: 4px;
+    padding: 3px 8px;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+
+  .snippet-vote {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    flex-shrink: 0;
+  }
+
+  .snippet-vote-arrow {
+    color: var(--brand);
+    line-height: 1;
+  }
+  .snippet-vote-arrow svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--brand);
+    stroke-width: 2.5;
+    fill: none;
+  }
+
+  .snippet-vote-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--brand);
+  }
+
+  /* ── Separator ── */
+  .sep {
+    width: 1px;
+    height: 24px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  /* ── Corner watermark ── */
+  .watermark {
+    position: absolute;
+    bottom: 16px;
+    right: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: rgba(139,139,139,0.35);
+    letter-spacing: 0.06em;
+    z-index: 5;
+  }
+
+  /* ── Grid pattern (decorative) ── */
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.025;
+    background-image:
+      linear-gradient(var(--brand) 1px, transparent 1px),
+      linear-gradient(90deg, var(--brand) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- ╔════════════════════════════════════════════════════════╗
+     ║  Twitter / X Header Banner  —  1500 × 500            ║
+     ╚════════════════════════════════════════════════════════╝ -->
+<div class="twitter-banner">
+
+  <!-- Ambient -->
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+  <div class="glow glow-3"></div>
+  <div class="grid-bg"></div>
+
+  <!-- ▬▬▬ LEFT ▬▬▬ -->
+  <div class="left">
+
+    <div class="logo-row">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="4 17 10 11 4 5"></polyline>
+          <line x1="12" y1="19" x2="20" y2="19"></line>
+        </svg>
+      </div>
+      <span class="wordmark">OPEN<span class="a">_</span>SRC<span class="a">.</span>ME</span>
+    </div>
+
+    <h1 class="headline">
+      The largest database<br>
+      of <span class="hi">open source</span><br>
+      alternatives<span class="hi">_</span>
+    </h1>
+
+    <p class="sub">
+      Community-curated, user-ranked listings backed by real 
+      GitHub statistics. Break free from unfair SaaS lock-in 
+      &amp; own the tools you use.
+    </p>
+
+    <div class="url-bar">
+      <span class="prompt">&gt;</span>
+      <span class="domain">opensrc.me</span>
+    </div>
+
+  </div>
+
+  <!-- ▬▬▬ RIGHT ▬▬▬ -->
+  <div class="right">
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+          </svg>
+        </div>
+        <span class="stat-value">1000+</span>
+        <span class="stat-label">Alternatives Listed</span>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+        <span class="stat-value">User</span>
+        <span class="stat-label">Ranked &amp; Voted</span>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+          </svg>
+        </div>
+        <span class="stat-value">Live</span>
+        <span class="stat-label">GitHub Statistics</span>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon amber">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <span class="stat-value">100%</span>
+        <span class="stat-label">Free &amp; Open Source</span>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="features-row">
+      <div class="feature">
+        <div class="feature-dot green"></div>
+        <div class="feature-content">
+          <span class="feature-title">Community Curated</span>
+          <span class="feature-desc">Every listing submitted &amp; reviewed by real users</span>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feature-dot blue"></div>
+        <div class="feature-content">
+          <span class="feature-title">Powerful Search</span>
+          <span class="feature-desc">Filter by category, tech stack &amp; self-hosting</span>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feature-dot purple"></div>
+        <div class="feature-content">
+          <span class="feature-title">Trusted Metrics</span>
+          <span class="feature-desc">Stars, forks, commits pulled live from GitHub</span>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feature-dot amber"></div>
+        <div class="feature-content">
+          <span class="feature-title">Self-Hosted Options</span>
+          <span class="feature-desc">Find software you can run on your own servers</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mock listing snippet -->
+    <div class="listing-snippet">
+      <div class="snippet-icon">N</div>
+      <div class="snippet-info">
+        <div class="snippet-name">Nextcloud</div>
+        <div class="snippet-desc">A safe home for all your data — files, calendars, contacts &amp; more</div>
+      </div>
+      <div class="sep"></div>
+      <div class="snippet-stats">
+        <span>
+          <svg viewBox="0 0 24 24" class="star" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          28.4k
+        </span>
+        <span>
+          <svg viewBox="0 0 24 24" class="fork" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="18" r="3"></circle>
+            <circle cx="6" cy="6" r="3"></circle>
+            <circle cx="18" cy="6" r="3"></circle>
+            <path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"></path>
+            <line x1="12" y1="12" x2="12" y2="15"></line>
+          </svg>
+          4.1k
+        </span>
+      </div>
+      <div class="sep"></div>
+      <span class="snippet-badge">self-hosted</span>
+      <div class="sep"></div>
+      <div class="snippet-vote">
+        <span class="snippet-vote-arrow">
+          <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>
+        </span>
+        <span class="snippet-vote-score">247</span>
+      </div>
+    </div>
+
+  </div>
+
+  <span class="watermark">opensrc.me — open source liberates users</span>
+
+</div>
+
+</body>
+</html>

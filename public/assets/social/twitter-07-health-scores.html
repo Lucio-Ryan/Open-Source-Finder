@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Twitter 07 — Health Scores</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--brand:#3ECF8E;--bg:#0D0D0D;--surface:#181818;--sr:#1E1E1E;--border:#2D2D2D;--bs:#232323;--text:#EDEDED;--muted:#8B8B8B;--yellow:#EAB308;--orange:#FB923C;--red:#EF4444;--blue:#60A5FA}
+body{background:#080808;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.card{width:1200px;height:675px;background:var(--bg);position:relative;overflow:hidden;display:grid;grid-template-columns:420px 1fr}
+.card::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(62,207,142,.008) 3px,rgba(62,207,142,.008) 4px);pointer-events:none;z-index:10}
+.g{position:absolute;pointer-events:none;border-radius:50%}
+.g1{bottom:-80px;right:100px;width:400px;height:300px;background:radial-gradient(circle,rgba(62,207,142,.06) 0%,transparent 70%)}
+.left{display:flex;flex-direction:column;justify-content:center;padding:56px 44px;position:relative;z-index:2;border-right:1px solid var(--bs);background:linear-gradient(165deg,var(--surface) 0%,var(--bg) 55%)}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--brand);letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.lbl svg{width:14px;height:14px;stroke:var(--brand);stroke-width:2;fill:none}
+.h2{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--text);line-height:1.35;margin-bottom:16px}.h2 .hi{color:var(--brand)}
+.sub{font-family:'Inter',sans-serif;font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:28px}
+.factors{display:flex;flex-direction:column;gap:10px}
+.factor{display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+.factor .dot{width:6px;height:6px;border-radius:50%;background:var(--brand);box-shadow:0 0 6px rgba(62,207,142,.4);flex-shrink:0}
+.right{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 48px;position:relative;z-index:2;gap:16px}
+.score-card{width:100%;max-width:540px;background:var(--surface);border:1px solid var(--bs);border-radius:12px;padding:18px 22px;display:flex;align-items:center;gap:16px}
+.sc-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;flex-shrink:0}
+.sc-icon.gr{background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.15);color:var(--brand)}
+.sc-icon.bl{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.15);color:var(--blue)}
+.sc-icon.or{background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.15);color:var(--orange)}
+.sc-icon.re{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);color:var(--red)}
+.sc-info{flex:1;min-width:0}
+.sc-name{font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.sc-bar-wrap{display:flex;align-items:center;gap:10px}
+.sc-bar{flex:1;height:6px;background:var(--bs);border-radius:3px;overflow:hidden}
+.sc-bar-fill{height:100%;border-radius:3px}
+.sc-bar-fill.high{background:var(--brand)}
+.sc-bar-fill.good{background:var(--yellow)}
+.sc-bar-fill.low{background:var(--orange)}
+.sc-bar-fill.crit{background:var(--red)}
+.sc-score{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;flex-shrink:0;width:36px;text-align:right}
+.sc-score.high{color:var(--brand)}.sc-score.good{color:var(--yellow)}.sc-score.low{color:var(--orange)}.sc-score.crit{color:var(--red)}
+.sc-meta{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px}
+.legend{display:flex;gap:20px;margin-top:8px}
+.leg-item{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.leg-dot{width:8px;height:8px;border-radius:2px}
+.leg-dot.high{background:var(--brand)}.leg-dot.good{background:var(--yellow)}.leg-dot.low{background:var(--orange)}.leg-dot.crit{background:var(--red)}
+.tag{position:absolute;bottom:20px;right:28px;font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(139,139,139,.3);letter-spacing:.06em;z-index:5}
+</style>
+</head>
+<body>
+<div class="card">
+<div class="g g1"></div>
+<div class="left">
+<div class="lbl"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>// Health Scores</div>
+<h2 class="h2">Know before<br>you <span class="hi">adopt</span><span class="hi">_</span></h2>
+<p class="sub">Every project gets a composite health score based on real development signals so you can make informed decisions.</p>
+<div class="factors">
+<div class="factor"><span class="dot"></span>Recent commit activity</div>
+<div class="factor"><span class="dot"></span>Number of active maintainers</div>
+<div class="factor"><span class="dot"></span>Community engagement</div>
+<div class="factor"><span class="dot"></span>Issue response times</div>
+<div class="factor"><span class="dot"></span>Release frequency</div>
+</div>
+</div>
+<div class="right">
+<div class="score-card"><div class="sc-icon gr">N</div><div class="sc-info"><div class="sc-name">Nextcloud</div><div class="sc-bar-wrap"><div class="sc-bar"><div class="sc-bar-fill high" style="width:92%"></div></div><span class="sc-score high">92</span></div><div class="sc-meta">Last commit: 1d ago · 850+ contributors</div></div></div>
+<div class="score-card"><div class="sc-icon gr">I</div><div class="sc-info"><div class="sc-name">Immich</div><div class="sc-bar-wrap"><div class="sc-bar"><div class="sc-bar-fill high" style="width:96%"></div></div><span class="sc-score high">96</span></div><div class="sc-meta">Last commit: 6h ago · 600+ contributors</div></div></div>
+<div class="score-card"><div class="sc-icon bl">P</div><div class="sc-info"><div class="sc-name">Plausible</div><div class="sc-bar-wrap"><div class="sc-bar"><div class="sc-bar-fill high" style="width:88%"></div></div><span class="sc-score high">88</span></div><div class="sc-meta">Last commit: 3d ago · 120+ contributors</div></div></div>
+<div class="score-card"><div class="sc-icon or">M</div><div class="sc-info"><div class="sc-name">Mattermost</div><div class="sc-bar-wrap"><div class="sc-bar"><div class="sc-bar-fill good" style="width:74%"></div></div><span class="sc-score good">74</span></div><div class="sc-meta">Last commit: 1w ago · 830+ contributors</div></div></div>
+<div class="score-card"><div class="sc-icon re">E</div><div class="sc-info"><div class="sc-name">Etherpad</div><div class="sc-bar-wrap"><div class="sc-bar"><div class="sc-bar-fill low" style="width:52%"></div></div><span class="sc-score low">52</span></div><div class="sc-meta">Last commit: 2mo ago · 300+ contributors</div></div></div>
+<div class="legend">
+<div class="leg-item"><div class="leg-dot high"></div>90+  Excellent</div>
+<div class="leg-item"><div class="leg-dot good"></div>70-89  Good</div>
+<div class="leg-item"><div class="leg-dot low"></div>50-69  Fair</div>
+<div class="leg-item"><div class="leg-dot crit"></div>&lt;50  At Risk</div>
+</div>
+</div>
+<span class="tag">opensrc.me</span>
+</div>
+</body>
+</html>

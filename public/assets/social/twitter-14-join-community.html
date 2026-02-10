@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Twitter 14 — Join the Community</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--brand:#3ECF8E;--bg:#0D0D0D;--surface:#181818;--border:#2D2D2D;--bs:#232323;--text:#EDEDED;--muted:#8B8B8B;--cyan:#22D3EE;--amber:#FBBF24;--purple:#A78BFA}
+body{background:#080808;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.card{width:1200px;height:675px;background:var(--bg);position:relative;overflow:hidden;display:flex;align-items:center;padding:0}
+.card::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(62,207,142,.008) 3px,rgba(62,207,142,.008) 4px);pointer-events:none;z-index:10}
+.grid-bg{position:absolute;inset:0;background-image:radial-gradient(rgba(62,207,142,.04) 1px,transparent 1px);background-size:28px 28px;pointer-events:none}
+.glow{position:absolute;pointer-events:none;border-radius:50%}
+.glow1{top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:500px;background:radial-gradient(ellipse,rgba(62,207,142,.06) 0%,transparent 70%)}
+.left{flex:1;padding:56px 48px 56px 68px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:2}
+.right{width:460px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:48px 48px 48px 0;position:relative;z-index:2}
+.badge{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--purple);letter-spacing:.1em;text-transform:uppercase;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.15);border-radius:20px;padding:8px 18px;display:inline-flex;gap:8px;margin-bottom:24px;width:fit-content}
+.h2{font-family:'JetBrains Mono',monospace;font-size:38px;font-weight:800;color:var(--text);line-height:1.25;margin-bottom:16px}.h2 .gr{color:var(--brand)}.h2 .pp{color:var(--purple)}
+.sub{font-family:'Inter',sans-serif;font-size:15px;color:var(--muted);line-height:1.65;margin-bottom:32px;max-width:440px}
+.ways{display:flex;flex-direction:column;gap:14px}
+.way{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--bs);border-radius:10px;padding:14px 18px}
+.way-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.way-icon.v{background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.15)}
+.way-icon.s{background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.15)}
+.way-icon.r{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.15)}
+.way-text{font-family:'Inter',sans-serif;font-size:14px;color:var(--text);line-height:1.5}
+.way-text span{font-weight:700}
+/* right side: contributor cards */
+.contrib{width:100%;background:var(--surface);border:1px solid var(--bs);border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:14px}
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;flex-shrink:0}
+.av1{background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.2);color:var(--brand)}
+.av2{background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.2);color:var(--cyan)}
+.av3{background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.2);color:var(--purple)}
+.av4{background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.2);color:var(--amber)}
+.av5{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.2);color:#EF4444}
+.c-info{display:flex;flex-direction:column;gap:2px}
+.c-name{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--text)}
+.c-action{font-family:'Inter',sans-serif;font-size:11px;color:var(--muted)}
+.c-time{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.tag{position:absolute;bottom:20px;right:28px;font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(139,139,139,.3);letter-spacing:.06em;z-index:5}
+.wm{position:absolute;top:28px;left:32px;display:flex;align-items:center;gap:10px;z-index:5}
+.wm-icon{width:28px;height:28px;border-radius:7px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.2);display:flex;align-items:center;justify-content:center;color:var(--brand)}
+.wm-text{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:var(--text);letter-spacing:.04em}.wm-text .a{color:var(--brand)}
+</style>
+</head>
+<body>
+<div class="card">
+<div class="grid-bg"></div>
+<div class="glow glow1"></div>
+<div class="wm"><div class="wm-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div><span class="wm-text">OPEN<span class="a">_</span>SRC<span class="a">.</span>ME</span></div>
+<div class="left">
+<div class="badge">♡ Community</div>
+<h2 class="h2">Join the<br><span class="gr">Open Source</span><br>Movement<span class="pp">_</span></h2>
+<p class="sub">OPEN_SRC.ME is built by the community, for the community. There are many ways to get involved.</p>
+<div class="ways">
+<div class="way"><div class="way-icon v">▲</div><div class="way-text"><span>Vote</span> for your favorite alternatives</div></div>
+<div class="way"><div class="way-icon s">+</div><div class="way-text"><span>Submit</span> open-source projects you love</div></div>
+<div class="way"><div class="way-icon r">★</div><div class="way-text"><span>Review</span> tools to help others decide</div></div>
+</div>
+</div>
+<div class="right">
+<div class="contrib"><div class="avatar av1">JK</div><div class="c-info"><span class="c-name">@jkdev</span><span class="c-action">Submitted AppFlowy as Notion alternative</span></div><span class="c-time">2m ago</span></div>
+<div class="contrib"><div class="avatar av2">SM</div><div class="c-info"><span class="c-name">@sarah_m</span><span class="c-action">Voted for Nextcloud (+1)</span></div><span class="c-time">5m ago</span></div>
+<div class="contrib"><div class="avatar av3">RL</div><div class="c-info"><span class="c-name">@ryanl</span><span class="c-action">Added review for Gitea ★★★★★</span></div><span class="c-time">8m ago</span></div>
+<div class="contrib"><div class="avatar av4">AW</div><div class="c-info"><span class="c-name">@alexw</span><span class="c-action">Submitted Immich as Google Photos alt</span></div><span class="c-time">12m ago</span></div>
+<div class="contrib"><div class="avatar av5">KN</div><div class="c-info"><span class="c-name">@kira_n</span><span class="c-action">Voted for Plausible (+1)</span></div><span class="c-time">15m ago</span></div>
+</div>
+<span class="tag">opensrc.me</span>
+</div>
+</body>
+</html>

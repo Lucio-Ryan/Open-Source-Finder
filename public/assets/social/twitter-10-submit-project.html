@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Twitter 10 — Submit Your Project</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--brand:#3ECF8E;--bg:#0D0D0D;--surface:#181818;--border:#2D2D2D;--bs:#232323;--text:#EDEDED;--muted:#8B8B8B;--cyan:#22D3EE;--purple:#A78BFA}
+body{background:#080808;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.card{width:1200px;height:675px;background:var(--bg);position:relative;overflow:hidden;display:flex;align-items:center;padding:0}
+.card::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(62,207,142,.008) 3px,rgba(62,207,142,.008) 4px);pointer-events:none;z-index:10}
+.g{position:absolute;pointer-events:none;border-radius:50%}
+.g1{bottom:-100px;right:200px;width:500px;height:400px;background:radial-gradient(ellipse,rgba(34,211,238,.06) 0%,transparent 70%)}
+.left{flex:1;padding:56px 48px 56px 68px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:2}
+.right{width:480px;height:100%;display:flex;align-items:center;justify-content:center;padding:48px;position:relative;z-index:2}
+.badge{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.15);border-radius:20px;padding:8px 18px;display:inline-flex;gap:8px;margin-bottom:24px;width:fit-content}
+.h2{font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:800;color:var(--text);line-height:1.3;margin-bottom:16px}.h2 .gr{color:var(--brand)}.h2 .cy{color:var(--cyan)}
+.sub{font-family:'Inter',sans-serif;font-size:15px;color:var(--muted);line-height:1.65;margin-bottom:28px;max-width:420px}
+.steps{display:flex;flex-direction:column;gap:12px}
+.step{display:flex;align-items:center;gap:14px;font-family:'Inter',sans-serif;font-size:14px;color:var(--text)}
+.step-n{width:28px;height:28px;border-radius:50%;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.2);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--brand);flex-shrink:0}
+/* right mock form */
+.form{width:100%;max-width:350px;background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.form-bar{background:var(--bg);padding:12px 16px;border-bottom:1px solid var(--bs);display:flex;align-items:center;gap:7px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--bs)}.dot:first-child{background:#FF5F57}.dot:nth-child(2){background:#FEBC2E}.dot:nth-child(3){background:#28C840}
+.form-body{padding:24px}
+.form-label{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.form-input{width:100%;height:38px;background:var(--bg);border:1px solid var(--bs);border-radius:8px;margin-bottom:16px;display:flex;align-items:center;padding:0 12px;font-family:'Inter',sans-serif;font-size:13px;color:var(--muted)}
+.form-input.filled{color:var(--text);border-color:rgba(62,207,142,.25)}
+.form-btn{width:100%;height:42px;background:var(--brand);border:none;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--bg);letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px}
+.tag{position:absolute;bottom:20px;right:28px;font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(139,139,139,.3);letter-spacing:.06em;z-index:5}
+.wm{position:absolute;top:28px;left:32px;display:flex;align-items:center;gap:10px;z-index:5}
+.wm-icon{width:28px;height:28px;border-radius:7px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.2);display:flex;align-items:center;justify-content:center;color:var(--brand)}
+.wm-text{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:var(--text);letter-spacing:.04em}.wm-text .a{color:var(--brand)}
+</style>
+</head>
+<body>
+<div class="card">
+<div class="g g1"></div>
+<div class="wm"><div class="wm-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div><span class="wm-text">OPEN<span class="a">_</span>SRC<span class="a">.</span>ME</span></div>
+<div class="left">
+<div class="badge">&#9734; Community Driven</div>
+<h2 class="h2">Submit Your<br><span class="gr">Open Source</span><br>Project<span class="cy">_</span></h2>
+<p class="sub">Have an open-source alternative that deserves more visibility? Submit it to OPEN_SRC.ME and reach thousands of developers looking for better tools.</p>
+<div class="steps">
+<div class="step"><span class="step-n">1</span>Enter your GitHub repository URL</div>
+<div class="step"><span class="step-n">2</span>We auto-fill details from your repo</div>
+<div class="step"><span class="step-n">3</span>Community votes & reviews your project</div>
+</div>
+</div>
+<div class="right">
+<div class="form">
+<div class="form-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<div class="form-body">
+<div class="form-label">Project Name</div>
+<div class="form-input filled">My Awesome App</div>
+<div class="form-label">GitHub URL</div>
+<div class="form-input filled">github.com/myorg/awesome-app</div>
+<div class="form-label">Category</div>
+<div class="form-input">Select a category…</div>
+<div class="form-label">Alternative To</div>
+<div class="form-input filled">Notion, Slack</div>
+<div class="form-btn">&#10148; Submit Project</div>
+</div>
+</div>
+</div>
+<span class="tag">opensrc.me/submit</span>
+</div>
+</body>
+</html>

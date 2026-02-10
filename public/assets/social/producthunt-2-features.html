@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Hunt — Slide 2: Features</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --brand: #3ECF8E;
+    --brand-dark: #30A46C;
+    --bg: #0D0D0D;
+    --surface: #181818;
+    --surface-raised: #1E1E1E;
+    --border: #2D2D2D;
+    --border-subtle: #232323;
+    --text: #EDEDED;
+    --muted: #8B8B8B;
+    --blue: #60A5FA;
+    --purple: #A78BFA;
+    --amber: #FBBF24;
+    --orange: #FB923C;
+    --yellow: #EAB308;
+    --red: #EF4444;
+  }
+  body {
+    background: #080808;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 32px;
+  }
+
+  /* 1270 × 760 */
+  .slide {
+    width: 1270px; height: 760px; background: var(--bg);
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+    padding: 56px 64px 40px;
+  }
+
+  .slide::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(62,207,142,0.008) 3px, rgba(62,207,142,0.008) 4px);
+    pointer-events: none; z-index: 10;
+  }
+
+  .grid-bg {
+    position: absolute; inset: 0; z-index: 0; opacity: 0.02; pointer-events: none;
+    background-image: linear-gradient(var(--brand) 1px, transparent 1px), linear-gradient(90deg, var(--brand) 1px, transparent 1px);
+    background-size: 80px 80px;
+  }
+
+  .glow { position: absolute; pointer-events: none; border-radius: 50%; z-index: 0; }
+  .glow-1 { top: -80px; right: -40px; width: 400px; height: 350px; background: radial-gradient(circle, rgba(62,207,142,0.08) 0%, transparent 70%); }
+  .glow-2 { bottom: -60px; left: 100px; width: 350px; height: 300px; background: radial-gradient(circle, rgba(96,165,250,0.04) 0%, transparent 70%); }
+
+  /* Header */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 44px; position: relative; z-index: 2;
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .logo-sm {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: rgba(62,207,142,0.08); border: 1px solid rgba(62,207,142,0.2);
+    display: flex; align-items: center; justify-content: center; color: var(--brand);
+  }
+  .wordmark-sm {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px; font-weight: 800; letter-spacing: 0.04em; color: var(--text);
+  }
+  .wordmark-sm .a { color: var(--brand); }
+
+  .section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .section-title .hi { color: var(--brand); }
+
+  /* Headline */
+  .heading {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 32px; font-weight: 700; color: var(--text); line-height: 1.3;
+    margin-bottom: 40px; position: relative; z-index: 2;
+  }
+  .heading .hi { color: var(--brand); }
+
+  /* Feature grid */
+  .features {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+    position: relative; z-index: 2; flex: 1;
+  }
+
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 28px 24px 24px;
+    display: flex; flex-direction: column; gap: 12px;
+    transition: border-color 0.3s ease;
+  }
+
+  .feature-icon {
+    width: 44px; height: 44px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .feature-icon svg { width: 20px; height: 20px; stroke-width: 2; fill: none; }
+  .feature-icon.green  { background: rgba(62,207,142,0.1);  color: var(--brand); }
+  .feature-icon.blue   { background: rgba(96,165,250,0.1);  color: var(--blue); }
+  .feature-icon.purple { background: rgba(167,139,250,0.1); color: var(--purple); }
+  .feature-icon.amber  { background: rgba(251,191,36,0.1);  color: var(--amber); }
+  .feature-icon.orange { background: rgba(251,146,60,0.1);  color: var(--orange); }
+  .feature-icon.red    { background: rgba(239,68,68,0.08);  color: var(--red); }
+
+  .feature-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: 0.02em;
+  }
+
+  .feature-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px; color: var(--muted); line-height: 1.65;
+  }
+
+  /* Page dots */
+  .page-dots {
+    position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; z-index: 5;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+  .dot.active { background: var(--brand); box-shadow: 0 0 8px rgba(62,207,142,0.4); }
+
+  .slide-num {
+    position: absolute; top: 24px; right: 28px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(139,139,139,0.3);
+    letter-spacing: 0.06em; z-index: 5;
+  }
+</style>
+</head>
+<body>
+
+<div class="slide">
+  <div class="grid-bg"></div>
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+  <span class="slide-num">02 / 03</span>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo-sm">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line>
+        </svg>
+      </div>
+      <span class="wordmark-sm">OPEN<span class="a">_</span>SRC<span class="a">.</span>ME</span>
+    </div>
+    <span class="section-title"><span class="hi">// </span>Key Features</span>
+  </div>
+
+  <!-- Heading -->
+  <h2 class="heading">
+    Everything you need to find the<br>
+    <span class="hi">perfect open source alternative</span><span class="hi">_</span>
+  </h2>
+
+  <!-- Features -->
+  <div class="features">
+
+    <!-- 1 -->
+    <div class="feature-card">
+      <div class="feature-icon green">
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+          <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+        </svg>
+      </div>
+      <span class="feature-title">Largest Database</span>
+      <span class="feature-desc">1000+ open source alternatives across 100+ categories, growing daily with community submissions.</span>
+    </div>
+
+    <!-- 2 -->
+    <div class="feature-card">
+      <div class="feature-icon blue">
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+      </div>
+      <span class="feature-title">User Rankings</span>
+      <span class="feature-desc">The community votes and ranks alternatives based on real-world experience. Your voice shapes the results.</span>
+    </div>
+
+    <!-- 3 -->
+    <div class="feature-card">
+      <div class="feature-icon purple">
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+        </svg>
+      </div>
+      <span class="feature-title">Live GitHub Stats</span>
+      <span class="feature-desc">Stars, forks, commits &amp; contributors pulled in real-time. No marketing fluff — just verified data.</span>
+    </div>
+
+    <!-- 4 -->
+    <div class="feature-card">
+      <div class="feature-icon amber">
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </div>
+      <span class="feature-title">Powerful Search</span>
+      <span class="feature-desc">Filter by category, tech stack, license, self-hosting capability, and more. Find what fits in seconds.</span>
+    </div>
+
+    <!-- 5 -->
+    <div class="feature-card">
+      <div class="feature-icon orange">
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+          <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+          <line x1="6" y1="6" x2="6.01" y2="6"></line>
+          <line x1="6" y1="18" x2="6.01" y2="18"></line>
+        </svg>
+      </div>
+      <span class="feature-title">Self-Hosted Options</span>
+      <span class="feature-desc">Discover software you can run on your own infrastructure. Full control, full privacy, zero vendor lock-in.</span>
+    </div>
+
+    <!-- 6 -->
+    <div class="feature-card">
+      <div class="feature-icon red">
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+      </div>
+      <span class="feature-title">Health Scores</span>
+      <span class="feature-desc">Project health tracking based on commit activity, maintainers, and community engagement. Know before you adopt.</span>
+    </div>
+
+  </div>
+
+  <div class="page-dots">
+    <div class="dot"></div>
+    <div class="dot active"></div>
+    <div class="dot"></div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Twitter 05 — GitHub Stats</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--brand:#3ECF8E;--bg:#0D0D0D;--surface:#181818;--sr:#1E1E1E;--border:#2D2D2D;--bs:#232323;--text:#EDEDED;--muted:#8B8B8B;--blue:#60A5FA;--purple:#A78BFA;--amber:#FBBF24;--yellow:#EAB308}
+body{background:#080808;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.card{width:1200px;height:675px;background:var(--bg);position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 80px}
+.card::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(62,207,142,.008) 3px,rgba(62,207,142,.008) 4px);pointer-events:none;z-index:10}
+.g{position:absolute;pointer-events:none;border-radius:50%}
+.g1{top:-60px;right:100px;width:400px;height:300px;background:radial-gradient(circle,rgba(167,139,250,.05) 0%,transparent 70%)}
+.g2{bottom:-60px;left:100px;width:350px;height:280px;background:radial-gradient(circle,rgba(62,207,142,.06) 0%,transparent 70%)}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--purple);letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px;position:relative;z-index:2}
+.h2{font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:700;color:var(--text);text-align:center;margin-bottom:8px;position:relative;z-index:2;line-height:1.3}.h2 .hi{color:var(--purple)}
+.sub{font-family:'Inter',sans-serif;font-size:15px;color:var(--muted);text-align:center;margin-bottom:40px;position:relative;z-index:2}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;width:100%;max-width:900px;position:relative;z-index:2}
+.stat-card{background:var(--surface);border:1px solid var(--bs);border-radius:14px;padding:28px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
+.stat-icon{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center}
+.stat-icon svg{width:20px;height:20px;stroke-width:2;fill:none}
+.stat-icon.ye{background:rgba(234,179,8,.1);color:var(--yellow)}
+.stat-icon.mu{background:rgba(139,139,139,.1);color:var(--muted)}
+.stat-icon.gr{background:rgba(62,207,142,.1);color:var(--brand)}
+.stat-icon.bl{background:rgba(96,165,250,.1);color:var(--blue)}
+.stat-val{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:800;color:var(--text)}
+.stat-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.stat-note{font-family:'Inter',sans-serif;font-size:11px;color:var(--muted);line-height:1.5;margin-top:4px}
+.footer{display:flex;align-items:center;gap:8px;margin-top:32px;position:relative;z-index:2}
+.footer svg{width:14px;height:14px;stroke:var(--brand);stroke-width:2;fill:none}
+.footer span{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+.footer .hi{color:var(--brand)}
+.tag{position:absolute;bottom:20px;right:28px;font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(139,139,139,.3);letter-spacing:.06em;z-index:5}
+</style>
+</head>
+<body>
+<div class="card">
+<div class="g g1"></div><div class="g g2"></div>
+<div class="lbl">// Trusted Data</div>
+<h2 class="h2">Real <span class="hi">GitHub statistics</span>.<br>No marketing hype<span class="hi">_</span></h2>
+<p class="sub">Every metric is pulled directly from GitHub's API — verifiable and always up to date</p>
+<div class="stats-grid">
+<div class="stat-card">
+<div class="stat-icon ye"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+<span class="stat-val">Stars</span>
+<span class="stat-lbl">Community Interest</span>
+<span class="stat-note">How many developers have bookmarked the project</span>
+</div>
+<div class="stat-card">
+<div class="stat-icon mu"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"/><line x1="12" y1="12" x2="12" y2="15"/></svg></div>
+<span class="stat-val">Forks</span>
+<span class="stat-lbl">Active Development</span>
+<span class="stat-note">Contributors actively building on the codebase</span>
+</div>
+<div class="stat-card">
+<div class="stat-icon bl"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+<span class="stat-val">Commits</span>
+<span class="stat-lbl">Last Activity</span>
+<span class="stat-note">When the most recent code change was pushed</span>
+</div>
+<div class="stat-card">
+<div class="stat-icon gr"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+<span class="stat-val">Health</span>
+<span class="stat-lbl">Project Score</span>
+<span class="stat-note">Composite score from activity, maintainers &amp; community</span>
+</div>
+</div>
+<div class="footer"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>All data is <span class="hi">real-time</span> and <span class="hi">verifiable</span></span></div>
+<span class="tag">opensrc.me</span>
+</div>
+</body>
+</html>
