@@ -2,8 +2,10 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { PaginatedAlternativesGrid, SearchBar } from '@/components/ui';
+import { PaginatedAlternativesGrid, SearchBar, Breadcrumbs } from '@/components/ui';
 import { getProprietarySoftware, getProprietaryBySlug, getAlternativesFor } from '@/lib/mongodb/queries';
+import { generateAlternativesToMetadata } from '@/lib/seo/metadata';
+import { buildAlternativesToPageSchemas } from '@/lib/seo/structured-data';
 
 // Enable ISR - revalidate every 60 seconds
 export const revalidate = 60;
@@ -24,10 +26,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const software = await getProprietaryBySlug(params.slug);
     if (!software) return { title: 'Not Found' };
 
-    return {
-      title: `Open Source Alternatives to ${software.name} | OPEN_SRC.ME`,
-      description: `Discover the best open source alternatives to ${software.name}. ${software.description}`,
-    };
+    const alternatives = await getAlternativesFor(params.slug);
+    return generateAlternativesToMetadata({
+      name: software.name,
+      slug: software.slug,
+      description: software.description,
+      count: alternatives.length,
+    });
   } catch (error) {
     console.error('Error generating metadata:', error);
     return { title: 'Alternatives | OPEN_SRC.ME' };
@@ -60,11 +65,37 @@ export default async function AlternativesToPage({ params }: Props) {
     notFound();
   }
 
+  const schemas = buildAlternativesToPageSchemas({
+    name: software.name,
+    slug: software.slug,
+    description: software.description,
+    alternatives: alternatives.map(a => ({
+      name: a.name,
+      slug: a.slug,
+      description: a.description,
+      stars: a.stars,
+    })),
+  });
+
   return (
     <div className="min-h-screen bg-dark">
+      {schemas.map((schema, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      ))}
+
       {/* Header */}
       <div className="bg-surface border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <Breadcrumbs
+            items={[
+              { label: 'Alternatives To', href: '/alternatives-to' },
+              { label: software.name },
+            ]}
+          />
           <Link
             href="/alternatives"
             className="inline-flex items-center text-muted hover:text-brand mb-4 font-mono"

@@ -215,6 +215,11 @@ export const CacheKeys = {
   proprietarySoftware: () => `proprietary:all`,
   proprietaryBySlug: (slug: string) => `proprietary:slug:${slug}`,
   
+  // Languages (extracted from tech stacks with type "Language")
+  languages: () => `languages:all`,
+  languageBySlug: (slug: string) => `language:slug:${slug}`,
+  alternativesByLanguage: (languageSlug: string) => `alternatives:language:${languageSlug}`,
+  
   // Stats
   stats: () => `stats:global`,
   

@@ -51,7 +51,7 @@ const nextConfig = {
   
   // Experimental performance optimizations
   experimental: {
-    // Optimize package imports for faster builds
+    // Optimize package imports for faster builds and smaller bundles
     optimizePackageImports: ['lucide-react', '@tiptap/react', '@tiptap/starter-kit'],
   },
   
@@ -59,37 +59,17 @@ const nextConfig = {
   webpack: (config, { dev, isServer }) => {
     // Production optimizations only
     if (!dev) {
-      // Enable module concatenation for smaller bundles
       config.optimization = {
         ...config.optimization,
         moduleIds: 'deterministic',
-        splitChunks: {
-          chunks: 'all',
-          minSize: 20000,
-          maxSize: 244000,
-          cacheGroups: {
-            // Separate vendor chunk
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              chunks: 'all',
-              priority: 10,
-            },
-            // Separate common chunk
-            common: {
-              minChunks: 2,
-              chunks: 'all',
-              priority: 5,
-              reuseExistingChunk: true,
-            },
-          },
-        },
+        // Better tree-shaking
+        sideEffects: true,
       };
     }
     return config;
   },
   
-  // HTTP headers for caching and security
+  // HTTP headers for caching, security, and performance
   async headers() {
     return [
       {
@@ -103,12 +83,42 @@ const nextConfig = {
         ],
       },
       {
-        // Static assets caching
-        source: '/:all*(svg|jpg|jpeg|png|gif|ico|webp|woff|woff2)',
+        // OG images - longer cache
+        source: '/:path*/opengraph-image',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400',
+          },
+        ],
+      },
+      {
+        // Twitter images - longer cache
+        source: '/:path*/twitter-image',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400',
+          },
+        ],
+      },
+      {
+        // Static assets caching (immutable)
+        source: '/:all*(svg|jpg|jpeg|png|gif|ico|webp|woff|woff2|avif)',
         headers: [
           {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        // Programmatic SEO pages - ISR friendly caching
+        source: '/(alternatives|categories|languages|tags|tech-stacks|alternatives-to)/:slug*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, s-maxage=60, stale-while-revalidate=300',
           },
         ],
       },

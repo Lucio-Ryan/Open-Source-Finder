@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, Tag } from 'lucide-react';
 import { AlternativeCard, SponsoredAlternativeCard, SearchBar, isActiveSponsor } from '@/components/ui';
 import { getTags, getTagBySlug, getAlternativesByTag } from '@/lib/mongodb/queries';
+import { generateTagMetadata } from '@/lib/seo/metadata';
 
 // Enable ISR - revalidate every 60 seconds
 export const revalidate = 60;
@@ -24,10 +25,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const tag = await getTagBySlug(params.slug);
     if (!tag) return { title: 'Not Found' };
 
-    return {
-      title: `${tag.name} Open Source Alternatives | OPEN_SRC.ME`,
-      description: `Discover open source alternatives tagged with ${tag.name}`,
-    };
+    return generateTagMetadata({
+      name: tag.name,
+      slug: tag.slug,
+      count: tag.count,
+    });
   } catch (error) {
     console.error('Error generating metadata:', error);
     return { title: 'Tag | OPEN_SRC.ME' };

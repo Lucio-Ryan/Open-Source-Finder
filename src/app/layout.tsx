@@ -4,7 +4,9 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { AuthProvider } from '@/lib/auth/AuthContext';
 import { StructuredData } from '@/components/seo/StructuredData';
-import { BannerAd, PopupAd } from '@/components/ui';
+import { CriticalPreloads } from '@/components/seo/Performance';
+import { BannerAd } from '@/components/ui/BannerAd';
+import { PopupAd } from '@/components/ui/PopupAd';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://opensrc.me'),
@@ -78,6 +80,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        <CriticalPreloads />
         <script defer src="https://cloud.umami.is/script.js" data-website-id="67610b2b-567d-460f-898a-9161a00540ce"></script>
         <meta charSet="utf-8" />
         <StructuredData />

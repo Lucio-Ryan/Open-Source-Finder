@@ -790,6 +790,160 @@ export async function getTagBySlug(slug: string): Promise<TagWithCount | null> {
   });
 }
 
+// ============ OPTIMIZED LANGUAGE QUERIES ============
+// Languages are TechStacks with type "Language"
+
+export interface LanguageWithCount {
+  id: string;
+  name: string;
+  slug: string;
+  count: number;
+  totalStars: number;
+}
+
+export async function getLanguages(): Promise<LanguageWithCount[]> {
+  const cacheKey = CacheKeys.languages();
+  
+  return withCache(cacheKey, CacheTTL.LONG, async () => {
+    await connectToDatabase();
+
+    const pipeline = [
+      { $match: { type: 'Language' } },
+      {
+        $lookup: {
+          from: 'alternatives',
+          let: { techId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $in: ['$$techId', '$tech_stacks'] },
+                    { $eq: ['$approved', true] }
+                  ]
+                }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+                totalStars: { $sum: '$stars' }
+              }
+            }
+          ],
+          as: 'stats'
+        }
+      },
+      {
+        $addFields: {
+          count: { $ifNull: [{ $arrayElemAt: ['$stats.count', 0] }, 0] },
+          totalStars: { $ifNull: [{ $arrayElemAt: ['$stats.totalStars', 0] }, 0] },
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          slug: 1,
+          count: 1,
+          totalStars: 1,
+        }
+      },
+      { $sort: { count: -1 as const, name: 1 as const } }
+    ];
+
+    const languages = await TechStack.aggregate(pipeline);
+    
+    return languages
+      .filter((lang: any) => lang.count > 0)
+      .map((lang: any) => ({
+        id: lang._id.toString(),
+        name: lang.name,
+        slug: lang.slug,
+        count: lang.count,
+        totalStars: lang.totalStars,
+      }));
+  });
+}
+
+export async function getLanguageBySlug(slug: string): Promise<LanguageWithCount | null> {
+  const cacheKey = CacheKeys.languageBySlug(slug);
+  
+  return withCache(cacheKey, CacheTTL.LONG, async () => {
+    await connectToDatabase();
+
+    const pipeline = [
+      { $match: { slug, type: 'Language' } },
+      {
+        $lookup: {
+          from: 'alternatives',
+          let: { techId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $in: ['$$techId', '$tech_stacks'] },
+                    { $eq: ['$approved', true] }
+                  ]
+                }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+                totalStars: { $sum: '$stars' }
+              }
+            }
+          ],
+          as: 'stats'
+        }
+      },
+      {
+        $addFields: {
+          count: { $ifNull: [{ $arrayElemAt: ['$stats.count', 0] }, 0] },
+          totalStars: { $ifNull: [{ $arrayElemAt: ['$stats.totalStars', 0] }, 0] },
+        }
+      }
+    ];
+
+    const results = await TechStack.aggregate(pipeline);
+    if (results.length === 0) return null;
+
+    const lang = results[0];
+    return {
+      id: lang._id.toString(),
+      name: lang.name,
+      slug: lang.slug,
+      count: lang.count,
+      totalStars: lang.totalStars,
+    };
+  });
+}
+
+export async function getAlternativesByLanguage(languageSlug: string): Promise<AlternativeWithRelations[]> {
+  const cacheKey = CacheKeys.alternativesByLanguage(languageSlug);
+  
+  return withCache(cacheKey, CacheTTL.MEDIUM, async () => {
+    await connectToDatabase();
+
+    const techStack = await TechStack.findOne({ slug: languageSlug, type: 'Language' }).select('_id').lean();
+    if (!techStack) return [];
+
+    const alternatives = await Alternative.find({
+      tech_stacks: techStack._id,
+      approved: true,
+    })
+      .populate(ALTERNATIVE_POPULATE_FIELDS)
+      .sort({ stars: -1 })
+      .lean(LEAN_OPTIONS);
+
+    return alternatives.map(transformAlternative);
+  });
+}
+
 // ============ OPTIMIZED PROPRIETARY SOFTWARE QUERIES ============
 
 export async function getProprietarySoftware(): Promise<ProprietaryWithCount[]> {

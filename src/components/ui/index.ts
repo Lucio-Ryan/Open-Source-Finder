@@ -46,6 +46,18 @@ export { ClaimButton } from './ClaimButton';
 // Payment components
 export { PayPalButton, PayPalRedirectButton } from './PayPalButton';
 
+// Internal linking / SEO components
+export { 
+  Breadcrumbs,
+  RelatedAlternatives,
+  CategoryLinks,
+  LanguageLinks,
+  TagLinks,
+  TechStackLinks,
+  FooterSEOLinks,
+  PopularityInCategory,
+} from './InternalLinks';
+
 // Helper to check if an alternative is an active sponsor
 export function isActiveSponsor(alternative: { submission_plan?: string | null; sponsor_priority_until?: string | null }): boolean {
   if (alternative.submission_plan !== 'sponsor') return false;

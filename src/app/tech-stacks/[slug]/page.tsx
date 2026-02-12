@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, Code } from 'lucide-react';
 import { SearchBar, AlternativesList } from '@/components/ui';
 import { getTechStacks, getTechStackBySlug, getAlternativesByTechStack } from '@/lib/mongodb/queries';
+import { generateTechStackMetadata } from '@/lib/seo/metadata';
 
 // Enable ISR - revalidate every 60 seconds
 export const revalidate = 60;
@@ -24,10 +25,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const techStack = await getTechStackBySlug(params.slug);
     if (!techStack) return { title: 'Not Found' };
 
-    return {
-      title: `${techStack.name} Open Source Alternatives | OPEN_SRC.ME`,
-      description: `Discover open source alternatives built with ${techStack.name}`,
-    };
+    return generateTechStackMetadata({
+      name: techStack.name,
+      slug: techStack.slug,
+      type: techStack.type,
+      count: techStack.count,
+    });
   } catch (error) {
     console.error('Error generating metadata:', error);
     return { title: 'Tech Stack | OPEN_SRC.ME' };

@@ -5,7 +5,9 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, ExternalLink, Github, Server, Scale } from 'lucide-react';
 import { getAlternatives, getAlternativeBySlug, getCreatorProfileByUserId, getCreatorProfileByEmail } from '@/lib/mongodb/queries';
 import { AlternativeWithRelations } from '@/types/database';
-import { AlternativeCard, RichTextContent, GitHubStatsCard, ScreenshotCarousel, CreatorProfileCard, AlternativeVoteSection, DiscussionSection, AlternativeTagsHeader, ClaimButton } from '@/components/ui';
+import { AlternativeCard, RichTextContent, GitHubStatsCard, ScreenshotCarousel, CreatorProfileCard, AlternativeVoteSection, DiscussionSection, AlternativeTagsHeader, ClaimButton, Breadcrumbs } from '@/components/ui';
+import { generateAlternativeMetadata } from '@/lib/seo/metadata';
+import { buildAlternativePageSchemas } from '@/lib/seo/structured-data';
 
 // Enable ISR - revalidate every 60 seconds
 export const revalidate = 60;
@@ -26,10 +28,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const alternative = await getAlternativeBySlug(params.slug);
     if (!alternative) return { title: 'Not Found' };
 
-    return {
-      title: `${alternative.name} - Open Source Alternative | OPEN_SRC.ME`,
+    return generateAlternativeMetadata({
+      name: alternative.name,
+      slug: alternative.slug,
       description: alternative.description,
-    };
+      short_description: alternative.short_description,
+      stars: alternative.stars,
+      license: alternative.license,
+      is_self_hosted: alternative.is_self_hosted,
+      icon_url: alternative.icon_url,
+      categories: alternative.categories,
+      alternative_to: alternative.alternative_to,
+    });
   } catch (error) {
     console.error('Error generating metadata:', error);
     return { title: 'Alternative | OPEN_SRC.ME' };
@@ -88,11 +98,47 @@ export default async function AlternativeDetailPage({ params }: Props) {
     )
     .slice(0, 3);
 
+  // Build JSON-LD structured data
+  const schemas = buildAlternativePageSchemas({
+    name: alternative.name,
+    slug: alternative.slug,
+    description: alternative.description,
+    short_description: alternative.short_description,
+    website: alternative.website,
+    github: alternative.github,
+    stars: alternative.stars ?? undefined,
+    license: alternative.license,
+    is_self_hosted: alternative.is_self_hosted,
+    icon_url: alternative.icon_url,
+    screenshots: alternative.screenshots ?? undefined,
+    categories: alternative.categories,
+    health_score: alternative.health_score,
+    created_at: alternative.created_at,
+    updated_at: alternative.updated_at,
+  });
+
   return (
     <div className="min-h-screen bg-dark">
+      {/* JSON-LD Structured Data */}
+      {schemas.map((schema, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      ))}
+
       {/* Header */}
       <div className="bg-surface border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          {/* Breadcrumbs for SEO */}
+          <div className="mb-3">
+            <Breadcrumbs items={[
+              { label: 'alternatives', href: '/alternatives' },
+              ...(alternative.categories?.[0] ? [{ label: alternative.categories[0].name.toLowerCase(), href: `/categories/${alternative.categories[0].slug}` }] : []),
+              { label: alternative.slug, href: `/alternatives/${alternative.slug}` },
+            ]} />
+          </div>
           <Link
             href="/alternatives"
             className="inline-flex items-center text-muted hover:text-brand mb-4 sm:mb-6 font-mono text-sm touch-manipulation py-1"

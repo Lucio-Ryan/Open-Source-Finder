@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { NewsletterForm } from '@/components/ui';
+import { NewsletterForm } from './NewsletterForm';
 
 interface NewsletterSectionProps {
   totalAlternatives?: number | null;
