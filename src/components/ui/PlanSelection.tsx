@@ -245,7 +245,7 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
           <li className="flex items-start gap-2 text-sm">
             <TrendingUp className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
             <span className="text-muted">
-              <span className="text-white font-medium">1.2k clicks/month</span> - Average traffic to your repo
+              <span className="text-white font-medium">4,800 clicks/month</span> - Average traffic to your repo
             </span>
           </li>
           <li className="flex items-start gap-2 text-sm">

@@ -1460,7 +1460,7 @@ export default function SubmitPage() {
                     <h4 className="text-sm font-mono text-muted mb-3">// SPONSOR_BENEFITS</h4>
                     <p className="text-sm font-bold text-emerald-400 mb-3 flex items-center gap-2">
                       <TrendingUp className="w-5 h-5 text-emerald-500" />
-                      Average sponsored listings get 1.2k clicks/month
+                      Average sponsored listings get 4,800 clicks/month
                     </p>
                     <ul className="text-sm text-white space-y-2">
                       <li className="flex items-center gap-2">
