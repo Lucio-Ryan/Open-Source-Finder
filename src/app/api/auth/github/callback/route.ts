@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { findOrCreateOAuthUser } from '@/lib/mongodb/auth';
+import { findOrCreateOAuthUser, COOKIE_NAME, COOKIE_OPTIONS } from '@/lib/mongodb/auth';
 
 interface GitHubTokenResponse {
   access_token: string;
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${baseUrl}/login?error=github_no_email`);
     }
 
-    const { user, error } = await findOrCreateOAuthUser({
+    const { user, token, error } = await findOrCreateOAuthUser({
       provider: 'github',
       oauthId: String(githubUser.id),
       email,
@@ -96,12 +96,14 @@ export async function GET(request: NextRequest) {
       githubUsername: githubUser.login,
     });
 
-    if (error || !user) {
+    if (error || !user || !token) {
       console.error('GitHub OAuth user error:', error);
       return NextResponse.redirect(`${baseUrl}/login?error=github_auth_failed`);
     }
 
-    return NextResponse.redirect(`${baseUrl}${returnTo}`);
+    const response = NextResponse.redirect(`${baseUrl}${returnTo}`);
+    response.cookies.set(COOKIE_NAME, token, COOKIE_OPTIONS);
+    return response;
   } catch (err) {
     console.error('GitHub OAuth callback error:', err);
     return NextResponse.redirect(`${baseUrl}/login?error=github_callback_failed`);

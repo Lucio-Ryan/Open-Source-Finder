@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { signIn } from '@/lib/mongodb/auth';
+import { signIn, COOKIE_NAME, COOKIE_OPTIONS } from '@/lib/mongodb/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,18 +14,20 @@ export async function POST(request: NextRequest) {
 
     const { user, token, error } = await signIn(email, password);
 
-    if (error) {
+    if (error || !token) {
       return NextResponse.json(
-        { error },
+        { error: error || 'Sign in failed' },
         { status: 401 }
       );
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       user,
       token,
     });
+    response.cookies.set(COOKIE_NAME, token, COOKIE_OPTIONS);
+    return response;
   } catch (error) {
     console.error('Sign in error:', error);
     return NextResponse.json(

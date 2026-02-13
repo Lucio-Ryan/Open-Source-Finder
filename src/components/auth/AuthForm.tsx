@@ -88,16 +88,18 @@ export function AuthForm({ mode }: AuthFormProps) {
         if (error) {
           setError(error.message);
         } else {
-          router.push(returnTo);
-          router.refresh();
+          // Hard redirect to ensure cookie is picked up on full page load
+          window.location.href = returnTo;
+          return;
         }
       } else {
         const { error } = await signUp(email, password, name);
         if (error) {
           setError(error.message);
         } else {
-          router.push(returnTo);
-          router.refresh();
+          // Hard redirect to ensure cookie is picked up on full page load
+          window.location.href = returnTo;
+          return;
         }
       }
     } catch (err) {

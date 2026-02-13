@@ -233,9 +233,9 @@ export default function SubmitPage() {
         }
       }
 
-      // Close modal and refresh - the useEffect will load saved data
+      // Close modal and redirect - form data was saved to localStorage above
       setShowAuthModal(false);
-      router.refresh();
+      window.location.href = '/submit';
     } catch (err) {
       setAuthError('An unexpected error occurred');
     } finally {

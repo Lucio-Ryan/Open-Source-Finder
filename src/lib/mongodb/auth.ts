@@ -8,8 +8,16 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key-change-in-production'
 );
 
-const COOKIE_NAME = 'auth_token';
-const TOKEN_EXPIRY = 7 * 24 * 60 * 60; // 7 days in seconds
+export const COOKIE_NAME = 'auth_token';
+export const TOKEN_EXPIRY = 7 * 24 * 60 * 60; // 7 days in seconds
+
+export const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  maxAge: TOKEN_EXPIRY,
+  path: '/',
+};
 
 export interface JWTPayload {
   userId: string;
@@ -160,14 +168,14 @@ export async function signUp(
   email: string,
   password: string,
   name?: string
-): Promise<{ user: AuthUser | null; error: string | null }> {
+): Promise<{ user: AuthUser | null; token: string | null; error: string | null }> {
   try {
     await connectToDatabase();
 
     // Check if user exists
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
-      return { user: null, error: 'User with this email already exists' };
+      return { user: null, token: null, error: 'User with this email already exists' };
     }
 
     // Hash password and create user
@@ -198,11 +206,12 @@ export async function signUp(
         avatar_url: user.avatar_url,
         role: user.role,
       },
+      token,
       error: null,
     };
   } catch (error) {
     console.error('Sign up error:', error);
-    return { user: null, error: 'Failed to create account' };
+    return { user: null, token: null, error: 'Failed to create account' };
   }
 }
 

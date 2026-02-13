@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { signUp } from '@/lib/mongodb/auth';
+import { signUp, COOKIE_NAME, COOKIE_OPTIONS } from '@/lib/mongodb/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { user, error } = await signUp(email, password, name);
+    const { user, token, error } = await signUp(email, password, name);
 
     if (error) {
       // Check if user already exists
@@ -42,10 +42,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error }, { status: 400 });
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       user,
     });
+    if (token) {
+      response.cookies.set(COOKIE_NAME, token, COOKIE_OPTIONS);
+    }
+    return response;
   } catch (error) {
     console.error('Signup error:', error);
     return NextResponse.json(

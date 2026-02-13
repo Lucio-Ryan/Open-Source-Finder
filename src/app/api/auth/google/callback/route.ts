@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { findOrCreateOAuthUser } from '@/lib/mongodb/auth';
+import { findOrCreateOAuthUser, COOKIE_NAME, COOKIE_OPTIONS } from '@/lib/mongodb/auth';
 
 interface GoogleTokenResponse {
   access_token: string;
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${baseUrl}/login?error=google_no_email`);
     }
 
-    const { user, error } = await findOrCreateOAuthUser({
+    const { user, token, error } = await findOrCreateOAuthUser({
       provider: 'google',
       oauthId: googleUser.sub,
       email: googleUser.email,
@@ -79,12 +79,14 @@ export async function GET(request: NextRequest) {
       avatarUrl: googleUser.picture || null,
     });
 
-    if (error || !user) {
+    if (error || !user || !token) {
       console.error('Google OAuth user error:', error);
       return NextResponse.redirect(`${baseUrl}/login?error=google_auth_failed`);
     }
 
-    return NextResponse.redirect(`${baseUrl}${returnTo}`);
+    const response = NextResponse.redirect(`${baseUrl}${returnTo}`);
+    response.cookies.set(COOKIE_NAME, token, COOKIE_OPTIONS);
+    return response;
   } catch (err) {
     console.error('Google OAuth callback error:', err);
     return NextResponse.redirect(`${baseUrl}/login?error=google_callback_failed`);
