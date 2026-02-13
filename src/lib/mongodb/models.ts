@@ -16,6 +16,8 @@ export interface IUser extends Document {
   discord_username: string | null;
   role: 'user' | 'admin' | 'moderator';
   email_verified: boolean;
+  oauth_provider: 'github' | 'google' | null;
+  oauth_id: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -23,7 +25,7 @@ export interface IUser extends Document {
 const UserSchema = new Schema<IUser>(
   {
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true },
+    password: { type: String, required: false, default: null },
     name: { type: String, default: null },
     avatar_url: { type: String, default: null },
     bio: { type: String, default: null },
@@ -35,6 +37,8 @@ const UserSchema = new Schema<IUser>(
     discord_username: { type: String, default: null },
     role: { type: String, enum: ['user', 'admin', 'moderator'], default: 'user' },
     email_verified: { type: Boolean, default: false },
+    oauth_provider: { type: String, enum: ['github', 'google', null], default: null },
+    oauth_id: { type: String, default: null },
   },
   {
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
@@ -44,6 +48,7 @@ const UserSchema = new Schema<IUser>(
 // Index for faster lookups
 // Note: email index is already created by unique: true
 UserSchema.index({ role: 1 });
+UserSchema.index({ oauth_provider: 1, oauth_id: 1 });
 
 // ============ CATEGORY SCHEMA ============
 export interface ICategory extends Document {

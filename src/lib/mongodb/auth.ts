@@ -219,6 +219,11 @@ export async function signIn(
       return { user: null, token: null, error: 'Invalid email or password' };
     }
 
+    // OAuth-only users cannot sign in with password
+    if (user.oauth_provider && !user.password) {
+      return { user: null, token: null, error: `This account uses ${user.oauth_provider === 'github' ? 'GitHub' : 'Google'} sign-in. Please use that instead.` };
+    }
+
     const isValid = await verifyPassword(password, user.password);
     if (!isValid) {
       return { user: null, token: null, error: 'Invalid email or password' };
@@ -321,5 +326,93 @@ export async function updateUserProfile(
   } catch (error) {
     console.error('Error updating user profile:', error);
     return { success: false, error: 'Failed to update profile' };
+  }
+}
+
+// Find or create user via OAuth provider (GitHub / Google)
+export async function findOrCreateOAuthUser(params: {
+  provider: 'github' | 'google';
+  oauthId: string;
+  email: string;
+  name: string | null;
+  avatarUrl: string | null;
+  githubUsername?: string | null;
+}): Promise<{ user: AuthUser | null; token: string | null; error: string | null }> {
+  try {
+    await connectToDatabase();
+
+    // 1. Try to find by OAuth provider + id
+    let user = await User.findOne({
+      oauth_provider: params.provider,
+      oauth_id: params.oauthId,
+    });
+
+    if (!user) {
+      // 2. Try to find by email — link this OAuth identity to existing account
+      user = await User.findOne({ email: params.email.toLowerCase() });
+
+      if (user) {
+        // Link the OAuth identity to the existing user
+        user.oauth_provider = params.provider;
+        user.oauth_id = params.oauthId;
+        if (!user.avatar_url && params.avatarUrl) {
+          user.avatar_url = params.avatarUrl;
+        }
+        if (params.provider === 'github' && params.githubUsername && !user.github_username) {
+          user.github_username = params.githubUsername;
+        }
+        user.email_verified = true;
+        await user.save();
+      } else {
+        // 3. Create new user
+        user = await User.create({
+          email: params.email.toLowerCase(),
+          password: null,
+          name: params.name || params.email.split('@')[0],
+          avatar_url: params.avatarUrl,
+          email_verified: true,
+          oauth_provider: params.provider,
+          oauth_id: params.oauthId,
+          github_username: params.provider === 'github' ? params.githubUsername : null,
+        });
+      }
+    } else {
+      // Update avatar / name if missing
+      let changed = false;
+      if (!user.avatar_url && params.avatarUrl) {
+        user.avatar_url = params.avatarUrl;
+        changed = true;
+      }
+      if (!user.name && params.name) {
+        user.name = params.name;
+        changed = true;
+      }
+      if (changed) await user.save();
+    }
+
+    // Create token & session
+    const token = await createToken(user);
+    setAuthCookie(token);
+
+    await Session.create({
+      user_id: user._id,
+      token,
+      expires_at: new Date(Date.now() + TOKEN_EXPIRY * 1000),
+    });
+
+    return {
+      user: {
+        id: user._id.toString(),
+        email: user.email,
+        name: user.name,
+        avatar_url: user.avatar_url,
+        role: user.role,
+      },
+      token,
+      error: null,
+    };
+  } catch (error) {
+    console.error('OAuth findOrCreate error:', error);
+    return { user: null, token: null, error: 'Failed to authenticate with OAuth' };
   }
 }
