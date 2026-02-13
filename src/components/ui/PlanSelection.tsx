@@ -232,7 +232,7 @@ export function PlanSelection({ selectedPlan, onPlanSelect }: PlanSelectionProps
                   <span className={`text-sm font-medium ${
                     isSponsorFull ? 'text-red-400' : 'text-muted'
                   }`}>
-                    ({sponsorStatus.slotsRemaining}/{sponsorStatus.maxCount} Left)
+                    ({sponsorStatus.currentCount}/{sponsorStatus.maxCount} Left)
                   </span>
                 )}
               </div>
