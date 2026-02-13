@@ -1541,7 +1541,7 @@ export default function SubmitPage() {
                               type="button"
                               onClick={() => {
                                 // Validate coupon code
-                                const validCoupons: Record<string, number> = { 'LAUNCH60': 0.60, 'LISTEDDISCOUNT': 0.60, 'PH30OFF': 0.30 };
+                                const validCoupons: Record<string, number> = { 'LAUNCH60': 0.60, 'LISTEDDISCOUNT': 0.30, 'PH30OFF': 0.30 };
                                 const discount = validCoupons[couponCode.trim().toUpperCase()];
                                 if (discount) {
                                   setCouponApplied(true);

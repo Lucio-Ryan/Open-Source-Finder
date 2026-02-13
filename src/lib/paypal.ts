@@ -46,8 +46,8 @@ export const COUPON_CODES: Record<string, { discount: number; description: strin
     validFor: ['sponsor_submission', 'boost_alternative'],
   },
   'LISTEDDISCOUNT': {
-    discount: 0.60, // 60% off
-    description: '60% discount for admin-listed projects',
+    discount: 0.30, // 30% off
+    description: '30% discount for admin-listed projects',
     validFor: ['sponsor_submission', 'boost_alternative'],
   },
   'PH30OFF': {
