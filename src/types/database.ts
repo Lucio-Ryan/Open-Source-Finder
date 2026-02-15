@@ -75,6 +75,10 @@ export type Database = {
           sponsor_payment_id: string | null;
           sponsor_paid_at: string | null;
           newsletter_included: boolean;
+          discount_code: string | null;
+          discount_percentage: number | null;
+          discount_description: string | null;
+          discount_expires_at: string | null;
           alternative_tags: AlternativeTagsData | null;
           created_at: string;
           updated_at: string;
@@ -109,6 +113,10 @@ export type Database = {
           sponsor_payment_id?: string | null;
           sponsor_paid_at?: string | null;
           newsletter_included?: boolean;
+          discount_code?: string | null;
+          discount_percentage?: number | null;
+          discount_description?: string | null;
+          discount_expires_at?: string | null;
           alternative_tags?: AlternativeTagsData | null;
           created_at?: string;
           updated_at?: string;
@@ -143,6 +151,10 @@ export type Database = {
           sponsor_payment_id?: string | null;
           sponsor_paid_at?: string | null;
           newsletter_included?: boolean;
+          discount_code?: string | null;
+          discount_percentage?: number | null;
+          discount_description?: string | null;
+          discount_expires_at?: string | null;
           alternative_tags?: AlternativeTagsData | null;
           created_at?: string;
           updated_at?: string;

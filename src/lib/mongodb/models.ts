@@ -200,6 +200,11 @@ export interface IAlternative extends Document {
   newsletter_included: boolean;
   // Track when free listings last edited (for once-per-month restriction)
   last_edited_at: Date | null;
+  // Discount code (user-facing promo code displayed on listing)
+  discount_code: string | null;
+  discount_percentage: number | null;
+  discount_description: string | null;
+  discount_expires_at: Date | null;
   // Alternative tags (alerts, highlights, platforms, properties)
   alternative_tags: IAlternativeTags;
   // Relations stored as references
@@ -246,6 +251,11 @@ const AlternativeSchema = new Schema<IAlternative>(
     newsletter_included: { type: Boolean, default: false },
     // Track when free listings last edited (for once-per-month restriction)
     last_edited_at: { type: Date, default: null },
+    // Discount code (user-facing promo code displayed on listing)
+    discount_code: { type: String, default: null },
+    discount_percentage: { type: Number, default: null },
+    discount_description: { type: String, default: null },
+    discount_expires_at: { type: Date, default: null },
     // Alternative tags (alerts, highlights, platforms, properties)
     alternative_tags: { 
       type: AlternativeTagsSubSchema, 

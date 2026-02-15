@@ -143,6 +143,10 @@ export default function SubmitPage() {
     submitter_name: '',
     submitter_email: '',
     screenshots: [] as string[],
+    discount_code: '',
+    discount_percentage: '' as string | number,
+    discount_description: '',
+    discount_expires_at: '',
   });
   
   // Filter categories and proprietary software based on search
@@ -399,6 +403,10 @@ export default function SubmitPage() {
                 submitter_name: data.draft.submitter_name || user.name || '',
                 submitter_email: data.draft.submitter_email || user.email || '',
                 screenshots: data.draft.screenshots || [],
+                discount_code: data.draft.discount_code || '',
+                discount_percentage: data.draft.discount_percentage || '',
+                discount_description: data.draft.discount_description || '',
+                discount_expires_at: data.draft.discount_expires_at || '',
               });
               // Set plan and payment state
               setSelectedPlan(data.draft.submission_plan || 'free');
@@ -595,6 +603,10 @@ export default function SubmitPage() {
           submitter_name: user.name || '',
           submitter_email: user.email || '',
           screenshots: [],
+          discount_code: '',
+          discount_percentage: '',
+          discount_description: '',
+          discount_expires_at: '',
         });
         setSelectedPlan('free');
         setSponsorPaymentId(null);
@@ -1310,6 +1322,106 @@ export default function SubmitPage() {
                   placeholder="e.g., MIT, Apache-2.0, GPL-3.0"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Discount Code */}
+          <div className="bg-surface rounded-xl border border-border p-6">
+            <h2 className="text-xl font-semibold text-white mb-2 font-mono">
+              <Terminal className="w-5 h-5 inline mr-2 text-brand" />
+              // DISCOUNT_CODE
+            </h2>
+            <p className="text-sm text-muted mb-6">
+              Add an optional discount code for visitors of your listing. This will be displayed publicly on your project page.
+            </p>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="discount_code" className="block text-sm font-medium font-mono text-muted mb-2">
+                    discount_code <span className="text-muted/70">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="discount_code"
+                    value={formData.discount_code}
+                    onChange={(e) => setFormData({ ...formData, discount_code: e.target.value.toUpperCase() })}
+                    className="w-full px-4 py-3 bg-dark border border-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-transparent font-mono uppercase"
+                    placeholder="e.g., OPENSRC20"
+                    maxLength={30}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="discount_percentage" className="block text-sm font-medium font-mono text-muted mb-2">
+                    discount_percentage <span className="text-muted/70">(optional)</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      id="discount_percentage"
+                      value={formData.discount_percentage}
+                      onChange={(e) => setFormData({ ...formData, discount_percentage: e.target.value ? Number(e.target.value) : '' })}
+                      className="w-full px-4 py-3 bg-dark border border-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-transparent pr-10"
+                      placeholder="e.g., 15"
+                      min={1}
+                      max={100}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted font-mono">%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="discount_description" className="block text-sm font-medium font-mono text-muted mb-2">
+                  specification <span className="text-muted/70">(optional, e.g., &quot;only annual plans&quot;)</span>
+                </label>
+                <input
+                  type="text"
+                  id="discount_description"
+                  value={formData.discount_description}
+                  onChange={(e) => setFormData({ ...formData, discount_description: e.target.value })}
+                  className="w-full px-4 py-3 bg-dark border border-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-transparent"
+                  placeholder="e.g., Only on annual plans, First 3 months, New users only"
+                  maxLength={100}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="discount_expires_at" className="block text-sm font-medium font-mono text-muted mb-2">
+                  expires_at <span className="text-muted/70">(optional)</span>
+                </label>
+                <input
+                  type="date"
+                  id="discount_expires_at"
+                  value={formData.discount_expires_at}
+                  onChange={(e) => setFormData({ ...formData, discount_expires_at: e.target.value })}
+                  className="w-full px-4 py-3 bg-dark border border-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-transparent"
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+
+              {/* Live Preview */}
+              {formData.discount_code && (
+                <div className="mt-4 p-3 bg-dark rounded-lg border border-border">
+                  <p className="text-xs text-muted font-mono mb-2">// preview</p>
+                  <p className="text-sm">
+                    <span className="text-emerald-400">
+                      Get {formData.discount_percentage ? `${formData.discount_percentage}% off` : 'a discount'}
+                    </span>
+                    {' '}
+                    <span className="text-white">
+                      with code <span className="font-mono font-bold text-brand">{formData.discount_code}</span>
+                    </span>
+                    {formData.discount_description && (
+                      <span className="text-muted"> · {formData.discount_description}</span>
+                    )}
+                    {formData.discount_expires_at && (
+                      <span className="text-muted"> · Expires {new Date(formData.discount_expires_at).toLocaleDateString()}</span>
+                    )}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

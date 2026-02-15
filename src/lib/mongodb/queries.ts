@@ -46,6 +46,10 @@ export interface AlternativeWithRelations {
   sponsor_payment_id: string | null;
   sponsor_paid_at: string | null;
   newsletter_included: boolean;
+  discount_code: string | null;
+  discount_percentage: number | null;
+  discount_description: string | null;
+  discount_expires_at: string | null;
   alternative_tags: AlternativeTagsData | null;
   created_at: string;
   updated_at: string;
@@ -141,6 +145,10 @@ function transformAlternative(alt: any): AlternativeWithRelations {
     sponsor_payment_id: alt.sponsor_payment_id,
     sponsor_paid_at: alt.sponsor_paid_at ? new Date(alt.sponsor_paid_at).toISOString() : null,
     newsletter_included: alt.newsletter_included || false,
+    discount_code: alt.discount_code || null,
+    discount_percentage: alt.discount_percentage || null,
+    discount_description: alt.discount_description || null,
+    discount_expires_at: alt.discount_expires_at ? new Date(alt.discount_expires_at).toISOString() : null,
     created_at: alt.created_at ? new Date(alt.created_at).toISOString() : new Date().toISOString(),
     updated_at: alt.updated_at ? new Date(alt.updated_at).toISOString() : new Date().toISOString(),
     categories: (alt.categories || []).map((c: any) => ({

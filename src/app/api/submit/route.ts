@@ -42,6 +42,11 @@ export async function POST(request: NextRequest) {
       // New plan-related fields
       submission_plan = 'free' as SubmissionPlan,
       sponsor_payment_id,
+      // Discount code fields
+      discount_code,
+      discount_percentage,
+      discount_description,
+      discount_expires_at,
     } = body;
 
     // Validate required fields
@@ -118,6 +123,11 @@ export async function POST(request: NextRequest) {
       tags: tag_ids?.map((id: string) => new mongoose.Types.ObjectId(id)) || [],
       tech_stacks: tech_stack_ids?.map((id: string) => new mongoose.Types.ObjectId(id)) || [],
       alternative_to: alternative_to_ids?.map((id: string) => new mongoose.Types.ObjectId(id)) || [],
+      // Discount code
+      discount_code: discount_code || null,
+      discount_percentage: discount_percentage ? Number(discount_percentage) : null,
+      discount_description: discount_description || null,
+      discount_expires_at: discount_expires_at ? new Date(discount_expires_at) : null,
     });
 
     // Return plan-specific success message

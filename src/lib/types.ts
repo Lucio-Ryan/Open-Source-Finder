@@ -74,6 +74,11 @@ export interface Alternative {
   screenshots: string[] | null;
   created_at: string;
   updated_at: string;
+  // Discount code
+  discount_code?: string | null;
+  discount_percentage?: number | null;
+  discount_description?: string | null;
+  discount_expires_at?: string | null;
   // Relations
   categories?: Category[];
   tags?: Tag[];

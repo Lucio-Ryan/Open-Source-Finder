@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, ExternalLink, Github, Server, Scale } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Github, Server, Scale, Tag } from 'lucide-react';
 import { getAlternatives, getAlternativeBySlug, getCreatorProfileByUserId, getCreatorProfileByEmail } from '@/lib/mongodb/queries';
 import { AlternativeWithRelations } from '@/types/database';
 import { AlternativeCard, RichTextContent, GitHubStatsCard, ScreenshotCarousel, CreatorProfileCard, AlternativeVoteSection, DiscussionSection, AlternativeTagsHeader, ClaimButton, Breadcrumbs } from '@/components/ui';
@@ -239,6 +239,31 @@ export default async function AlternativeDetailPage({ params }: Props) {
                 </a>
               )}
             </div>
+
+            {/* Discount Code Banner */}
+            {(() => {
+              const alt = alternative as any;
+              const hasDiscount = alt.discount_code;
+              const isExpired = alt.discount_expires_at && new Date(alt.discount_expires_at) < new Date();
+              if (!hasDiscount || isExpired) return null;
+              return (
+                <div className="flex items-center gap-2 text-sm">
+                  <Tag className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                  <span className="text-emerald-400 font-medium">
+                    Get {alt.discount_percentage ? `${alt.discount_percentage}% off` : 'a discount'}
+                  </span>
+                  <span className="text-white">
+                    with code <span className="font-mono font-bold text-brand">{alt.discount_code}</span>
+                  </span>
+                  {alt.discount_description && (
+                    <span className="text-muted">· {alt.discount_description}</span>
+                  )}
+                  {alt.discount_expires_at && (
+                    <span className="text-muted text-xs">· Expires {new Date(alt.discount_expires_at).toLocaleDateString()}</span>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>

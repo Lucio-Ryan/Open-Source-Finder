@@ -75,6 +75,11 @@ export async function PUT(
       alternative_to_ids,
       tech_stack_ids,
       screenshots,
+      // Discount code fields
+      discount_code,
+      discount_percentage,
+      discount_description,
+      discount_expires_at,
     } = body;
 
     // Update the alternative
@@ -93,6 +98,11 @@ export async function PUT(
       approved: isSponsor ? true : false,
       rejection_reason: null,
       rejected_at: null,
+      // Discount code
+      discount_code: discount_code || null,
+      discount_percentage: discount_percentage ? Number(discount_percentage) : null,
+      discount_description: discount_description || null,
+      discount_expires_at: discount_expires_at ? new Date(discount_expires_at) : null,
     };
 
     // Track last edit time for free listings (for once-per-month restriction)
