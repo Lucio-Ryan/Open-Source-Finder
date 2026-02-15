@@ -1403,7 +1403,7 @@ export default function SubmitPage() {
             </div>
           </div>
 
-          {/* Plan Selection */
+          {/* Plan Selection */}
           <div className="bg-surface rounded-xl border border-border p-6">
             <h2 className="text-xl font-semibold text-white mb-2 font-mono">
               <Terminal className="w-5 h-5 inline mr-2 text-brand" />
