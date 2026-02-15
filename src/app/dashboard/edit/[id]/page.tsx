@@ -790,7 +790,6 @@ export default function EditAlternativePage({ params }: { params: { id: string }
               {/* Live Preview */}
               {formData.discount_code && (
                 <div className="mt-4 p-3 bg-dark rounded-lg border border-border">
-                  <p className="text-xs text-muted font-mono mb-2">// preview</p>
                   <p className="text-sm">
                     <span className="text-emerald-400">
                       Get {formData.discount_percentage ? `${formData.discount_percentage}% off` : 'a discount'}
