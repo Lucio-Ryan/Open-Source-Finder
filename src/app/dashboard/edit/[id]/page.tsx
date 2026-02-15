@@ -786,27 +786,6 @@ export default function EditAlternativePage({ params }: { params: { id: string }
                   min={new Date().toISOString().split('T')[0]}
                 />
               </div>
-
-              {/* Live Preview */}
-              {formData.discount_code && (
-                <div className="mt-4 p-3 bg-dark rounded-lg border border-border">
-                  <p className="text-sm">
-                    <span className="text-emerald-400">
-                      Get {formData.discount_percentage ? `${formData.discount_percentage}% off` : 'a discount'}
-                    </span>
-                    {' '}
-                    <span className="text-white">
-                      with code <span className="font-mono font-bold text-brand">{formData.discount_code}</span>
-                    </span>
-                    {formData.discount_description && (
-                      <span className="text-muted"> · {formData.discount_description}</span>
-                    )}
-                    {formData.discount_expires_at && (
-                      <span className="text-muted"> · Expires {new Date(formData.discount_expires_at).toLocaleDateString()}</span>
-                    )}
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 
